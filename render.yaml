@@ -9,9 +9,8 @@ services:
     plan: free
 
   # Frontend Vite Static Site
-  - type: web
+  - type: static
     name: paperplane-frontend
-    env: static
     buildCommand: npm run build
     publishDir: dist
     envVars:
