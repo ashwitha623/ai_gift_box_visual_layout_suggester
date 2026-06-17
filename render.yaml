@@ -20,4 +20,3 @@ services:
           name: paperplane-backend
           type: web
           property: host
-    plan: free
