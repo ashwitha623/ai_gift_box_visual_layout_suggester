@@ -1,0 +1,95 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 25% 97%; /* Warm Ivory #FAF7F2 */
+    --foreground: 220 50% 12%; /* Dark Navy #0A192F text */
+    --card: 0 0% 100%;
+    --card-foreground: 220 50% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 50% 12%;
+    --primary: 220 65% 11%; /* Deep Navy #0B192F */
+    --primary-foreground: 40 25% 97%;
+    --secondary: 40 20% 93%;
+    --secondary-foreground: 220 50% 12%;
+    --muted: 40 10% 90%;
+    --muted-foreground: 220 15% 45%;
+    --accent: 43 55% 48%; /* Luxury Gold #C5A880 / #D4AF37 */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 40 15% 86%;
+    --input: 40 15% 86%;
+    --ring: 43 55% 48%;
+    --rosegold: 43 55% 48%; /* Aligning rosegold token to Gold */
+    --chart-1: 220 65% 11%;
+    --chart-2: 43 55% 48%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.75rem;
+    --font-heading: 'Playfair Display', Georgia, serif;
+    --font-body: 'Outfit', sans-serif;
+    --font-display: 'Playfair Display', serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    --sidebar-background: 40 25% 97%;
+    --sidebar-foreground: 220 50% 12%;
+    --sidebar-primary: 220 65% 11%;
+    --sidebar-primary-foreground: 40 25% 97%;
+    --sidebar-accent: 40 20% 93%;
+    --sidebar-accent-foreground: 220 65% 11%;
+    --sidebar-border: 40 15% 86%;
+    --sidebar-ring: 43 55% 48%;
+  }
+
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body;
+  }
+}

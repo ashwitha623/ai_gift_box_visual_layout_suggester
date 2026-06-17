@@ -1,0 +1,130 @@
+import { useState } from "react";
+import axios from "axios";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, ArrowRight, Sparkles, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import OccasionStep from "@/components/builder/OccasionStep";
+import ProductStep from "@/components/builder/ProductStep";
+import RecipientStep from "@/components/builder/RecipientStep";
+import ResultStep from "@/components/builder/ResultStep";
+import { generateRecommendations } from "@/lib/layoutEngine";
+
+const STEPS = ["Occasion", "Products", "Details", "AI Layout"];
+
+export default function CreateBox() {
+  const [step, setStep] = useState(0);
+  const [occasion, setOccasion] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [details, setDetails] = useState({ name: "", message: "", budget: 5000, boxSize: "Medium" });
+  const [result, setResult] = useState(null);
+  const [generating, setGenerating] = useState(false);
+
+  const toggleProduct = (p) =>
+    setProducts((prev) => (prev.some((s) => s.id === p.id) ? prev.filter((s) => s.id !== p.id) : prev.length < 8 ? [...prev, p] : prev));
+
+  const canNext = step === 0 ? !!occasion : step === 1 ? products.length >= 2 : true;
+  const selectedTotal = products.reduce((s, p) => s + p.price, 0);
+
+  const handleGenerate = async () => {
+  setGenerating(true);
+  setStep(3);
+
+  setTimeout(async () => {
+    const generatedResult = generateRecommendations({
+      occasion: occasion.id,
+      occasionTitle: occasion.title,
+      products,
+      budget: details.budget,
+      boxSize: details.boxSize,
+    });
+
+    setResult(generatedResult);
+
+    try {
+      await axios.post(
+        "http://localhost:5000/api/save-layout",
+        {
+          occasion: occasion.title,
+          products: products.map((p) => p.name),
+          layout: generatedResult.recommended.name,
+          ribbon: generatedResult.recommended.ribbon.color,
+        }
+      );
+
+      console.log("Layout saved successfully");
+    } catch (error) {
+      console.error("Error saving layout:", error);
+    }
+
+    setGenerating(false);
+  }, 2200);
+};
+
+  const restart = () => {
+    setStep(0); setOccasion(null); setProducts([]); setResult(null);
+    setDetails({ name: "", message: "", budget: 5000, boxSize: "Medium" });
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto px-6 py-10">
+      {/* Stepper */}
+      <div className="flex items-center justify-center gap-2 sm:gap-4 mb-12">
+        {STEPS.map((label, i) => (
+          <div key={label} className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-2">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
+                i < step ? "bg-primary text-white" : i === step ? "bg-gradient-to-r from-primary to-rosegold text-white shadow-md shadow-primary/30 scale-110" : "bg-muted text-muted-foreground"
+              }`}>{i + 1}</div>
+              <span className={`hidden sm:block text-sm font-medium ${i === step ? "text-foreground" : "text-muted-foreground"}`}>{label}</span>
+            </div>
+            {i < STEPS.length - 1 && <div className={`w-6 sm:w-12 h-0.5 rounded ${i < step ? "bg-primary" : "bg-border"}`} />}
+          </div>
+        ))}
+      </div>
+
+      <AnimatePresence mode="wait">
+        <motion.div key={step} initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.25 }}>
+          {step === 0 && <OccasionStep selected={occasion} onSelect={setOccasion} />}
+          {step === 1 && <ProductStep selected={products} onToggle={toggleProduct} />}
+          {step === 2 && <RecipientStep details={details} onChange={setDetails} selectedTotal={selectedTotal} />}
+          {step === 3 && (generating || !result ? (
+            <div className="text-center py-24">
+              <div className="relative w-20 h-20 mx-auto mb-6">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-rosegold opacity-20 animate-ping" />
+                <div className="relative w-20 h-20 rounded-full bg-gradient-to-r from-primary to-rosegold flex items-center justify-center shadow-lg shadow-primary/30">
+                  <Sparkles className="w-8 h-8 text-white animate-pulse" />
+                </div>
+              </div>
+              <h2 className="text-xl font-bold font-heading text-foreground">Analyzing your gift box...</h2>
+              <p className="text-muted-foreground mt-2 text-sm">Evaluating layout styles, product sizes, occasion mood and budget fit.</p>
+              <Loader2 className="w-5 h-5 mx-auto mt-5 text-primary animate-spin" />
+            </div>
+          ) : (
+            <ResultStep result={result} occasion={occasion} products={products} details={details} onRestart={restart} />
+          ))}
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Nav buttons */}
+      {step < 3 && (
+        <div className="flex justify-between mt-12 max-w-xl mx-auto">
+          <Button variant="ghost" onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0} className="rounded-full">
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back
+          </Button>
+          {step < 2 ? (
+            <Button onClick={() => setStep((s) => s + 1)} disabled={!canNext} className="rounded-full bg-gradient-to-r from-primary to-rosegold text-white border-0 shadow-md shadow-primary/25 px-6">
+              Continue <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          ) : (
+            <Button onClick={handleGenerate} className="rounded-full bg-gradient-to-r from-primary to-rosegold text-white border-0 shadow-md shadow-primary/25 px-6">
+              <Sparkles className="w-4 h-4 mr-2" /> Generate AI Layout
+            </Button>
+          )}
+        </div>
+      )}
+      {step === 1 && products.length < 2 && (
+        <p className="text-center text-xs text-muted-foreground mt-3">Select at least 2 products to continue.</p>
+      )}
+    </div>
+  );
+}

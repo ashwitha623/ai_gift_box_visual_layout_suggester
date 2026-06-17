@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "backend"
+		},
+		{
+			"path": "node_modules"
+		},
+		{
+			"path": "src"
+		}
+	]
+}
