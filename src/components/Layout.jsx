@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { Send, ChevronDown, Sparkles, Calendar, Package, Users, ShieldAlert, Briefcase, Archive, LayoutGrid, LogOut, Key, Bell, FileText, ClipboardList, Truck } from "lucide-react";
+import { Send, ChevronDown, Sparkles, Calendar, Package, Users, ShieldAlert, Briefcase, Archive, LayoutGrid, LogOut, Key, Bell, FileText, ClipboardList, Truck, Twitter, Instagram, Linkedin, Facebook } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Layout() {
@@ -253,11 +253,78 @@ export default function Layout() {
         <Outlet />
       </main>
 
-      {/* Luxury Footer */}
-      <footer className="border-t border-border mt-20 py-10 bg-secondary/30 text-center text-xs text-muted-foreground">
-        <div className="max-w-7xl mx-auto px-6 space-y-2">
-          <p className="font-semibold text-primary">Paper Plane — AI Personalized Gifting Experience</p>
-          <p>© 2026 Paper Plane Corporate. All rights reserved.</p>
+      {/* Premium Dark Footer */}
+      <footer className="bg-[#09152b] text-slate-300 border-t border-slate-900 pt-16 pb-8 mt-20">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pb-12 border-b border-slate-800/80">
+            {/* COLUMN 1 */}
+            <div>
+              <h4 className="text-[10px] font-extrabold tracking-widest text-[#C5A880] uppercase mb-5">Company</h4>
+              <ul className="space-y-3 text-xs text-slate-400">
+                <li><Link to="/about" className="hover:text-white transition-colors">About Us</Link></li>
+                <li><Link to="/contact" className="hover:text-white transition-colors">Contact</Link></li>
+                <li><Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+              </ul>
+            </div>
+            {/* COLUMN 2 */}
+            <div>
+              <h4 className="text-[10px] font-extrabold tracking-widest text-[#C5A880] uppercase mb-5">Product</h4>
+              <ul className="space-y-3 text-xs text-slate-400">
+                <li><Link to="/create" className="hover:text-white transition-colors">Gift Builder</Link></li>
+                <li><Link to="/layouts" className="hover:text-white transition-colors">AI Layout Preview</Link></li>
+                <li><Link to="/design-approvals" className="hover:text-white transition-colors">Design Approvals</Link></li>
+              </ul>
+            </div>
+            {/* COLUMN 3 */}
+            <div>
+              <h4 className="text-[10px] font-extrabold tracking-widest text-[#C5A880] uppercase mb-5">Business</h4>
+              <ul className="space-y-3 text-xs text-slate-400">
+                <li><Link to="/corporate" className="hover:text-white transition-colors">Corporate Enquiries</Link></li>
+                <li><Link to="/orders" className="hover:text-white transition-colors">Order Tracking</Link></li>
+                <li><Link to="/crm/customer/2" className="hover:text-white transition-colors">CRM Records</Link></li>
+              </ul>
+            </div>
+            {/* COLUMN 4 */}
+            <div>
+              <h4 className="text-[10px] font-extrabold tracking-widest text-[#C5A880] uppercase mb-5">Support</h4>
+              <ul className="space-y-3 text-xs text-slate-400">
+                <li><Link to="/help" className="hover:text-white transition-colors">Help Center</Link></li>
+                <li><Link to="/faq" className="hover:text-white transition-colors">FAQs</Link></li>
+                <li><Link to="/notifications" className="hover:text-white transition-colors">Notifications</Link></li>
+              </ul>
+            </div>
+          </div>
+          
+          {/* Bottom Bar */}
+          <div className="flex flex-col md:flex-row items-center justify-between pt-8 text-xs text-slate-500 gap-4">
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center border border-[#C5A880]/30 shadow-md">
+                <Send className="w-3.5 h-3.5 text-accent" />
+              </div>
+              <span className="font-heading font-extrabold text-sm tracking-tight text-white">
+                Paper Plane
+              </span>
+            </Link>
+            
+            {/* Copyright */}
+            <div className="text-slate-400/80">
+              © 2026 Paper Plane. All Rights Reserved.
+            </div>
+            
+            {/* Location/Language and Socials */}
+            <div className="flex items-center gap-6">
+              <div className="text-slate-400/60 font-medium">
+                IN India | English
+              </div>
+              <div className="flex items-center gap-3.5 text-slate-400/80">
+                <a href="#" className="hover:text-white transition-colors"><Twitter className="w-4 h-4" /></a>
+                <a href="#" className="hover:text-white transition-colors"><Instagram className="w-4 h-4" /></a>
+                <a href="#" className="hover:text-white transition-colors"><Linkedin className="w-4 h-4" /></a>
+                <a href="#" className="hover:text-white transition-colors"><Facebook className="w-4 h-4" /></a>
+              </div>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
