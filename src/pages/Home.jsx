@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Sparkles, Brain, Eye, FileText, ArrowRight, Gift, Ribbon, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { OCCASIONS, PRODUCTS } from "@/lib/giftData";
+import { OCCASIONS, PRODUCTS } from "@/lib/giftdata";
 
 const FEATURES = [
   { icon: Brain, title: "Intelligent Layout Engine", desc: "Analyzes occasion, product sizes, budget and box size to recommend the perfect arrangement style." },

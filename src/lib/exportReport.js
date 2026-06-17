@@ -1,6 +1,6 @@
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { formatINR } from "@/lib/giftData";
+import { formatINR } from "@/lib/giftdata";
 
 export async function exportReportPDF(element, name) {
   const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: "#fff8fa" });
