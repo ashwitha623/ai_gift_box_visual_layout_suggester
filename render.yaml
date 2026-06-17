@@ -9,10 +9,11 @@ services:
     plan: free
 
   # Frontend Vite Static Site
-  - type: static
+  - type: web
     name: paperplane-frontend
+    runtime: static
     buildCommand: npm run build
-    publishDir: dist
+    staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
         fromService:
