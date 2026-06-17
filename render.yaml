@@ -7,6 +7,9 @@ services:
     buildCommand: npm install
     startCommand: npm start
     plan: free
+    envVars:
+      - key: NODE_VERSION
+        value: 20
 
   # Frontend Vite Static Site
   - type: web
@@ -15,6 +18,8 @@ services:
     buildCommand: npm run build
     staticPublishPath: dist
     envVars:
+      - key: NODE_VERSION
+        value: 20
       - key: VITE_API_URL
         fromService:
           name: paperplane-backend
