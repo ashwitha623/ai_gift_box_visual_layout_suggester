@@ -1,0 +1,23 @@
+services:
+  # Backend Express Service
+  - type: web
+    name: paperplane-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    plan: free
+
+  # Frontend Vite Static Site
+  - type: web
+    name: paperplane-frontend
+    env: static
+    buildCommand: npm run build
+    publishDir: dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          name: paperplane-backend
+          type: web
+          property: host
+    plan: free
