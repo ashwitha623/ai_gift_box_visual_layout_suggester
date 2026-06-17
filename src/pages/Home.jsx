@@ -39,7 +39,7 @@ export default function Home() {
               </Link>
               <Link to="/layouts">
                 <Button size="lg" variant="outline" className="rounded-full px-8 h-12 text-base bg-white">
-                  Explore Layouts
+                  Layout History
                 </Button>
               </Link>
             </div>

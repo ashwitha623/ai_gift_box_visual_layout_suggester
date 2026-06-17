@@ -261,8 +261,8 @@ export default function Layout() {
             <div>
               <h4 className="text-[10px] font-extrabold tracking-widest text-[#C5A880] uppercase mb-5">Company</h4>
               <ul className="space-y-3 text-xs text-slate-400">
-                <li><Link to="/about" className="hover:text-white transition-colors">About Us</Link></li>
-                <li><Link to="/contact" className="hover:text-white transition-colors">Contact</Link></li>
+                <li><Link to="/" className="hover:text-white transition-colors">About Us</Link></li>
+                <li><a href="mailto:support@paperplane.com?subject=Inquiry about Paper Plane AI Gifting" className="hover:text-white transition-colors">Contact</a></li>
                 <li><Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
               </ul>
             </div>
@@ -271,7 +271,7 @@ export default function Layout() {
               <h4 className="text-[10px] font-extrabold tracking-widest text-[#C5A880] uppercase mb-5">Product</h4>
               <ul className="space-y-3 text-xs text-slate-400">
                 <li><Link to="/create" className="hover:text-white transition-colors">Gift Builder</Link></li>
-                <li><Link to="/layouts" className="hover:text-white transition-colors">AI Layout Preview</Link></li>
+                <li><Link to="/layouts" className="hover:text-white transition-colors">Layout History</Link></li>
                 <li><Link to="/design-approvals" className="hover:text-white transition-colors">Design Approvals</Link></li>
               </ul>
             </div>

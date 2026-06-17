@@ -15,14 +15,33 @@ export default function CreateBox() {
   const [step, setStep] = useState(0);
   const [occasion, setOccasion] = useState(null);
   const [products, setProducts] = useState([]);
-  const [details, setDetails] = useState({ name: "", message: "", budget: 5000, boxSize: "Medium" });
+  const [details, setDetails] = useState({
+    name: "",
+    senderName: "",
+    message: "",
+    customText: "",
+    deliveryAddress: "",
+    deliveryDate: "",
+    photoUrl: "",
+    logoUrl: "",
+    budget: 5000,
+    boxSize: "Medium"
+  });
   const [result, setResult] = useState(null);
   const [generating, setGenerating] = useState(false);
 
   const toggleProduct = (p) =>
     setProducts((prev) => (prev.some((s) => s.id === p.id) ? prev.filter((s) => s.id !== p.id) : prev.length < 8 ? [...prev, p] : prev));
 
-  const canNext = step === 0 ? !!occasion : step === 1 ? products.length >= 2 : true;
+  const isDetailsValid = !!(
+    details.name?.trim() &&
+    details.senderName?.trim() &&
+    details.message?.trim() &&
+    details.deliveryAddress?.trim() &&
+    details.deliveryDate?.trim()
+  );
+
+  const canNext = step === 0 ? !!occasion : step === 1 ? products.length >= 2 : isDetailsValid;
   const selectedTotal = products.reduce((s, p) => s + p.price, 0);
 
   const handleGenerate = async () => {
@@ -62,7 +81,18 @@ export default function CreateBox() {
 
   const restart = () => {
     setStep(0); setOccasion(null); setProducts([]); setResult(null);
-    setDetails({ name: "", message: "", budget: 5000, boxSize: "Medium" });
+    setDetails({
+      name: "",
+      senderName: "",
+      message: "",
+      customText: "",
+      deliveryAddress: "",
+      deliveryDate: "",
+      photoUrl: "",
+      logoUrl: "",
+      budget: 5000,
+      boxSize: "Medium"
+    });
   };
 
   return (
@@ -116,7 +146,7 @@ export default function CreateBox() {
               Continue <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           ) : (
-            <Button onClick={handleGenerate} className="rounded-full bg-gradient-to-r from-primary to-rosegold text-white border-0 shadow-md shadow-primary/25 px-6">
+            <Button onClick={handleGenerate} disabled={!canNext} className="rounded-full bg-gradient-to-r from-primary to-rosegold text-white border-0 shadow-md shadow-primary/25 px-6">
               <Sparkles className="w-4 h-4 mr-2" /> Generate AI Layout
             </Button>
           )}
@@ -124,6 +154,11 @@ export default function CreateBox() {
       )}
       {step === 1 && products.length < 2 && (
         <p className="text-center text-xs text-muted-foreground mt-3">Select at least 2 products to continue.</p>
+      )}
+      {step === 2 && !isDetailsValid && (
+        <p className="text-center text-xs text-rose-600 font-semibold mt-3 animate-pulse">
+          Please fill out all required fields (Recipient Name, Sender Name, Personal Message, Address, and Delivery Date) to proceed.
+        </p>
       )}
     </div>
   );
