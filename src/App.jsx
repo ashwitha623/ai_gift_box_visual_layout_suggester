@@ -24,6 +24,7 @@ import NotificationsDashboard from '@/pages/NotificationsDashboard';
 import PackagingManagement from '@/pages/PackagingManagement';
 import ReportsExports from '@/pages/ReportsExports';
 import DataAccessGate from "@/components/DataAccessGate";
+import Contact from '@/pages/Contact';
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
           <Route path="/layouts" element={<Layouts />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/crm" element={<CRMCalendar />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/corporate" element={<DataAccessGate><CorporatePortal /></DataAccessGate>} />
           <Route path="/returns" element={<ReturnsPortal />} />
           <Route path="/orders" element={<OrderTracking />} />
