@@ -95,7 +95,7 @@ function getOccasionStyling(occasion, boxId) {
       style.lining = "tissue_white";
       style.flowerColors = { pri: "#FCFAF2", sec: "#E8DCC4", inn: "#FFFFFF" }; // ivory roses
       style.foliageType = "silver_dollar";
-      style.accents = "pearls";
+      style.accents = "crystals";
       style.ribbonLayout = "symmetrical-dual";
       style.card = {
         bg: "#FCFDFB",
@@ -367,6 +367,59 @@ function BabyBreathFlower({ x, y }) {
   );
 }
 
+// Lavender Spikes for visual flower details
+function LavenderStem({ x, y, rotate }) {
+  return (
+    <div
+      className="absolute pointer-events-none origin-bottom-left"
+      style={{
+        left: `${x}%`,
+        top: `${y}%`,
+        transform: `rotate(${rotate}deg)`,
+        zIndex: 32,
+        width: "28px",
+        height: "48px"
+      }}
+    >
+      <svg viewBox="0 0 28 48" className="w-full h-full drop-shadow-[0_2.5px_4px_rgba(0,0,0,0.22)]">
+        <line x1="14" y1="42" x2="14" y2="8" stroke="#3F6212" strokeWidth="1.2" />
+        {[8, 14, 20, 26, 32].map(yVal => (
+          <g key={yVal} transform={`translate(0, ${yVal})`}>
+            <ellipse cx="10" cy="0" rx="3" ry="1.6" fill="#8B5CF6" />
+            <ellipse cx="18" cy="0" rx="3" ry="1.6" fill="#7C3AED" />
+            <circle cx="14" cy="-2.5" r="1.2" fill="#A78BFA" />
+          </g>
+        ))}
+      </svg>
+    </div>
+  );
+}
+
+// Tropical Fern Leaf (Green or Gold depending on occasion)
+function TropicalFern({ x, y, rotate, color = "#2F6B52" }) {
+  return (
+    <div
+      className="absolute pointer-events-none origin-bottom-left"
+      style={{
+        left: `${x}%`,
+        top: `${y}%`,
+        transform: `rotate(${rotate}deg)`,
+        zIndex: 32,
+        width: "55px",
+        height: "45px"
+      }}
+    >
+      <svg viewBox="0 0 55 45" className="w-full h-full drop-shadow-[0_4px_6px_rgba(0,0,0,0.35)]">
+        <path d="M 5 40 Q 25 25 50 15" fill="none" stroke={color} strokeWidth="2.0" strokeLinecap="round" />
+        <ellipse cx="14" cy="32" rx="4" ry="7" fill={color} opacity="0.9" transform="rotate(-30 14 32)" />
+        <ellipse cx="23" cy="22" rx="4.5" ry="8.5" fill={color} transform="rotate(15 23 22)" />
+        <ellipse cx="34" cy="18" rx="4" ry="7" fill={color} opacity="0.95" transform="rotate(-15 34 18)" />
+        <ellipse cx="44" cy="14" rx="3" ry="5.5" fill={color} transform="rotate(25 44 14)" />
+      </svg>
+    </div>
+  );
+}
+
 // Layered Rose Bud
 function RoseFlower({ x, y, scale = 1, primaryColor = "#ef4444", secondaryColor = "#f43f5e", innerColor = "#fca5a5" }) {
   return (
@@ -389,6 +442,40 @@ function RoseFlower({ x, y, scale = 1, primaryColor = "#ef4444", secondaryColor 
         <circle cx="14" cy="14" r="6" fill={secondaryColor} />
         <circle cx="17" cy="17" r="4" fill={innerColor} />
         <circle cx="16" cy="16" r="2" fill="#fff" opacity="0.4" />
+      </svg>
+    </div>
+  );
+}
+
+// Large Luxury Peony Flower
+function PeonyFlower({ x, y, scale = 1, color = "#F472B6" }) {
+  return (
+    <div
+      className="absolute pointer-events-none"
+      style={{
+        left: `${x}%`,
+        top: `${y}%`,
+        width: `${36 * scale}px`,
+        height: `${36 * scale}px`,
+        transform: "translate(-50%, -50%)",
+        zIndex: 32,
+        filter: "drop-shadow(0 6px 12px rgba(0, 0, 0, 0.35))"
+      }}
+    >
+      <svg viewBox="0 0 36 36" className="w-full h-full">
+        <circle cx="18" cy="18" r="16" fill={color} />
+        <circle cx="18" cy="18" r="13" fill="#FB7185" opacity="0.88" />
+        <circle cx="18" cy="18" r="10" fill="#FDA4AF" opacity="0.95" />
+        <circle cx="16" cy="16" r="7" fill="#FFE4E6" />
+        {[0, 45, 90, 135, 180, 225, 270, 315].map(deg => (
+          <path
+            key={deg}
+            d="M18 18 C14 11, 22 11, 18 18 Z"
+            fill="#FFF1F2"
+            opacity="0.75"
+            transform={`rotate(${deg} 18 18)`}
+          />
+        ))}
       </svg>
     </div>
   );
@@ -821,16 +908,16 @@ export default function GiftBoxVisual({
   const ribbonLayout = styling.ribbonLayout;
 
   // Smart placement for florist/accents framing: identify empty regions (dead zones)
-  const floristDecors = useMemo(() => {
+  const floristArrangement = useMemo(() => {
     // Identify Hero product (largest item)
     const sortedItems = [...items].sort((a, b) => (b.pctW * b.pctH) - (a.pctW * a.pctH));
     const heroItem = sortedItems[0];
     const heroCenterX = heroItem ? heroItem.pctX + heroItem.pctW / 2 : 50;
     const heroCenterY = heroItem ? heroItem.pctY + heroItem.pctH / 2 : 50;
 
-    // Search empty coordinates in an 8x8 grid
+    // Search empty coordinates in a 12x12 grid (increased density)
     const candidates = [];
-    const gridDivs = 8;
+    const gridDivs = 12;
     for (let gx = 1; gx < gridDivs; gx++) {
       for (let gy = 1; gy < gridDivs; gy++) {
         const cx = (gx / gridDivs) * 100;
@@ -846,7 +933,7 @@ export default function GiftBoxVisual({
           const dist = Math.sqrt(Math.pow(cx - itemCX, 2) + Math.pow(cy - itemCY, 2));
           minCenterDist = Math.min(minCenterDist, dist);
 
-          const padding = 5;
+          const padding = 3.5; // tighter padding to allow placing in smaller crevices
           if (
             cx > item.pctX - padding &&
             cx < item.pctX + item.pctW + padding &&
@@ -858,7 +945,7 @@ export default function GiftBoxVisual({
         }
 
         // Verify collision with ribbon lines
-        const ribbonW = 8;
+        const ribbonW = 7;
         let overlapsRibbon = false;
         if (ribbonLayout === "classic-cross") {
           if (Math.abs(cx - 14.5) < ribbonW || Math.abs(cy - 14.5) < ribbonW) {
@@ -925,100 +1012,192 @@ export default function GiftBoxVisual({
 
     scoredCandidates.sort((a, b) => b.score - a.score);
 
-    // Limit decorations to maintain strict empty space density limit (8-15% of available empty space)
+    // Limit decorations to maintain strict empty space density limit, but allow more abundance per user request
     const productAreaRatio = items.reduce((sum, item) => sum + (item.pctW * item.pctH), 0) / 10000;
     const freeSpaceRatio = 1 - productAreaRatio;
     
-    // Allow up to 6 florist items to fill empty slots generously per user request
-    let targetCount = Math.min(6, Math.max(3, Math.round(freeSpaceRatio * 5.5)));
-    if (occasionId === "corporate") {
-      targetCount = Math.min(3, targetCount); // Corporate stays cleaner
-    }
-
+    // Pick top candidates, allowing closer clustering for organic arrangement
     const selected = [];
+    const minSeparation = 13; // closer separation for denser grouping
     for (const cand of scoredCandidates) {
       let tooClose = false;
       for (const sel of selected) {
         const d = Math.sqrt(Math.pow(cand.cx - sel.cx, 2) + Math.pow(cand.cy - sel.cy, 2));
-        if (d < 20) { // Maintain minimum separation between decorations
+        if (d < minSeparation) {
           tooClose = true;
           break;
         }
       }
       if (!tooClose) {
         selected.push(cand);
-        if (selected.length >= targetCount) break;
+        // Up to 15 decorative slots
+        if (selected.length >= 15) break;
       }
     }
 
+    const foliage = [];
+    const flowers = [];
+
     // Map selected coordinates to decorative leaf and flower components
-    return selected.map((s, idx) => {
-      let type = "eucalyptus";
+    selected.forEach((s, idx) => {
+      let foliageType = "eucalyptus";
       if (styling.foliageType === "gold_laurel") {
-        type = "gold_laurel";
+        foliageType = "gold_laurel";
       } else if (styling.foliageType === "rose_leaves") {
-        type = "rose_leaves";
+        foliageType = "rose_leaves";
       } else if (styling.foliageType === "silver_dollar") {
-        type = "silver_dollar";
+        foliageType = "silver_dollar";
       }
 
-      let isFlower = false;
-      let flowerType = "rose";
-      if (styling.flowerColors) {
-        if (occasionId === "wedding" && idx === 0) {
-          type = "baby_breath";
-        } else if (idx % 2 === 0) {
-          isFlower = true;
-          // Mix flower varieties based on indexes
-          if (idx === 0) flowerType = "rose";
-          else if (idx === 2) flowerType = "daisy";
-          else flowerType = "hydrangea";
-        }
+      // Add foliage variety
+      if (idx % 3 === 1 && occasionId !== "corporate") {
+        foliageType = "silver_dollar";
+      } else if (idx % 3 === 2 && occasionId !== "corporate") {
+        foliageType = "eucalyptus";
       }
 
-      return {
-        id: `decor-${idx}`,
+      // Special occasion foliage overrides
+      if (occasionId === "wedding" && idx % 4 === 1) {
+        foliageType = "baby_breath";
+      } else if ((occasionId === "anniversary" || occasionId === "birthday") && idx % 4 === 2) {
+        foliageType = "lavender";
+      } else if (occasionId === "corporate" && idx % 3 === 2) {
+        foliageType = "tropical_fern";
+      }
+
+      foliage.push({
+        id: `foliage-${idx}`,
         cx: s.cx,
         cy: s.cy,
-        rotate: (idx * 75 + 45) % 360,
-        isFlower,
-        flowerType,
-        type
-      };
+        rotate: (idx * 65 + 30) % 360,
+        scale: 0.85 + (idx % 3) * 0.15,
+        type: foliageType
+      });
+
+      // Assign flowers on top of foliage slots for dense, high-end layering (if occasion uses flowers)
+      if (styling.flowerColors) {
+        // Place flowers on 80% of empty slots to fill the box beautifully
+        if (idx % 5 !== 4) {
+          let flowerType = "rose";
+          const cycle = idx % 4;
+          if (cycle === 0) flowerType = "rose";
+          else if (cycle === 1) flowerType = "daisy";
+          else if (cycle === 2) flowerType = "peony";
+          else flowerType = "hydrangea";
+
+          flowers.push({
+            id: `flower-${idx}`,
+            // Shift coordinates slightly for natural offset clusters
+            cx: s.cx + (Math.sin(idx) * 2.2),
+            cy: s.cy + (Math.cos(idx) * 2.2),
+            scale: 0.9 + (idx % 3) * 0.12,
+            type: flowerType
+          });
+        }
+      }
     });
+
+    return { foliage, flowers };
   }, [items, styling, occasionId, ribbonLayout]);
 
-  // Pre-generate scattered decorative accents (pearls, petals, stars)
+  // Pre-generate scattered decorative accents (pearls, petals, stars, crystals, sparkles) - DOUBLED count
   const accentsList = useMemo(() => {
     let count = 0;
-    if (styling.accents === "pearls") count = 10;
-    else if (styling.accents === "rose-petals") count = 12;
-    else if (styling.accents === "marigold-petals") count = 12;
-    else if (styling.accents === "gold-stars") count = 8;
-    else if (styling.accents === "confetti-pearls") count = 14;
+    if (styling.accents === "pearls") count = 22;
+    else if (styling.accents === "rose-petals") count = 26;
+    else if (styling.accents === "marigold-petals") count = 26;
+    else if (styling.accents === "gold-stars") count = 18;
+    else if (styling.accents === "confetti-pearls") count = 28;
+    else if (styling.accents === "crystals") count = 28; // Crystals for wedding
 
     return Array.from({ length: count }).map((_, i) => ({
       id: `accent-${i}`,
-      x: 10 + Math.random() * 80,
-      y: 10 + Math.random() * 80,
-      scale: 0.6 + Math.random() * 0.6,
+      x: 8 + Math.random() * 84,
+      y: 8 + Math.random() * 84,
+      scale: 0.65 + Math.random() * 0.6,
       rotate: Math.random() * 360
     }));
   }, [styling.accents]);
 
-  // Theme-aware lighting effects (Strictly no fairy lights for corporate, graduation, executive)
+  // Pre-generate scattered luxury gold foil flakes (all occasions)
+  const goldFoilFlakesList = useMemo(() => {
+    return Array.from({ length: 16 }).map((_, i) => ({
+      id: `gold-flake-${i}`,
+      x: 8 + Math.random() * 84,
+      y: 8 + Math.random() * 84,
+      scale: 0.5 + Math.random() * 0.65,
+      rotate: Math.random() * 360,
+      shapeIdx: i % 4
+    }));
+  }, []);
+
+  // Pre-generate scattered magic sparkles (glitter sparkles) for that premium "wow" factor - INCREASED count
+  const sparklesList = useMemo(() => {
+    const needsSparkles = ["wedding", "anniversary", "birthday", "festival", "just_because"].includes(occasionId);
+    if (!needsSparkles) return [];
+
+    return Array.from({ length: 24 }).map((_, i) => ({
+      id: `sparkle-${i}`,
+      x: 8 + Math.random() * 84,
+      y: 8 + Math.random() * 84,
+      scale: 0.55 + Math.random() * 0.7,
+      rotate: Math.random() * 360
+    }));
+  }, [occasionId]);
+
+  // Theme-aware lighting effects: Increase density to 36 bulbs for extra glow and warmth
   const isCorporateOrExec = occasionId === "corporate" || occasionId === "graduation" || box.id === "black_gold";
   const hasFairyLights = !isCorporateOrExec && ["anniversary", "birthday", "wedding", "festival", "just_because"].includes(occasionId);
 
-  // Generate fairy lights coordinates
-  const fairyLights = useMemo(() => {
-    if (!hasFairyLights) return [];
-    return Array.from({ length: 12 }).map((_, i) => ({
+  // Generate fairy lights coordinates (density increased to 36 with copper wire connection)
+  const fairyLightsData = useMemo(() => {
+    if (!hasFairyLights) return { bulbs: [], wirePath: "" };
+    
+    // Generate 36 bulbs
+    const bulbs = Array.from({ length: 36 }).map((_, i) => ({
       id: i,
-      x: 10 + Math.random() * 80,
-      y: 10 + Math.random() * 80,
-      scale: 0.7 + Math.random() * 0.6
+      x: 8 + Math.random() * 84,
+      y: 8 + Math.random() * 84,
+      scale: 0.65 + Math.random() * 0.65,
+      pulseDelay: Math.random() * 2.5
     }));
+
+    // Nearest Neighbor path to draw connecting string
+    const unvisited = [...bulbs];
+    const ordered = [];
+    let current = unvisited.shift();
+    if (current) ordered.push(current);
+
+    while (unvisited.length > 0) {
+      let nearestIdx = 0;
+      let nearestDist = Infinity;
+      for (let i = 0; i < unvisited.length; i++) {
+        const d = Math.sqrt(
+          Math.pow(current.x - unvisited[i].x, 2) + Math.pow(current.y - unvisited[i].y, 2)
+        );
+        if (d < nearestDist) {
+          nearestDist = d;
+          nearestIdx = i;
+        }
+      }
+      current = unvisited.splice(nearestIdx, 1)[0];
+      ordered.push(current);
+    }
+
+    // Connect them with smooth waves
+    let wirePath = "";
+    if (ordered.length > 0) {
+      wirePath = `M ${ordered[0].x} ${ordered[0].y}`;
+      for (let i = 1; i < ordered.length; i++) {
+        const prev = ordered[i - 1];
+        const curr = ordered[i];
+        const cpX = (prev.x + curr.x) / 2 + (Math.random() - 0.5) * 12;
+        const cpY = (prev.y + curr.y) / 2 + (Math.random() - 0.5) * 12;
+        wirePath += ` Q ${cpX} ${cpY}, ${curr.x} ${curr.y}`;
+      }
+    }
+
+    return { bulbs: ordered, wirePath };
   }, [hasFairyLights]);
 
   // Find center of hero item for showcasing spotlight
@@ -1046,6 +1225,13 @@ export default function GiftBoxVisual({
             <stop offset="50%" stopColor="#333333" />
             <stop offset="65%" stopColor="#0A0A0A" />
             <stop offset="100%" stopColor="#222222" />
+          </linearGradient>
+          <linearGradient id="goldFoilGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#FFE082" />
+            <stop offset="30%" stopColor="#F5B041" />
+            <stop offset="55%" stopColor="#F39C12" />
+            <stop offset="75%" stopColor="#FAD7A0" />
+            <stop offset="100%" stopColor="#D4AF37" />
           </linearGradient>
         </defs>
       </svg>
@@ -1329,25 +1515,86 @@ export default function GiftBoxVisual({
             </div>
           ))}
 
+          {/* Fairy Lights Copper Connecting Wire */}
+          {hasFairyLights && fairyLightsData.wirePath && (
+            <svg
+              className="absolute inset-0 w-full h-full pointer-events-none"
+              style={{ zIndex: 4 }}
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+            >
+              <path
+                d={fairyLightsData.wirePath}
+                fill="none"
+                stroke="#B8860B" // dark goldenrod copper wire
+                strokeWidth="0.6"
+                opacity="0.65"
+                strokeDasharray="2, 2"
+              />
+            </svg>
+          )}
+
           {/* Glowing Fairy Lights Bed */}
-          {hasFairyLights && fairyLights.map(light => (
+          {hasFairyLights && fairyLightsData.bulbs.map(light => (
             <div
               key={light.id}
-              className="absolute rounded-full pointer-events-none animate-pulse"
+              className="absolute pointer-events-none"
               style={{
                 left: `${light.x}%`,
                 top: `${light.y}%`,
-                width: `${6 * light.scale}px`,
-                height: `${6 * light.scale}px`,
-                backgroundColor: "#FFE082",
-                boxShadow: "0 0 10px #FFD54F, 0 0 20px #FFB300, 0 0 35px #FF8F00",
-                zIndex: 4,
-                opacity: 0.85
+                transform: "translate(-50%, -50%)",
+                zIndex: 4
               }}
-            />
+            >
+              {/* Outer Glow Halo */}
+              <motion.div
+                animate={{
+                  scale: [0.85, 1.25, 0.85],
+                  opacity: [0.35, 0.8, 0.35]
+                }}
+                transition={{
+                  duration: 2.2 + Math.sin(light.id) * 0.7,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: light.pulseDelay
+                }}
+                className="absolute rounded-full"
+                style={{
+                  width: `${28 * light.scale}px`,
+                  height: `${28 * light.scale}px`,
+                  transform: "translate(-50%, -50%)",
+                  background: "radial-gradient(circle, rgba(255, 224, 130, 0.6) 0%, rgba(255, 179, 0, 0.2) 50%, rgba(255, 143, 0, 0) 70%)",
+                }}
+              />
+              {/* Core Bulb */}
+              <motion.div
+                animate={{
+                  scale: [0.95, 1.15, 0.95]
+                }}
+                transition={{
+                  duration: 1.5 + Math.cos(light.id) * 0.4,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: light.pulseDelay
+                }}
+                className="rounded-full"
+                style={{
+                  width: `${6.5 * light.scale}px`,
+                  height: `${6.5 * light.scale}px`,
+                  backgroundColor: "#FFF9C4",
+                  border: "0.5px solid #FFF",
+                  boxShadow: `
+                    0 0 8px #FFD54F,
+                    0 0 16px #FFB300,
+                    0 0 30px #FF8F00,
+                    0 0 45px #FF6F00
+                  `
+                }}
+              />
+            </div>
           ))}
 
-          {/* Scattered Decorative Accents (pearls, petals, stars) */}
+          {/* Scattered Decorative Accents (pearls, petals, stars, crystals) */}
           {accentsList.map(acc => {
             if (styling.accents === "pearls" || styling.accents === "confetti-pearls") {
               const colors = styling.accents === "pearls"
@@ -1428,45 +1675,125 @@ export default function GiftBoxVisual({
                   </svg>
                 </div>
               );
+            } else if (styling.accents === "crystals") {
+              return (
+                <div
+                  key={acc.id}
+                  className="absolute pointer-events-none"
+                  style={{
+                    left: `${acc.x}%`,
+                    top: `${acc.y}%`,
+                    width: `${6 * acc.scale}px`,
+                    height: `${6 * acc.scale}px`,
+                    transform: `rotate(${acc.rotate}deg)`,
+                    zIndex: 22,
+                    filter: "drop-shadow(0.5px 1px 1px rgba(0,0,0,0.15))"
+                  }}
+                >
+                  <svg viewBox="0 0 10 10" className="w-full h-full">
+                    <polygon points="5,0 10,5 5,10 0,5" fill="#93C5FD" opacity="0.8" />
+                  </svg>
+                </div>
+              );
             }
             return null;
           })}
 
-          {/* Winding Eucalyptus / Laurel Leaves and flowers framing empty spaces (8-15% density, nested edges) */}
-          {floristDecors.map(decor => {
-            if (decor.isFlower) {
-              const colors = styling.flowerColors || { pri: "#EF4444", sec: "#C94F6D", inn: "#FFF0F2" };
-              if (decor.flowerType === "daisy") {
-                return <DaisyFlower key={decor.id} x={decor.cx} y={decor.cy} scale={1.05} />;
-              } else if (decor.flowerType === "hydrangea") {
-                const hColor = occasionId === "wedding" ? "#F5D0C5" : (occasionId === "birthday" ? "#F472B6" : "#C084FC");
-                return <HydrangeaFlower key={decor.id} x={decor.cx} y={decor.cy} scale={1.1} color={hColor} />;
-              } else {
-                return (
-                  <RoseFlower
-                    key={decor.id}
-                    x={decor.cx}
-                    y={decor.cy}
-                    scale={1.0}
-                    primaryColor={colors.pri}
-                    secondaryColor={colors.sec}
-                    innerColor={colors.inn}
-                  />
-                );
-              }
-            }
+          {/* Scattered Luxury Gold Foil Flakes */}
+          {goldFoilFlakesList.map((flake) => {
+            const pointsOptions = [
+              "2,1 7,2 9,6 4,9 1,5",
+              "1,3 6,1 9,4 6,9 2,7",
+              "3,1 8,3 7,8 2,6 1,4",
+              "2,2 5,1 9,5 5,8 1,5"
+            ];
+            const points = pointsOptions[flake.shapeIdx];
+            return (
+              <div
+                key={flake.id}
+                className="absolute pointer-events-none"
+                style={{
+                  left: `${flake.x}%`,
+                  top: `${flake.y}%`,
+                  width: `${11 * flake.scale}px`,
+                  height: `${11 * flake.scale}px`,
+                  transform: `rotate(${flake.rotate}deg)`,
+                  zIndex: 21,
+                  filter: "drop-shadow(1px 1.5px 2px rgba(0, 0, 0, 0.3))"
+                }}
+              >
+                <svg viewBox="0 0 10 10" className="w-full h-full">
+                  <polygon points={points} fill="url(#goldFoilGrad)" />
+                </svg>
+              </div>
+            );
+          })}
 
-            // Render foliage types
-            if (decor.type === "gold_laurel") {
-              return <GoldLaurelBranch key={decor.id} x={decor.cx} y={decor.cy} rotate={decor.rotate} />;
-            } else if (decor.type === "rose_leaves") {
-              return <RoseLeavesBranch key={decor.id} x={decor.cx} y={decor.cy} rotate={decor.rotate} />;
-            } else if (decor.type === "silver_dollar") {
-              return <SilverDollarBranch key={decor.id} x={decor.cx} y={decor.cy} rotate={decor.rotate} />;
-            } else if (decor.type === "baby_breath") {
-              return <BabyBreathFlower key={decor.id} x={decor.cx} y={decor.cy} />;
+          {/* Scattered Magic Glitter Sparkles for extra "wow" factor */}
+          {sparklesList.map(sp => (
+            <div
+              key={sp.id}
+              className="absolute pointer-events-none animate-pulse"
+              style={{
+                left: `${sp.x}%`,
+                top: `${sp.y}%`,
+                width: `${14 * sp.scale}px`,
+                height: `${14 * sp.scale}px`,
+                transform: `rotate(${sp.rotate}deg)`,
+                zIndex: 23,
+                opacity: 0.85,
+                filter: "drop-shadow(0 0 4px #FDE047)"
+              }}
+            >
+              <svg viewBox="0 0 24 24" className="w-full h-full">
+                <path d="M12,2 L14,10 L22,12 L14,14 L12,22 L10,14 L2,12 L10,10 Z" fill="#FEF08A" />
+              </svg>
+            </div>
+          ))}
+
+          {/* Foliage framing empty spaces (nested below flowers) */}
+          {floristArrangement.foliage.map(fol => {
+            if (fol.type === "gold_laurel") {
+              return <GoldLaurelBranch key={fol.id} x={fol.cx} y={fol.cy} rotate={fol.rotate} />;
+            } else if (fol.type === "rose_leaves") {
+              return <RoseLeavesBranch key={fol.id} x={fol.cx} y={fol.cy} rotate={fol.rotate} />;
+            } else if (fol.type === "silver_dollar") {
+              return <SilverDollarBranch key={fol.id} x={fol.cx} y={fol.cy} rotate={fol.rotate} />;
+            } else if (fol.type === "baby_breath") {
+              return <BabyBreathFlower key={fol.id} x={fol.cx} y={fol.cy} />;
+            } else if (fol.type === "lavender") {
+              return <LavenderStem key={fol.id} x={fol.cx} y={fol.cy} rotate={fol.rotate} />;
+            } else if (fol.type === "tropical_fern") {
+              const fColor = box.id === "black_gold" ? "#D4AF37" : "#1B4332";
+              return <TropicalFern key={fol.id} x={fol.cx} y={fol.cy} rotate={fol.rotate} color={fColor} />;
             } else {
-              return <EucalyptusBranch key={decor.id} x={decor.cx} y={decor.cy} rotate={decor.rotate} />;
+              return <EucalyptusBranch key={fol.id} x={fol.cx} y={fol.cy} rotate={fol.rotate} />;
+            }
+          })}
+
+          {/* Flowers nested in empty spaces and foliage */}
+          {floristArrangement.flowers.map(fl => {
+            const colors = styling.flowerColors || { pri: "#EF4444", sec: "#C94F6D", inn: "#FFF0F2" };
+            if (fl.type === "daisy") {
+              return <DaisyFlower key={fl.id} x={fl.cx} y={fl.cy} scale={fl.scale} />;
+            } else if (fl.type === "hydrangea") {
+              const hColor = occasionId === "wedding" ? "#F5D0C5" : (occasionId === "birthday" ? "#F472B6" : "#C084FC");
+              return <HydrangeaFlower key={fl.id} x={fl.cx} y={fl.cy} scale={fl.scale} color={hColor} />;
+            } else if (fl.type === "peony") {
+              const pColor = occasionId === "anniversary" ? "#E11D48" : "#F472B6";
+              return <PeonyFlower key={fl.id} x={fl.cx} y={fl.cy} scale={fl.scale} color={pColor} />;
+            } else {
+              return (
+                <RoseFlower
+                  key={fl.id}
+                  x={fl.cx}
+                  y={fl.cy}
+                  scale={fl.scale}
+                  primaryColor={colors.pri}
+                  secondaryColor={colors.sec}
+                  innerColor={colors.inn}
+                />
+              );
             }
           })}
 
