@@ -1,13 +1,50 @@
 import { useState, useEffect } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { Send, ChevronDown, Sparkles, Calendar, Package, Users, ShieldAlert, Briefcase, Archive, LayoutGrid, LogOut, Key, Bell, FileText, ClipboardList, Truck, Twitter, Instagram, Linkedin, Facebook } from "lucide-react";
+import { Send, ChevronDown, Sparkles, Calendar, Package, Users, ShieldAlert, Briefcase, Archive, LayoutGrid, LogOut, Key, Bell, FileText, ClipboardList, Truck, Twitter, Instagram, Linkedin, Facebook, User, Mail, BookOpen, MessageSquare, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Layout() {
   const { pathname } = useLocation();
   const [adminOpen, setAdminOpen] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [contactOpen, setContactOpen] = useState(false);
+  const [modalName, setModalName] = useState("");
+  const [modalEmail, setModalEmail] = useState("");
+  const [modalSubject, setModalSubject] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalLoading, setModalLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleModalSubmit = (e) => {
+    e.preventDefault();
+    if (!modalName.trim() || !modalEmail.trim() || !modalSubject.trim() || !modalMessage.trim()) {
+      toast({
+        title: "Required Fields Missing",
+        description: "Please fill out all required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+    setModalLoading(true);
+    setTimeout(() => {
+      toast({
+        title: "Message Sent Successfully!",
+        description: "Thank you for reaching out. We will contact you soon.",
+      });
+      setModalName("");
+      setModalEmail("");
+      setModalSubject("");
+      setModalMessage("");
+      setModalLoading(false);
+      setContactOpen(false);
+    }, 1200);
+  };
 
   useEffect(() => {
     // Read session on page load
@@ -261,9 +298,34 @@ export default function Layout() {
             <div>
               <h4 className="text-[10px] font-extrabold tracking-widest text-[#C5A880] uppercase mb-5">Company</h4>
               <ul className="space-y-3 text-xs text-slate-400">
-                <li><Link to="/" className="hover:text-white transition-colors">About Us</Link></li>
-                <li><Link to="/contact" className="hover:text-white transition-colors">Contact</Link></li>
-                <li><Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+                <li>
+                  <Link 
+                    to="/" 
+                    onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} 
+                    className="hover:text-white transition-colors"
+                  >
+                    About Us
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    to="/contact" 
+                    onClick={() => {
+                      const el = document.getElementById("contact-form-container");
+                      if (el) {
+                        el.scrollIntoView({ behavior: "smooth", block: "start" });
+                      }
+                    }} 
+                    className="hover:text-white transition-colors"
+                  >
+                    Contact
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/privacy" className="hover:text-white transition-colors">
+                    Privacy Policy
+                  </Link>
+                </li>
               </ul>
             </div>
             {/* COLUMN 2 */}
@@ -288,7 +350,14 @@ export default function Layout() {
             <div>
               <h4 className="text-[10px] font-extrabold tracking-widest text-[#C5A880] uppercase mb-5">Support</h4>
               <ul className="space-y-3 text-xs text-slate-400">
-                <li><Link to="/help" className="hover:text-white transition-colors">Help Center</Link></li>
+                <li>
+                  <button 
+                    onClick={() => setContactOpen(true)} 
+                    className="hover:text-white transition-colors text-left"
+                  >
+                    Help Center
+                  </button>
+                </li>
                 <li><Link to="/faq" className="hover:text-white transition-colors">FAQs</Link></li>
                 <li><Link to="/notifications" className="hover:text-white transition-colors">Notifications</Link></li>
               </ul>
@@ -327,6 +396,124 @@ export default function Layout() {
           </div>
         </div>
       </footer>
+
+      {/* Contact Support Modal */}
+      <AnimatePresence>
+        {contactOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setContactOpen(false)}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            />
+            
+            {/* Modal Card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.3 }}
+              className="relative w-full max-w-md bg-card border border-border rounded-[24px] p-6 sm:p-8 shadow-2xl overflow-hidden z-10"
+            >
+              {/* Close Button */}
+              <button 
+                type="button"
+                onClick={() => setContactOpen(false)}
+                className="absolute right-4 top-4 p-1.5 rounded-full hover:bg-slate-100 transition-colors text-muted-foreground hover:text-foreground"
+                aria-label="Close modal"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              {/* Decorative background glow */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full blur-2xl pointer-events-none" />
+              <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none" />
+
+              <div className="relative">
+                <div className="text-center mb-6">
+                  <h2 className="text-xl font-extrabold font-heading text-primary tracking-tight">Contact Support</h2>
+                  <p className="text-muted-foreground text-xs mt-2">
+                    Fill out the form below, you will be contacted soon
+                  </p>
+                </div>
+
+                <form onSubmit={handleModalSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="font-semibold text-[10px] text-primary uppercase tracking-wider">Name *</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Name"
+                          value={modalName}
+                          onChange={(e) => setModalName(e.target.value)}
+                          className="pl-9 rounded-xl h-10 bg-background text-xs"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="font-semibold text-[10px] text-primary uppercase tracking-wider">Email address *</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          type="email"
+                          placeholder="Email address"
+                          value={modalEmail}
+                          onChange={(e) => setModalEmail(e.target.value)}
+                          className="pl-9 rounded-xl h-10 bg-background text-xs"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="font-semibold text-[10px] text-primary uppercase tracking-wider">Subject *</Label>
+                    <div className="relative">
+                      <BookOpen className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Subject"
+                        value={modalSubject}
+                        onChange={(e) => setModalSubject(e.target.value)}
+                        className="pl-9 rounded-xl h-10 bg-background text-xs"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="font-semibold text-[10px] text-primary uppercase tracking-wider">Message *</Label>
+                    <div className="relative">
+                      <MessageSquare className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                      <Textarea
+                        placeholder="Message"
+                        value={modalMessage}
+                        onChange={(e) => setModalMessage(e.target.value)}
+                        className="pl-9 rounded-xl min-h-[100px] bg-background pt-2 text-xs"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full rounded-xl bg-primary hover:bg-primary/95 text-white font-semibold h-10 mt-2 shadow-lg shadow-primary/10 flex items-center justify-center gap-2 text-xs"
+                    disabled={modalLoading}
+                  >
+                    {modalLoading ? "Sending..." : "Send Message"}
+                    <Send className="w-4 h-4" />
+                  </Button>
+                </form>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

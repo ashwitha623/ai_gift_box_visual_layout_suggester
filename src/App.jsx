@@ -23,12 +23,13 @@ import CRMDetail from '@/pages/CRMDetail';
 import NotificationsDashboard from '@/pages/NotificationsDashboard';
 import PackagingManagement from '@/pages/PackagingManagement';
 import ReportsExports from '@/pages/ReportsExports';
-import DataAccessGate from "@/components/DataAccessGate";
 import Contact from '@/pages/Contact';
+import Privacy from '@/pages/Privacy';
 
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
@@ -37,19 +38,20 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/crm" element={<CRMCalendar />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/corporate" element={<DataAccessGate><CorporatePortal /></DataAccessGate>} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/corporate" element={<CorporatePortal />} />
           <Route path="/returns" element={<ReturnsPortal />} />
           <Route path="/orders" element={<OrderTracking />} />
           <Route path="/ai-assistant" element={<AIAssistant />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/inventory" element={<DataAccessGate><InventoryDashboard /></DataAccessGate>} />
+          <Route path="/inventory" element={<InventoryDashboard />} />
           <Route path="/design-approvals" element={<DesignApprovals />} />
           <Route path="/production" element={<ProductionOperations />} />
           <Route path="/fulfillment" element={<FulfillmentCenter />} />
-          <Route path="/crm/customer/:id" element={<DataAccessGate><CRMDetail /></DataAccessGate>} />
+          <Route path="/crm/customer/:id" element={<CRMDetail />} />
           <Route path="/notifications" element={<NotificationsDashboard />} />
           <Route path="/packaging" element={<PackagingManagement />} />
-          <Route path="/reports" element={<DataAccessGate><ReportsExports /></DataAccessGate>} />
+          <Route path="/reports" element={<ReportsExports />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Mail, User, BookOpen, MessageSquare, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,16 @@ export default function Contact() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const el = document.getElementById("contact-form-container");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 150);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -41,7 +51,7 @@ export default function Contact() {
 
   return (
     <div className="min-h-[calc(100vh-200px)] bg-background flex flex-col items-center justify-center p-6 py-16">
-      <div className="w-full max-w-2xl bg-card border border-border rounded-[32px] p-8 sm:p-10 shadow-xl relative overflow-hidden">
+      <div id="contact-form-container" className="w-full max-w-2xl bg-card border border-border rounded-[32px] p-8 sm:p-10 shadow-xl relative overflow-hidden">
         {/* Decorative background glow */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-10 -left-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
