@@ -25,7 +25,7 @@ export default function RecipientStep({ details, onChange, selectedTotal }) {
       <div className="space-y-6 bg-card rounded-2xl p-6 sm:p-8 shadow-md">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label className="font-semibold text-xs text-primary">Recipient Name</Label>
+            <Label className="font-semibold text-xs text-primary">Recipient Name <span className="text-rose-500">*</span></Label>
             <Input
               placeholder="e.g. Ananya Sharma"
               value={details.name || ""}
@@ -34,7 +34,7 @@ export default function RecipientStep({ details, onChange, selectedTotal }) {
             />
           </div>
           <div className="space-y-2">
-            <Label className="font-semibold text-xs text-primary">Sender Name</Label>
+            <Label className="font-semibold text-xs text-primary">Sender Name <span className="text-rose-500">*</span></Label>
             <Input
               placeholder="Your Name"
               value={details.senderName || ""}
@@ -45,7 +45,7 @@ export default function RecipientStep({ details, onChange, selectedTotal }) {
         </div>
 
         <div className="space-y-2">
-          <Label className="font-semibold text-xs text-primary">Personal Message Card</Label>
+          <Label className="font-semibold text-xs text-primary">Personal Message Card <span className="text-rose-500">*</span></Label>
           <Textarea
             placeholder="Write a heartfelt note to include in the box..."
             value={details.message || ""}
@@ -68,7 +68,7 @@ export default function RecipientStep({ details, onChange, selectedTotal }) {
 
         {/* Delivery Address & Date */}
         <div className="space-y-2">
-          <Label className="font-semibold text-xs text-primary">Delivery Address</Label>
+          <Label className="font-semibold text-xs text-primary">Delivery Address <span className="text-rose-500">*</span></Label>
           <Input
             placeholder="Complete shipping address..."
             value={details.deliveryAddress || ""}
@@ -78,7 +78,7 @@ export default function RecipientStep({ details, onChange, selectedTotal }) {
         </div>
 
         <div className="space-y-2">
-          <Label className="font-semibold text-xs text-primary">Preferred Delivery Date</Label>
+          <Label className="font-semibold text-xs text-primary">Preferred Delivery Date <span className="text-rose-500">*</span></Label>
           <Input
             type="date"
             value={details.deliveryDate || ""}
