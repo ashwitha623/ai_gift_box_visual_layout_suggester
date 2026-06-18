@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { CATEGORY_FALLBACKS } from "@/lib/giftdata";
+import { generateRecommendations } from "@/lib/layoutEngine";
 
 // Helper to generate wavy cubic/quadratic paths for SVG crinkle strands
 const generateWavyPath = (w, h, isHoriz) => {
@@ -35,132 +36,6 @@ const generateWavyPath = (w, h, isHoriz) => {
   }
 };
 
-// Rebuilt AI Layout Engine Slot Coordinates and Sizing
-const getLayoutSlots = (layoutId, items) => {
-  const count = items.length;
-
-  // Base slot width and height depending on product count to fill 70-85% box area
-  let baseW = 14;
-  let baseH = 18;
-
-  if (count === 1) {
-    baseW = 21;
-    baseH = 27;
-  } else if (count === 2) {
-    baseW = 16;
-    baseH = 21.5;
-  } else if (count === 3) {
-    baseW = 14.5;
-    baseH = 19;
-  } else if (count === 4) {
-    baseW = 13.5;
-    baseH = 17.5;
-  } else if (count >= 5 && count <= 6) {
-    baseW = 12.5;
-    baseH = 16.5;
-  } else {
-    baseW = 11.2;
-    baseH = 14.8;
-  }
-
-  // Position templates: coordinates represent slot centers in percentages
-  let positions = [];
-
-  if (count === 1) {
-    // 1 Product: Centered showcase layout
-    positions = [{ x: 50, y: 50, rot: 0, z: 2 }];
-  } else if (count === 2) {
-    // 2 Products: Side-by-side luxury arrangement
-    positions = [
-      { x: 30, y: 50, rot: -2, z: 2 },
-      { x: 70, y: 50, rot: 2, z: 3 }
-    ];
-  } else if (count === 3) {
-    // 3 Products: Triangle arrangement (Anchor top-center, supporting bottom flanking)
-    positions = [
-      { x: 50, y: 36, rot: 0, z: 3 }, // Anchor (top-center)
-      { x: 24, y: 69, rot: -4, z: 2 }, // bottom-left supporting
-      { x: 76, y: 69, rot: 4, z: 2 }  // bottom-right supporting
-    ];
-  } else if (count === 4) {
-    // 4 Products: 2x2 premium grid
-    positions = [
-      { x: 27, y: 29, rot: -2, z: 2 }, // top-left
-      { x: 73, y: 29, rot: 2, z: 3 },  // top-right
-      { x: 27, y: 71, rot: -1, z: 4 }, // bottom-left
-      { x: 73, y: 71, rot: 1, z: 5 }   // bottom-right
-    ];
-  } else if (count === 5) {
-    // 5 Products: Hero center layout (focal item center, 4 supporting items in corners)
-    positions = [
-      { x: 50, y: 50, rot: 0, z: 4 }, // Hero center
-      { x: 22, y: 25, rot: -3, z: 2 }, // top-left
-      { x: 78, y: 25, rot: 3, z: 2 },  // top-right
-      { x: 22, y: 75, rot: -2, z: 3 }, // bottom-left
-      { x: 78, y: 75, rot: 2, z: 3 }  // bottom-right
-    ];
-  } else if (count === 6) {
-    // 6 Products: Balanced luxury hamper 2x3 grid
-    positions = [
-      { x: 50, y: 28, rot: 0, z: 3 }, // top-center (anchor)
-      { x: 22, y: 28, rot: -4, z: 2 }, // top-left
-      { x: 78, y: 28, rot: 4, z: 2 },  // top-right
-      { x: 22, y: 72, rot: -2, z: 4 }, // bottom-left
-      { x: 50, y: 72, rot: 1, z: 5 },  // bottom-center
-      { x: 78, y: 72, rot: 2, z: 4 }   // bottom-right
-    ];
-  } else if (count === 7) {
-    // 7 Products: Full hamper arrangement
-    positions = [
-      { x: 50, y: 22, rot: 0, z: 3 }, // top focal
-      { x: 22, y: 24, rot: -3, z: 2 }, // top-left
-      { x: 78, y: 24, rot: 3, z: 2 },  // top-right
-      { x: 35, y: 50, rot: -1, z: 4 }, // mid-left
-      { x: 65, y: 50, rot: 1, z: 4 },  // mid-right
-      { x: 22, y: 76, rot: -2, z: 5 }, // bottom-left
-      { x: 78, y: 76, rot: 2, z: 5 }   // bottom-right
-    ];
-  } else {
-    // 8 Products: Full hamper arrangement
-    positions = [
-      { x: 50, y: 22, rot: 0, z: 3 }, // top focal
-      { x: 20, y: 24, rot: -3, z: 2 }, // top-left
-      { x: 80, y: 24, rot: 3, z: 2 },  // top-right
-      { x: 20, y: 52, rot: -1, z: 4 }, // mid-left
-      { x: 50, y: 52, rot: 0, z: 4 },  // mid-center
-      { x: 80, y: 52, rot: 1, z: 5 },  // mid-right
-      { x: 32, y: 78, rot: -2, z: 6 }, // bottom-left
-      { x: 68, y: 78, rot: 2, z: 6 }   // bottom-right
-    ];
-  }
-
-  // Calculate dynamic scales and box boundary margin sizes for each product
-  return positions.map((pos, idx) => {
-    const item = items[idx];
-    if (!item) return pos;
-
-    // Scale factors: Large: 2.7, Medium: 2.2, Small: 1.85 (Proportional scales)
-    const scale = item.size === "Large" ? 2.7 : item.size === "Medium" ? 2.2 : 1.85;
-
-    let w = baseW * scale;
-    let h = baseH * scale;
-
-    // Special sizing rule for 1 Product: scale to occupy approx 60% of box space
-    if (count === 1) {
-      const singleScale = item.size === "Large" ? 1.05 : item.size === "Medium" ? 0.88 : 0.74;
-      w = 52 * singleScale;
-      h = 60 * singleScale;
-    }
-
-    return {
-      ...pos,
-      w,
-      h,
-      scaleFactor: scale
-    };
-  });
-};
-
 // High-performance canvas-drawn crinkle paper bed
 function CrinklePaperCanvas() {
   const canvasRef = useRef(null);
@@ -193,23 +68,22 @@ function CrinklePaperCanvas() {
       ];
 
       ctx.save();
-      // Apply soft shadows to canvas strokes
       ctx.shadowColor = "rgba(40, 20, 5, 0.22)";
       ctx.shadowBlur = 3.5;
       ctx.shadowOffsetX = 1;
       ctx.shadowOffsetY = 1.8;
 
       // Draw dense wood wool (1600 strands)
-      for (let i = 0; i < 1600; i++) {
+      for (let i = 0; i < 1200; i++) {
         const color = colors[Math.floor(Math.random() * colors.length)];
         ctx.strokeStyle = color;
-        ctx.lineWidth = 1.6 + Math.random() * 1.0;
+        ctx.lineWidth = 1.2 + Math.random() * 0.8;
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
 
         const startX = Math.random() * (w + 40) - 20;
         const startY = Math.random() * (h + 40) - 20;
-        const length = 55 + Math.random() * 85;
+        const length = 45 + Math.random() * 75;
         const angle = Math.random() * Math.PI * 2;
 
         ctx.beginPath();
@@ -221,11 +95,11 @@ function CrinklePaperCanvas() {
         const segLen = length / segments;
 
         for (let s = 0; s < segments; s++) {
-          const nextX = cx + Math.cos(angle) * segLen + (Math.random() - 0.5) * 15;
-          const nextY = cy + Math.sin(angle) * segLen + (Math.random() - 0.5) * 15;
+          const nextX = cx + Math.cos(angle) * segLen + (Math.random() - 0.5) * 12;
+          const nextY = cy + Math.sin(angle) * segLen + (Math.random() - 0.5) * 12;
 
-          const cpX = (cx + nextX) / 2 + (Math.random() - 0.5) * 20;
-          const cpY = (cy + nextY) / 2 + (Math.random() - 0.5) * 20;
+          const cpX = (cx + nextX) / 2 + (Math.random() - 0.5) * 15;
+          const cpY = (cy + nextY) / 2 + (Math.random() - 0.5) * 15;
 
           ctx.quadraticCurveTo(cpX, cpY, nextX, nextY);
           cx = nextX;
@@ -264,7 +138,6 @@ function ProductTile({ p, slot, index }) {
     if (!srcToProcess) return;
 
     const img = new Image();
-    // Verify external origins. Apply crossOrigin anonymous strictly on external assets.
     const isExternal = srcToProcess.startsWith("http") && !srcToProcess.includes(window.location.host);
     if (isExternal) {
       img.crossOrigin = "anonymous";
@@ -281,7 +154,6 @@ function ProductTile({ p, slot, index }) {
         const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const data = imgData.data;
 
-        // Scan all pixels for any transparent pixel (alpha < 200)
         let hasTransparency = false;
         for (let i = 3; i < data.length; i += 4) {
           if (data[i] < 200) {
@@ -290,7 +162,6 @@ function ProductTile({ p, slot, index }) {
           }
         }
 
-        // If the image already has transparent pixels, keep it as is (bypass BFS keyer)
         if (hasTransparency) {
           setImgSrc(srcToProcess);
           setProcessed(true);
@@ -372,14 +243,10 @@ function ProductTile({ p, slot, index }) {
     };
   }, [p.image, fallbackSrc]);
 
-  // Centering logic based on slot coordinate offset
-  const leftPos = slot.x - slot.w / 2;
-  const topPos = slot.y - slot.h / 2;
-
   return (
     <motion.div
-      initial={{ opacity: 0, y: -20, rotate: slot.rot - 10, scale: 0.6 }}
-      animate={{ opacity: 1, y: 0, rotate: slot.rot, scale: 1 }}
+      initial={{ opacity: 0, y: -20, rotate: (slot.rotated ? 90 : 0) - 10, scale: 0.6 }}
+      animate={{ opacity: 1, y: 0, rotate: slot.rotated ? 90 : 0, scale: 1 }}
       transition={{
         delay: index * 0.08,
         type: "spring",
@@ -388,12 +255,11 @@ function ProductTile({ p, slot, index }) {
       }}
       className="absolute group flex items-center justify-center pointer-events-auto"
       style={{
-        left: `${leftPos}%`,
-        top: `${topPos}%`,
-        width: `${slot.w}%`,
-        height: `${slot.h}%`,
-        transform: `rotate(${slot.rot}deg)`,
-        zIndex: slot.z * 10 + 20, // Rendered safely above the ribbon bands (zIndex 2-5)
+        left: `${slot.pctX}%`,
+        top: `${slot.pctY}%`,
+        width: `${slot.pctW}%`,
+        height: `${slot.pctH}%`,
+        zIndex: 20 + index, // Rendered safely above the ribbon bands
         background: "transparent",
         filter: "drop-shadow(0 8px 12px rgba(35, 15, 5, 0.42)) drop-shadow(0 2px 4px rgba(35, 15, 5, 0.18))",
         transition: "filter 0.3s ease, transform 0.3s ease"
@@ -420,22 +286,31 @@ function ProductTile({ p, slot, index }) {
 export default function GiftBoxVisual({
   products,
   ribbonHex = "#D4AF37", // Premium Gold Ribbon
-  layoutId = "showcase",
+  layoutId = "recommended",
   size = "lg",
-  customizations = {} // name, message, photoUrl, logoUrl, customText
+  customizations = {} // name, message, photoUrl, logoUrl, customText, occasion
 }) {
-  const items = useMemo(() => {
-    return [...products]
-      .sort((a, b) => {
-        const order = { Large: 3, Medium: 2, Small: 1 };
-        return order[b.size] - order[a.size];
-      })
-      .slice(0, 8);
-  }, [products]);
+  
+  // Dynamically generate packing layout in the visualizer based on active layoutId
+  const layoutData = useMemo(() => {
+    const occasionId = customizations.occasion || "just_because";
+    
+    // We execute the selection recommendation system on the fly
+    const recs = generateRecommendations({
+      occasion: occasionId,
+      occasionTitle: occasionId.charAt(0).toUpperCase() + occasionId.slice(1),
+      products,
+      budget: 100000, // unlimited budget fallback
+      boxSize: "Large"
+    });
 
-  const slots = useMemo(() => {
-    return getLayoutSlots(layoutId, items);
-  }, [layoutId, items]);
+    const activeLayoutId = layoutId || "recommended";
+    const selectedLayout = recs.recommended.id === activeLayoutId 
+      ? recs.recommended 
+      : (recs.alternatives.find(a => a.id === activeLayoutId) || recs.recommended);
+
+    return selectedLayout;
+  }, [products, layoutId, customizations.occasion]);
 
   const maxW = size === "lg" ? "max-w-3xl" : "max-w-xs";
 
@@ -449,25 +324,74 @@ export default function GiftBoxVisual({
       "#C49A6C", // Tan filler
       "#E2CDAF", // Pale cream tan
     ];
-    return Array.from({ length: 35 }).map((_, i) => {
+    return Array.from({ length: 30 }).map((_, i) => {
       const isHorizontal = Math.random() > 0.5;
       const color = colors[Math.floor(Math.random() * colors.length)];
-      const width = isHorizontal ? 70 + Math.random() * 50 : 10 + Math.random() * 5;
-      const height = isHorizontal ? 10 + Math.random() * 5 : 70 + Math.random() * 50;
+      const width = isHorizontal ? 60 + Math.random() * 40 : 8 + Math.random() * 4;
+      const height = isHorizontal ? 8 + Math.random() * 4 : 60 + Math.random() * 40;
 
       return {
         id: i,
-        left: Math.random() * 92 + 4,
-        top: Math.random() * 92 + 4,
+        left: Math.random() * 90 + 5,
+        top: Math.random() * 90 + 5,
         width,
         height,
         rotate: Math.random() * 360,
         color: color,
-        opacity: 0.8 + Math.random() * 0.2,
+        opacity: 0.85 + Math.random() * 0.15,
         isHorizontal
       };
     });
   }, []);
+
+  if (!layoutData) return null;
+  
+  const { box, items } = layoutData;
+
+  // Style configurations for each box template style
+  const boxBgStyle = {
+    luxury_black: {
+      background: "linear-gradient(135deg, #1C1C1C 0%, #0C0C0C 100%)",
+      borderFoil: "border-[#D4AF37]/35",
+      innerRim: "#0F0F0F",
+      textColor: "text-amber-100"
+    },
+    corporate_executive: {
+      background: "linear-gradient(135deg, #0B1D37 0%, #050E1B 100%)",
+      borderFoil: "border-slate-400/20",
+      innerRim: "#061324",
+      textColor: "text-slate-100"
+    },
+    wedding_hamper: {
+      background: "linear-gradient(135deg, #FAF6F0 0%, #EFE5D9 100%)",
+      borderFoil: "border-[#D4AF37]/25",
+      innerRim: "#E5D9C8",
+      textColor: "text-amber-900"
+    },
+    premium_showcase: {
+      background: "linear-gradient(135deg, #FFFFFF 0%, #F5EFEB 100%)",
+      borderFoil: "border-[#AA8413]/25",
+      innerRim: "#ECE3DB",
+      textColor: "text-amber-900"
+    },
+    birthday_celebration: {
+      background: "linear-gradient(135deg, #FFE5EC 0%, #FFC2D1 100%)",
+      borderFoil: "border-pink-300/35",
+      innerRim: "#FFB3C6",
+      textColor: "text-pink-900"
+    },
+    romantic_elegance: {
+      background: "linear-gradient(135deg, #5C0612 0%, #2B0207 100%)",
+      borderFoil: "border-[#D4AF37]/30",
+      innerRim: "#3D030B",
+      textColor: "text-red-100"
+    }
+  }[box.id] || {
+    background: "linear-gradient(135deg, #0B1D37 0%, #050E1B 100%)",
+    borderFoil: "border-[#D4AF37]/35",
+    innerRim: "#061324",
+    textColor: "text-amber-100"
+  };
 
   return (
     <div className={`relative mx-auto w-full ${maxW}`}>
@@ -481,13 +405,13 @@ export default function GiftBoxVisual({
         }}
       />
 
-      {/* Rectangular Rigid Luxury Navy Gift Box (Rigid edges with rounded-2xl) */}
+      {/* Rectangular Rigid Luxury Gift Box */}
       <div
         className="relative rounded-2xl transition-all duration-500 overflow-hidden"
         style={{
-          aspectRatio: "1.6 / 1",
-          background: "linear-gradient(135deg, #0B1D37 0%, #050E1B 100%)", // Rich Corporate Navy
-          padding: "20px", // Thick box wall padding
+          aspectRatio: `${box.length} / ${box.width}`,
+          background: boxBgStyle.background,
+          padding: "20px",
           boxShadow: `
             0 25px 55px rgba(2, 6, 15, 0.4),
             inset 0 1.5px 3px rgba(255, 255, 255, 0.12),
@@ -495,16 +419,16 @@ export default function GiftBoxVisual({
           `
         }}
       >
-        {/* Subtle Double Gold foil borders near the outer wall edges */}
-        <div className="absolute inset-2 rounded-xl border border-[#D4AF37]/35 pointer-events-none" />
-        <div className="absolute inset-3 rounded-lg border border-[#D4AF37]/15 pointer-events-none" />
+        {/* Outer foil borders */}
+        <div className={`absolute inset-2 rounded-xl border pointer-events-none ${boxBgStyle.borderFoil}`} />
+        <div className={`absolute inset-3 rounded-lg border opacity-40 pointer-events-none ${boxBgStyle.borderFoil}`} />
 
         {/* Box Inner Compartment Well */}
         <div
           className="relative w-full h-full rounded-lg"
           style={{
             background: "#D7B48E", // Kraft paper base
-            border: "10px solid #061324", // Inner navy rim walls
+            border: `10px solid ${boxBgStyle.innerRim}`,
             boxShadow: `
               inset 0 14px 28px rgba(0, 0, 0, 0.55),
               inset 14px 0 18px rgba(0, 0, 0, 0.35),
@@ -514,11 +438,9 @@ export default function GiftBoxVisual({
             overflow: "hidden"
           }}
         >
-          {/* Canvas crinkle paper bed (zIndex: 1) */}
+          {/* Canvas crinkle paper bed */}
           <CrinklePaperCanvas />
 
-          {/* Elegant Corner-Wrapped Satin Ribbon (Runs vertically and horizontally at 15%) */}
-          
           {/* Ribbon Shadows */}
           <div
             className="absolute inset-y-0"
@@ -541,7 +463,7 @@ export default function GiftBoxVisual({
             }}
           />
 
-          {/* Satin Ribbon Bands (Luxury Gold or Custom ribbonHex) */}
+          {/* Satin Ribbon Bands */}
           <div
             className="absolute inset-y-0"
             style={{
@@ -563,19 +485,19 @@ export default function GiftBoxVisual({
             }}
           />
 
-          {/* Arranged Products (zIndex: 20+) */}
+          {/* Arranged Products */}
           <div className="absolute inset-0 pointer-events-none">
-            {items.map((product, i) => (
+            {items.map((item, i) => (
               <ProductTile
-                key={product.id}
-                p={product}
-                slot={slots[i]}
+                key={item.product.id}
+                p={item.product}
+                slot={item}
                 index={i}
               />
             ))}
           </div>
 
-          {/* Overlay Crinkle Shreds (zIndex: 40 - overlays products slightly for nesting depth) */}
+          {/* Overlay Crinkle Shreds */}
           {topShreds.map((s) => {
             const path = generateWavyPath(s.width, s.height, s.isHorizontal);
             return (
@@ -606,7 +528,7 @@ export default function GiftBoxVisual({
             );
           })}
 
-          {/* Polaroid Style Custom Photo Card */}
+          {/* Custom Polaroid Photo Insert */}
           {customizations.photoUrl && (
             <motion.div
               initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
@@ -617,7 +539,7 @@ export default function GiftBoxVisual({
                 left: "6%",
                 width: "24%",
                 height: "35%",
-                zIndex: 45, // Above top crinkles but below products if they overlap
+                zIndex: 45,
                 boxShadow: "6px 12px 24px rgba(3, 10, 25, 0.25)"
               }}
             >
@@ -707,7 +629,7 @@ export default function GiftBoxVisual({
             </div>
           )}
 
-          {/* Ribbon Tails draping from the Bow (zIndex: 3) */}
+          {/* Ribbon Tails */}
           <div
             className="absolute rounded-bl-[40px] pointer-events-none"
             style={{
@@ -741,7 +663,7 @@ export default function GiftBoxVisual({
             }}
           />
 
-          {/* Luxury 8-Loop Satin Bow at the (15%, 15%) Ribbon intersection */}
+          {/* Luxury Bow Loop */}
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -761,7 +683,6 @@ export default function GiftBoxVisual({
                 height: size === "lg" ? 75 : 45
               }}
             >
-              {/* Outer Loops */}
               {[45, 135, 225, 315].map((deg) => (
                 <div
                   key={`outer-${deg}`}
@@ -782,7 +703,6 @@ export default function GiftBoxVisual({
                 </div>
               ))}
 
-              {/* Inner Loops */}
               {[0, 90, 180, 270].map((deg) => (
                 <div
                   key={`inner-${deg}`}
@@ -804,7 +724,6 @@ export default function GiftBoxVisual({
                 </div>
               ))}
 
-              {/* Central Knot Center */}
               <div
                 className="absolute rounded-full"
                 style={{
@@ -823,7 +742,7 @@ export default function GiftBoxVisual({
             </div>
           </motion.div>
 
-          {/* Soft Photography Studio Shadow & Key Lighting overlay */}
+          {/* Soft Photography Shadows */}
           <div
             className="absolute inset-0 pointer-events-none mix-blend-screen opacity-[0.16]"
             style={{

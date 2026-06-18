@@ -38,9 +38,9 @@ export default function ResultStep({ result, occasion, products, details, onRest
       const res = await axios.post("http://localhost:5000/api/orders", {
         userId: 1, // Mock Customer ID
         products: products,
-        totalPrice: result.totalPrice + 350, // Product total plus box/ribbon wrapping fees
+        totalPrice: result.totalPrice + activeLayout.box.cost, // Product total plus selected box cost
         ribbonColor: activeLayout.ribbon.color,
-        boxSize: details.boxSize,
+        boxSize: activeLayout.box.name,
         recipientName: details.name,
         message: details.message,
         customText: details.customText,
@@ -154,7 +154,7 @@ export default function ResultStep({ result, occasion, products, details, onRest
               {/* Order price summary */}
               <div className="bg-secondary rounded-2xl p-4 border flex justify-between items-center text-sm font-semibold">
                 <span className="text-slate-500">Box Total (with wrapping):</span>
-                <span className="text-primary text-base">₹{(result.totalPrice + 350).toLocaleString("en-IN")}</span>
+                <span className="text-primary text-base">₹{(result.totalPrice + activeLayout.box.cost).toLocaleString("en-IN")}</span>
               </div>
 
               {/* Payment selector */}
