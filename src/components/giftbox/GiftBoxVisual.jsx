@@ -1018,7 +1018,7 @@ export default function GiftBoxVisual({
     
     // Pick top candidates, allowing closer clustering for organic arrangement
     const selected = [];
-    const minSeparation = 13; // closer separation for denser grouping
+    const minSeparation = 10; // closer separation for denser flower clusters
     for (const cand of scoredCandidates) {
       let tooClose = false;
       for (const sel of selected) {
@@ -1030,85 +1030,48 @@ export default function GiftBoxVisual({
       }
       if (!tooClose) {
         selected.push(cand);
-        // Up to 15 decorative slots
-        if (selected.length >= 15) break;
+        // Up to 22 decorative slots for a rich floral presentation
+        if (selected.length >= 22) break;
       }
     }
 
-    const foliage = [];
+    const foliage = []; // Leaves completely removed per user request
     const flowers = [];
 
-    // Map selected coordinates to decorative leaf and flower components
+    // Map selected coordinates to flowers and floral elements only (no leaf foliage)
     selected.forEach((s, idx) => {
-      let foliageType = "eucalyptus";
-      if (styling.foliageType === "gold_laurel") {
-        foliageType = "gold_laurel";
-      } else if (styling.foliageType === "rose_leaves") {
-        foliageType = "rose_leaves";
-      } else if (styling.foliageType === "silver_dollar") {
-        foliageType = "silver_dollar";
-      }
-
-      // Add foliage variety
-      if (idx % 3 === 1 && occasionId !== "corporate") {
-        foliageType = "silver_dollar";
-      } else if (idx % 3 === 2 && occasionId !== "corporate") {
-        foliageType = "eucalyptus";
-      }
-
-      // Special occasion foliage overrides
-      if (occasionId === "wedding" && idx % 4 === 1) {
-        foliageType = "baby_breath";
-      } else if ((occasionId === "anniversary" || occasionId === "birthday") && idx % 4 === 2) {
-        foliageType = "lavender";
-      } else if (occasionId === "corporate" && idx % 3 === 2) {
-        foliageType = "tropical_fern";
-      }
-
-      foliage.push({
-        id: `foliage-${idx}`,
-        cx: s.cx,
-        cy: s.cy,
+      let flowerType = "rose";
+      const cycle = idx % 6;
+      if (cycle === 0) flowerType = "rose";
+      else if (cycle === 1) flowerType = "daisy";
+      else if (cycle === 2) flowerType = "peony";
+      else if (cycle === 3) flowerType = "hydrangea";
+      else if (cycle === 4) flowerType = "baby_breath"; // baby's breath (tiny white flowers)
+      else flowerType = "lavender"; // lavender (purple flower spikes)
+      
+      flowers.push({
+        id: `flower-${idx}`,
+        // Add random slight offsets for a natural handcrafted arrangement
+        cx: s.cx + (Math.sin(idx) * 1.5),
+        cy: s.cy + (Math.cos(idx) * 1.5),
+        scale: 0.95 + (idx % 3) * 0.15,
         rotate: (idx * 65 + 30) % 360,
-        scale: 0.85 + (idx % 3) * 0.15,
-        type: foliageType
+        type: flowerType
       });
-
-      // Assign flowers on top of foliage slots for dense, high-end layering (if occasion uses flowers)
-      if (styling.flowerColors) {
-        // Place flowers on 80% of empty slots to fill the box beautifully
-        if (idx % 5 !== 4) {
-          let flowerType = "rose";
-          const cycle = idx % 4;
-          if (cycle === 0) flowerType = "rose";
-          else if (cycle === 1) flowerType = "daisy";
-          else if (cycle === 2) flowerType = "peony";
-          else flowerType = "hydrangea";
-
-          flowers.push({
-            id: `flower-${idx}`,
-            // Shift coordinates slightly for natural offset clusters
-            cx: s.cx + (Math.sin(idx) * 2.2),
-            cy: s.cy + (Math.cos(idx) * 2.2),
-            scale: 0.9 + (idx % 3) * 0.12,
-            type: flowerType
-          });
-        }
-      }
     });
 
     return { foliage, flowers };
   }, [items, styling, occasionId, ribbonLayout]);
 
-  // Pre-generate scattered decorative accents (pearls, petals, stars, crystals, sparkles) - DOUBLED count
+  // Pre-generate scattered decorative accents (pearls, petals, stars, crystals, sparkles) - TRIPLE count
   const accentsList = useMemo(() => {
     let count = 0;
-    if (styling.accents === "pearls") count = 22;
-    else if (styling.accents === "rose-petals") count = 26;
-    else if (styling.accents === "marigold-petals") count = 26;
-    else if (styling.accents === "gold-stars") count = 18;
-    else if (styling.accents === "confetti-pearls") count = 28;
-    else if (styling.accents === "crystals") count = 28; // Crystals for wedding
+    if (styling.accents === "pearls") count = 38;
+    else if (styling.accents === "rose-petals") count = 42;
+    else if (styling.accents === "marigold-petals") count = 42;
+    else if (styling.accents === "gold-stars") count = 30;
+    else if (styling.accents === "confetti-pearls") count = 45;
+    else if (styling.accents === "crystals") count = 45; // Crystals for wedding
 
     return Array.from({ length: count }).map((_, i) => ({
       id: `accent-${i}`,
@@ -1119,9 +1082,9 @@ export default function GiftBoxVisual({
     }));
   }, [styling.accents]);
 
-  // Pre-generate scattered luxury gold foil flakes (all occasions)
+  // Pre-generate scattered luxury gold foil flakes (all occasions) - INCREASED count
   const goldFoilFlakesList = useMemo(() => {
-    return Array.from({ length: 16 }).map((_, i) => ({
+    return Array.from({ length: 28 }).map((_, i) => ({
       id: `gold-flake-${i}`,
       x: 8 + Math.random() * 84,
       y: 8 + Math.random() * 84,
@@ -1136,7 +1099,7 @@ export default function GiftBoxVisual({
     const needsSparkles = ["wedding", "anniversary", "birthday", "festival", "just_because"].includes(occasionId);
     if (!needsSparkles) return [];
 
-    return Array.from({ length: 24 }).map((_, i) => ({
+    return Array.from({ length: 36 }).map((_, i) => ({
       id: `sparkle-${i}`,
       x: 8 + Math.random() * 84,
       y: 8 + Math.random() * 84,
@@ -1145,16 +1108,16 @@ export default function GiftBoxVisual({
     }));
   }, [occasionId]);
 
-  // Theme-aware lighting effects: Increase density to 36 bulbs for extra glow and warmth
+  // Theme-aware lighting effects: Increase density to 48 bulbs for extra glow and warmth
   const isCorporateOrExec = occasionId === "corporate" || occasionId === "graduation" || box.id === "black_gold";
   const hasFairyLights = !isCorporateOrExec && ["anniversary", "birthday", "wedding", "festival", "just_because"].includes(occasionId);
 
-  // Generate fairy lights coordinates (density increased to 36 with copper wire connection)
+  // Generate fairy lights coordinates (density increased to 48 with copper wire connection)
   const fairyLightsData = useMemo(() => {
     if (!hasFairyLights) return { bulbs: [], wirePath: "" };
     
-    // Generate 36 bulbs
-    const bulbs = Array.from({ length: 36 }).map((_, i) => ({
+    // Generate 48 bulbs
+    const bulbs = Array.from({ length: 48 }).map((_, i) => ({
       id: i,
       x: 8 + Math.random() * 84,
       y: 8 + Math.random() * 84,
@@ -1782,6 +1745,10 @@ export default function GiftBoxVisual({
             } else if (fl.type === "peony") {
               const pColor = occasionId === "anniversary" ? "#E11D48" : "#F472B6";
               return <PeonyFlower key={fl.id} x={fl.cx} y={fl.cy} scale={fl.scale} color={pColor} />;
+            } else if (fl.type === "baby_breath") {
+              return <BabyBreathFlower key={fl.id} x={fl.cx} y={fl.cy} />;
+            } else if (fl.type === "lavender") {
+              return <LavenderStem key={fl.id} x={fl.cx} y={fl.cy} rotate={fl.rotate} />;
             } else {
               return (
                 <RoseFlower
