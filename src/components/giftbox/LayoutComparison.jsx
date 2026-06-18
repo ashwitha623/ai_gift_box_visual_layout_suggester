@@ -1,111 +1,178 @@
-import { Crown, Sparkles, Shield, Heart, Percent, Layout } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Crown, Layout, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import GiftBoxVisual from "@/components/giftbox/GiftBoxVisual";
 
 export default function LayoutComparison({ recommended, alternatives, active, onSelect, products, customizations }) {
   // Combine recommended and alternatives to get all 5 layouts
-  const allLayouts = [recommended, ...alternatives];
+  const allLayouts = useMemo(() => [recommended, ...alternatives], [recommended, alternatives]);
+
+  // State for filtering and sorting
+  const [filter, setFilter] = useState("all"); // "all", "aesthetic", "space", "safety"
+  const [sortBy, setSortBy] = useState("matchScore"); // "matchScore", "aesthetic", "safety"
+
+  // Process sorting and filtering dynamically
+  const sortedLayouts = useMemo(() => {
+    let list = [...allLayouts];
+    
+    // 1. Handle filters (which also apply auto-sorting for the selected criteria)
+    if (filter === "aesthetic") {
+      list.sort((a, b) => b.scores.aesthetic - a.scores.aesthetic);
+    } else if (filter === "space") {
+      list.sort((a, b) => b.scores.spaceUtil - a.scores.spaceUtil);
+    } else if (filter === "safety") {
+      list.sort((a, b) => b.scores.safety - a.scores.safety);
+    } else {
+      // 2. Handle sorting dropdown selection
+      if (sortBy === "aesthetic") {
+        list.sort((a, b) => b.scores.aesthetic - a.scores.aesthetic);
+      } else if (sortBy === "safety") {
+        list.sort((a, b) => b.scores.safety - a.scores.safety);
+      } else {
+        list.sort((a, b) => b.matchScore - a.matchScore);
+      }
+    }
+    return list;
+  }, [allLayouts, filter, sortBy]);
 
   return (
-    <div className="mt-12 bg-slate-50/50 rounded-[32px] p-6 sm:p-8 border border-border/80 shadow-inner">
-      <div className="flex items-center gap-2 mb-2">
-        <Layout className="w-5 h-5 text-primary" />
-        <h3 className="text-xl font-bold font-heading text-primary tracking-tight">Compare AI Packaging Layouts</h3>
-      </div>
-      <p className="text-xs text-muted-foreground mb-6 max-w-xl leading-relaxed">
-        The AI optimizer evaluated all five distinct packaging heuristics. Select any option to view its full interactive 3D/2D projection preview.
-      </p>
+    <div className="mt-12 bg-transparent rounded-[32px] p-2">
+      {/* Header section with Filter Tabs and Sorting Dropdown */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
+        <div className="flex items-center gap-2">
+          <Layout className="w-5 h-5 text-slate-800" />
+          <h3 className="text-lg font-bold font-heading text-slate-800 tracking-tight">Compare AI Packaging Layouts</h3>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-        {allLayouts.map((layout) => {
-          const isRecommended = layout.id === recommended.id;
-          const isActive = layout.id === active.id;
+        {/* Filters and sorting */}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Filter Tabs */}
+          <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200/40">
+            {[
+              { id: "all", label: "All Layouts" },
+              { id: "aesthetic", label: "Aesthetic" },
+              { id: "space", label: "Space Efficient" },
+              { id: "safety", label: "Safe Shipping" }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setFilter(tab.id)}
+                className={`text-[11px] font-semibold px-3.5 py-1.5 rounded-lg transition-all ${
+                  filter === tab.id
+                    ? "bg-white text-slate-800 shadow-sm"
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
 
-          return (
-            <div
-              key={layout.id}
-              onClick={() => onSelect(layout)}
-              className={`group relative flex flex-col justify-between rounded-3xl cursor-pointer p-4 transition-all duration-300 border bg-white ${
-                isActive 
-                  ? "ring-2 ring-primary border-primary shadow-xl shadow-primary/10 -translate-y-1" 
-                  : "border-border/80 shadow-md hover:shadow-lg hover:border-slate-300 hover:-translate-y-0.5"
-              } ${isRecommended ? "md:col-span-1 border-amber-300 bg-amber-50/5" : ""}`}
+          {/* Sort By Dropdown */}
+          <div className="relative group">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="appearance-none bg-white text-slate-700 text-[11px] font-semibold pl-3.5 pr-8 py-2 rounded-xl border border-slate-200/80 shadow-sm focus:outline-none focus:ring-1 focus:ring-slate-400 cursor-pointer"
             >
-              <div>
-                {/* AI Recommended Badge */}
-                {isRecommended && (
-                  <div className="absolute -top-3.5 left-4 z-10 flex items-center gap-1 bg-gradient-to-r from-amber-500 to-[#D4AF37] text-white text-[9px] font-black uppercase tracking-wider px-3 py-1.5 rounded-full shadow-md animate-pulse">
-                    <Crown className="w-3 h-3 text-white" /> AI Recommended Layout
-                  </div>
-                )}
+              <option value="matchScore">Sort by: Match Score</option>
+              <option value="aesthetic">Sort by: Aesthetic</option>
+              <option value="safety">Sort by: Safety</option>
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
+        </div>
+      </div>
 
-                {/* Micro Thumbnail Visual Box */}
-                <div className="relative rounded-2xl overflow-hidden bg-slate-100 flex items-center justify-center p-3 mb-4 aspect-square border border-border/50 shadow-inner group-hover:bg-slate-50 transition-colors">
-                  <div className="scale-[0.52] sm:scale-[0.62] origin-center absolute pointer-events-none w-[160%] h-[160%]">
-                    <GiftBoxVisual
-                      products={products}
-                      ribbonHex={layout.ribbon.hex}
-                      layoutId={layout.id}
-                      size="sm"
-                      customizations={customizations}
-                    />
-                  </div>
-                </div>
+      {/* Main carousel layout container with navigation arrows */}
+      <div className="relative flex items-center w-full">
+        {/* Left Arrow Button */}
+        <button className="absolute -left-4 z-20 bg-white border border-slate-200/80 rounded-full p-2 shadow-md hover:bg-slate-50 hover:shadow-lg transition-all text-slate-500 hover:text-slate-800 focus:outline-none hidden md:flex items-center justify-center">
+          <ChevronLeft className="w-4 h-4" />
+        </button>
 
-                {/* Details Section */}
-                <div className="space-y-1">
-                  <h4 className="font-extrabold text-xs text-primary group-hover:text-accent transition-colors flex items-center gap-1">
-                    {layout.name}
-                  </h4>
-                  <p className="text-[10px] text-muted-foreground leading-normal line-clamp-2">
-                    {layout.description}
-                  </p>
-                </div>
+        {/* Layout Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-5 w-full overflow-hidden px-1 py-2">
+          {sortedLayouts.map((layout) => {
+            const isRecommended = layout.id === recommended.id;
+            const isActive = layout.id === active.id;
 
-                {/* Detailed Packing Metrics */}
-                <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-100 text-[10px] font-medium text-slate-500">
-                  <div className="flex flex-col">
-                    <span className="text-[8px] text-slate-400 uppercase font-bold tracking-wider">Box Style</span>
-                    <span className="text-slate-800 font-bold truncate text-[9px]">{layout.box.name}</span>
+            return (
+              <div
+                key={layout.id}
+                onClick={() => onSelect(layout)}
+                className={`group relative flex flex-col justify-between rounded-[24px] cursor-pointer p-4 transition-all duration-300 border bg-white ${
+                  isActive
+                    ? "ring-2 ring-indigo-600 border-indigo-600 shadow-lg -translate-y-1"
+                    : "border-slate-200/80 shadow-sm hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5"
+                }`}
+              >
+                <div>
+                  {/* AI Recommended Badge */}
+                  {isRecommended && (
+                    <div className="absolute -top-2.5 left-4 z-10 flex items-center gap-1 bg-amber-400 text-amber-950 text-[9px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">
+                      <Crown className="w-2.5 h-2.5 fill-amber-950" /> Recommended
+                    </div>
+                  )}
+
+                  {/* Micro Thumbnail Visual Box */}
+                  <div className="relative rounded-2xl overflow-hidden bg-slate-50 flex items-center justify-center p-3 mb-3.5 aspect-square border border-slate-100 shadow-inner group-hover:bg-slate-100/50 transition-colors">
+                    <div className="scale-[0.52] sm:scale-[0.58] origin-center absolute pointer-events-none w-[170%] h-[170%]">
+                      <GiftBoxVisual
+                        products={products}
+                        ribbonHex={layout.ribbon.hex}
+                        layoutId={layout.id}
+                        size="sm"
+                        customizations={customizations}
+                      />
+                    </div>
+                    
+                    {/* Match Score Badge Inside Thumbnail */}
+                    <div className={`absolute bottom-2 right-2 text-white text-[9.5px] font-black px-2.5 py-0.5 rounded-full shadow-md z-30 ${
+                      layout.matchScore >= 80 ? "bg-emerald-500" : "bg-blue-500"
+                    }`}>
+                      {layout.matchScore}%
+                    </div>
                   </div>
-                  <div className="flex flex-col">
-                    <span className="text-[8px] text-slate-400 uppercase font-bold tracking-wider">Box Size</span>
-                    <span className="text-slate-800 font-bold text-[9px]">{layout.box.length}×{layout.box.width}cm</span>
+
+                  {/* Title and description */}
+                  <div className="space-y-1 px-0.5">
+                    <h4 className="font-extrabold text-[12px] text-slate-800 tracking-tight leading-tight">
+                      {layout.name}
+                    </h4>
+                    <p className="text-[10px] text-slate-400 font-medium leading-normal line-clamp-1">
+                      {layout.description}
+                    </p>
                   </div>
-                  <div className="flex flex-col mt-1">
-                    <span className="text-[8px] text-slate-400 uppercase font-bold tracking-wider">Space Util</span>
-                    <span className="text-slate-800 font-extrabold text-[9px]">{layout.scores.spaceUtil}%</span>
-                  </div>
-                  <div className="flex flex-col mt-1">
-                    <span className="text-[8px] text-slate-400 uppercase font-bold tracking-wider">Safety Rating</span>
-                    <span className="text-slate-800 font-extrabold text-[9px]">{layout.scores.safety}%</span>
-                  </div>
-                  <div className="flex flex-col mt-1">
-                    <span className="text-[8px] text-slate-400 uppercase font-bold tracking-wider">Aesthetic</span>
-                    <span className="text-slate-800 font-extrabold text-[9px]">{layout.scores.aesthetic}%</span>
-                  </div>
-                  <div className="flex flex-col mt-1">
-                    <span className="text-[8px] text-slate-400 uppercase font-bold tracking-wider">Cost Score</span>
-                    <span className="text-slate-800 font-extrabold text-[9px]">{layout.scores.costScore}%</span>
+
+                  {/* Clean 4-Column Layout Metrics */}
+                  <div className="grid grid-cols-4 gap-1 mt-4 pt-3.5 border-t border-slate-100 text-center">
+                    <div className="flex flex-col">
+                      <span className="text-[8px] text-slate-400 font-semibold uppercase tracking-wide">Space</span>
+                      <span className="text-slate-700 font-bold text-[10px] mt-0.5">{layout.scores.spaceUtil}%</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[8px] text-slate-400 font-semibold uppercase tracking-wide">Aesthetic</span>
+                      <span className="text-slate-700 font-bold text-[10px] mt-0.5">{layout.scores.aesthetic}%</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[8px] text-slate-400 font-semibold uppercase tracking-wide">Safety</span>
+                      <span className="text-slate-700 font-bold text-[10px] mt-0.5">{layout.scores.safety}%</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[8px] text-slate-400 font-semibold uppercase tracking-wide">Cost</span>
+                      <span className="text-slate-700 font-bold text-[10px] mt-0.5">{layout.scores.costScore}%</span>
+                    </div>
                   </div>
                 </div>
               </div>
+            );
+          })}
+        </div>
 
-              {/* Bottom score and recommended explanation */}
-              <div className="mt-4 pt-3 border-t border-slate-100 flex flex-col justify-end">
-                <div className="flex items-center justify-between">
-                  <span className="text-[9px] uppercase tracking-wider font-bold text-slate-400">Match Score</span>
-                  <span className="text-sm font-black text-primary">{layout.matchScore}%</span>
-                </div>
-
-                {isRecommended && (
-                  <div className="mt-3 bg-amber-500/10 border border-amber-500/20 rounded-xl p-2.5 text-[9px] text-amber-800 leading-normal font-semibold">
-                    ⭐ Recommended because it provides the best balance of aesthetics, product safety, space utilization, packaging cost, and occasion compatibility.
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
+        {/* Right Arrow Button */}
+        <button className="absolute -right-4 z-20 bg-white border border-slate-200/80 rounded-full p-2 shadow-md hover:bg-slate-50 hover:shadow-lg transition-all text-slate-500 hover:text-slate-800 focus:outline-none hidden md:flex items-center justify-center">
+          <ChevronRight className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );
