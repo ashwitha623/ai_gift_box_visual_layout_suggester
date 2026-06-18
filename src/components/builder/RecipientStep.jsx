@@ -143,18 +143,7 @@ export default function RecipientStep({ details, onChange, selectedTotal }) {
           </div>
         </div>
 
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <Label className="font-semibold text-sm text-primary">Budget</Label>
-            <span className="text-sm font-bold text-primary">{formatINR(details.budget)}</span>
-          </div>
-          <Slider
-            value={[details.budget]}
-            min={500}
-            max={20000}
-            step={500}
-            onValueChange={([v]) => onChange({ ...details, budget: v })}
-          />
+        <div className="space-y-1">
           <p className="text-xs text-muted-foreground">Your selected products total {formatINR(selectedTotal)}.</p>
         </div>
 
