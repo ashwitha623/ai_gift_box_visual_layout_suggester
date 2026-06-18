@@ -582,74 +582,74 @@ function getLayoutExplanation(styleId, boxName, spaceUtil, safety, aesthetic) {
   }
 }
 
+// Helper to select the optimal box for a layout based on preferred starting box, size checks and utilization
+function selectBoxForLayout(products, layoutStyle, preferredBoxId, budget, occasion) {
+  const sortedBoxes = [...BOX_TEMPLATES].sort((a, b) => a.capacity - b.capacity);
+  
+  // Find preferred box
+  let currentBox = BOX_TEMPLATES.find(b => b.id === preferredBoxId) || BOX_TEMPLATES[0];
+  let packedItems = packLayout(currentBox, products, layoutStyle);
+  
+  // If it doesn't fit, upgrade to next larger box
+  if (!packedItems) {
+    const startIndex = sortedBoxes.findIndex(b => b.id === currentBox.id);
+    for (let i = startIndex + 1; i < sortedBoxes.length; i++) {
+      currentBox = sortedBoxes[i];
+      packedItems = packLayout(currentBox, products, layoutStyle);
+      if (packedItems) break;
+    }
+  }
+  
+  // Fallback: Pick largest
+  if (!packedItems) {
+    currentBox = sortedBoxes[sortedBoxes.length - 1];
+    packedItems = packLayout(currentBox, products, layoutStyle);
+  }
+  
+  // Now try to optimize: if utilization is below 35%, automatically select a smaller box
+  let scores = calculateScores(currentBox, products, packedItems, occasion, budget);
+  if (scores.spaceUtil < 35) {
+    const currentBoxIndex = sortedBoxes.findIndex(b => b.id === currentBox.id);
+    // Scan smaller boxes from smallest to currentBox
+    for (let i = 0; i < currentBoxIndex; i++) {
+      const smallerBox = sortedBoxes[i];
+      const smallerPacked = packLayout(smallerBox, products, layoutStyle);
+      if (smallerPacked) {
+        const isFallback = smallerPacked.some((item, idx) => idx > 0 && item.x === 1.2 + idx * 2.0);
+        if (!isFallback) {
+          const smallerScores = calculateScores(smallerBox, products, smallerPacked, occasion, budget);
+          if (smallerScores.spaceUtil >= 35 || i === currentBoxIndex - 1) {
+            currentBox = smallerBox;
+            packedItems = smallerPacked;
+            scores = smallerScores;
+            break;
+          }
+        }
+      }
+    }
+  }
+  
+  return { box: currentBox, items: packedItems, scores };
+}
+
 // Main recommendation export
 export function generateRecommendations({ occasion, occasionTitle, products, budget = 5000, boxSize = "Medium" }) {
   const totalProductPrice = products.reduce((s, p) => s + p.price, 0);
 
-  // 1. Evaluate all box templates. Compare all suitable boxes and choose the one with the highest overall score.
-  const candidates = [];
-  for (const box of BOX_TEMPLATES) {
-    // Generate all 5 layout options for this candidate box
-    const layouts = {
-      showcase: packLayout(box, products, "showcase"),
-      symmetrical: packLayout(box, products, "symmetrical"),
-      space_utilization: packLayout(box, products, "space_utilization"),
-      safe_shipping: packLayout(box, products, "safe_shipping"),
-      corporate: packLayout(box, products, "corporate")
-    };
+  // Preferred box mappings for the 5 layouts
+  const preferredMappings = {
+    showcase: "pink_luxury",
+    symmetrical: "gold_ribbon",
+    space_utilization: "pink_pattern",
+    safe_shipping: "crocodile_premium",
+    corporate: "black_gold"
+  };
 
-    // Score each layout option
-    const scores = {};
-    let validLayoutsCount = 0;
-    for (const style in layouts) {
-      if (layouts[style]) {
-        scores[style] = calculateScores(box, products, layouts[style], occasion, budget);
-        validLayoutsCount++;
-      }
-    }
-
-    if (validLayoutsCount === 5) {
-      // Find the highest score among its layouts
-      const maxScore = Math.max(...Object.values(scores).map(s => s.finalScore));
-      candidates.push({
-        box,
-        layouts,
-        scores,
-        maxScore
-      });
-    }
-  }
-
-  let selectedCandidate = null;
-  if (candidates.length === 0) {
-    // Fallback: Pick the largest box template
-    const largestBox = [...BOX_TEMPLATES].sort((a, b) => b.capacity - a.capacity)[0];
-    const layouts = {
-      showcase: packLayout(largestBox, products, "showcase"),
-      symmetrical: packLayout(largestBox, products, "symmetrical"),
-      space_utilization: packLayout(largestBox, products, "space_utilization"),
-      safe_shipping: packLayout(largestBox, products, "safe_shipping"),
-      corporate: packLayout(largestBox, products, "corporate")
-    };
-    const scores = {};
-    for (const style in layouts) {
-      scores[style] = calculateScores(largestBox, products, layouts[style], occasion, budget);
-    }
-    selectedCandidate = { box: largestBox, layouts, scores };
-  } else {
-    // Sort candidate boxes by their highest layout overall score descending
-    candidates.sort((a, b) => b.maxScore - a.maxScore);
-    selectedCandidate = candidates[0];
-  }
-
-  const { box, layouts, scores } = selectedCandidate;
-
-  // 2. Generate the 5 layout configurations for the selected box
   const layoutStylesList = ["showcase", "symmetrical", "space_utilization", "safe_shipping", "corporate"];
   const options = layoutStylesList.map(style => {
-    const layoutItems = layouts[style];
-    const itemScores = scores[style] || calculateScores(box, products, layoutItems, occasion, budget);
-    const filler = getFillerRecommendation(itemScores.spaceUtil, occasion);
+    const preferredBoxId = preferredMappings[style];
+    const { box, items, scores } = selectBoxForLayout(products, style, preferredBoxId, budget, occasion);
+    const filler = getFillerRecommendation(scores.spaceUtil, occasion);
     const ribbonColor = box.ribbonStyle.split(" ")[0] + " Ribbon";
 
     let name = "";
@@ -676,22 +676,22 @@ export function generateRecommendations({ occasion, occasionTitle, products, bud
       name,
       description,
       box,
-      items: layoutItems,
-      scores: itemScores,
+      items,
+      scores,
       ribbon: {
         color: box.ribbonStyle,
         hex: box.ribbonHex
       },
       packaging: box.style,
       filler,
-      explanation: getLayoutExplanation(style, box.name, itemScores.spaceUtil, itemScores.safety, itemScores.aesthetic),
+      explanation: getLayoutExplanation(style, box.name, scores.spaceUtil, scores.safety, scores.aesthetic),
       instructions: [
         `Anchor placement inside the ${box.name} (${box.style}).`,
         `Fill the empty sections using: ${filler}`,
         `Wrap the exterior with a premium ${box.ribbonStyle} (${ribbonColor}).`,
         "Place the customized greeting card on the front-right overlay layer."
       ],
-      matchScore: itemScores.finalScore
+      matchScore: scores.finalScore
     };
   });
 
@@ -706,7 +706,7 @@ export function generateRecommendations({ occasion, occasionTitle, products, bud
     recommended: recommendedOption,
     alternatives,
     totalPrice: totalProductPrice,
-    withinBudget: (totalProductPrice + box.cost) <= budget
+    withinBudget: (totalProductPrice + recommendedOption.box.cost) <= budget
   };
 }
 

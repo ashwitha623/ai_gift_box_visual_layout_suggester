@@ -273,6 +273,12 @@ function ProductTile({ p, slot, index }) {
     };
   }, [p.image, fallbackSrc]);
 
+  const visualScale = 1.5; // Scale up visually by 50%
+  const visualW = slot.pctW * visualScale;
+  const visualH = slot.pctH * visualScale;
+  const visualX = slot.pctX - (visualW - slot.pctW) / 2;
+  const visualY = slot.pctY - (visualH - slot.pctH) / 2;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: -20, rotate: (slot.rotated ? 90 : 0) - 10, scale: 0.6 }}
@@ -285,10 +291,10 @@ function ProductTile({ p, slot, index }) {
       }}
       className="absolute group flex items-center justify-center pointer-events-auto"
       style={{
-        left: `${slot.pctX}%`,
-        top: `${slot.pctY}%`,
-        width: `${slot.pctW}%`,
-        height: `${slot.pctH}%`,
+        left: `${visualX}%`,
+        top: `${visualY}%`,
+        width: `${visualW}%`,
+        height: `${visualH}%`,
         zIndex: 20 + index, 
         background: "transparent",
         filter: "drop-shadow(0 10px 15px rgba(20, 10, 5, 0.45)) drop-shadow(0 3px 6px rgba(20, 10, 5, 0.2))",
@@ -371,41 +377,35 @@ export default function GiftBoxVisual({
 
   // Box background styling mapping to template configurations
   const boxBgStyle = {
-    luxury_black: {
-      background: "linear-gradient(135deg, #1C1C1C 0%, #0C0C0C 100%)",
-      borderFoil: "border-[#D4AF37]/35",
-      innerRim: "#0F0F0F",
-      textColor: "text-amber-100"
-    },
-    corporate_executive: {
-      background: "linear-gradient(135deg, #0B1D37 0%, #050E1B 100%)",
-      borderFoil: "border-slate-400/20",
-      innerRim: "#061324",
-      textColor: "text-slate-100"
-    },
-    wedding_hamper: {
-      background: "linear-gradient(135deg, #FAF6F0 0%, #EFE5D9 100%)",
-      borderFoil: "border-[#D4AF37]/25",
-      innerRim: "#E5D9C8",
-      textColor: "text-amber-900"
-    },
-    premium_showcase: {
-      background: "linear-gradient(135deg, #FFFFFF 0%, #F5EFEB 100%)",
-      borderFoil: "border-[#AA8413]/25",
-      innerRim: "#ECE3DB",
-      textColor: "text-amber-900"
-    },
-    birthday_celebration: {
-      background: "linear-gradient(135deg, #FFE5EC 0%, #FFC2D1 100%)",
-      borderFoil: "border-pink-300/35",
+    pink_luxury: {
+      background: "linear-gradient(135deg, #FFF0F2 0%, #FFD3DD 100%)", // Blush pink texture
+      borderFoil: "border-pink-300/40",
       innerRim: "#FFB3C6",
       textColor: "text-pink-900"
     },
-    romantic_elegance: {
-      background: "linear-gradient(135deg, #5C0612 0%, #2B0207 100%)",
-      borderFoil: "border-[#D4AF37]/30",
-      innerRim: "#3D030B",
-      textColor: "text-red-100"
+    pink_pattern: {
+      background: "linear-gradient(135deg, #FF6B8B 0%, #D81B60 100%)", // Treillage Pink/Gold pattern
+      borderFoil: "border-amber-300/60 shadow-[inset_0_0_15px_rgba(212,175,55,0.35)]",
+      innerRim: "#C2185B",
+      textColor: "text-pink-100"
+    },
+    black_gold: {
+      background: "linear-gradient(135deg, #1C1C1C 0%, #0C0C0C 100%)", // Matte black gold
+      borderFoil: "border-[#D4AF37]/50 shadow-[inset_0_0_20px_rgba(212,175,55,0.25)]",
+      innerRim: "#0F0F0F",
+      textColor: "text-amber-100"
+    },
+    crocodile_premium: {
+      background: "linear-gradient(135deg, #3E2723 0%, #1A0C06 100%)", // Brown Crocodile Leather
+      borderFoil: "border-slate-800/40 shadow-[inset_0_0_25px_rgba(0,0,0,0.55)]",
+      innerRim: "#27120A",
+      textColor: "text-amber-50"
+    },
+    gold_ribbon: {
+      background: "linear-gradient(135deg, #FAD961 0%, #F76B1C 100%)", // Classic Foil Gold
+      borderFoil: "border-red-600/40 shadow-[inset_0_0_18px_rgba(255,255,255,0.4)]",
+      innerRim: "#D4AF37",
+      textColor: "text-amber-950"
     }
   }[box.id] || {
     background: "linear-gradient(135deg, #0B1D37 0%, #050E1B 100%)",

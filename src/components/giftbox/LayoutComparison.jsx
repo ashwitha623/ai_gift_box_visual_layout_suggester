@@ -99,7 +99,7 @@ export default function LayoutComparison({ recommended, alternatives, active, on
 
                 {isRecommended && (
                   <div className="mt-3 bg-amber-500/10 border border-amber-500/20 rounded-xl p-2.5 text-[9px] text-amber-800 leading-normal font-semibold">
-                    ⭐ Recommended because it provides the best balance of aesthetics, product safety, space utilization, and occasion compatibility.
+                    ⭐ Recommended because it provides the best balance of aesthetics, product safety, space utilization, packaging cost, and occasion compatibility.
                   </div>
                 )}
               </div>
