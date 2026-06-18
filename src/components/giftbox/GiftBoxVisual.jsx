@@ -214,7 +214,7 @@ function CrinklePaperCanvas({ fillerConfig }) {
       ctx.shadowOffsetX = 1;
       ctx.shadowOffsetY = 1.8;
 
-      const count = 350; // Balanced density
+      const count = 680; // Rich, premium high-density crinkle bed
       for (let i = 0; i < count; i++) {
         const color = fillerConfig.shreds[Math.floor(Math.random() * fillerConfig.shreds.length)];
         ctx.strokeStyle = color;
@@ -389,6 +389,81 @@ function RoseFlower({ x, y, scale = 1, primaryColor = "#ef4444", secondaryColor 
         <circle cx="14" cy="14" r="6" fill={secondaryColor} />
         <circle cx="17" cy="17" r="4" fill={innerColor} />
         <circle cx="16" cy="16" r="2" fill="#fff" opacity="0.4" />
+      </svg>
+    </div>
+  );
+}
+
+// Delicate White Daisy / Chamomile flower
+function DaisyFlower({ x, y, scale = 1 }) {
+  return (
+    <div
+      className="absolute pointer-events-none"
+      style={{
+        left: `${x}%`,
+        top: `${y}%`,
+        width: `${24 * scale}px`,
+        height: `${24 * scale}px`,
+        transform: "translate(-50%, -50%)",
+        zIndex: 32,
+        filter: "drop-shadow(0 3px 5px rgba(0, 0, 0, 0.22))"
+      }}
+    >
+      <svg viewBox="0 0 24 24" className="w-full h-full">
+        {/* Yellow center disk */}
+        <circle cx="12" cy="12" r="4.5" fill="#FBBF24" />
+        {/* White petals */}
+        {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map(deg => (
+          <ellipse
+            key={deg}
+            cx="12"
+            cy="5"
+            rx="2"
+            ry="4.5"
+            fill="#FFFFFF"
+            transform={`rotate(${deg} 12 12)`}
+          />
+        ))}
+        <circle cx="12" cy="12" r="2" fill="#D97706" opacity="0.2" />
+      </svg>
+    </div>
+  );
+}
+
+// Hydrangea multi-petal blossom cluster
+function HydrangeaFlower({ x, y, scale = 1, color = "#C084FC" }) {
+  return (
+    <div
+      className="absolute pointer-events-none"
+      style={{
+        left: `${x}%`,
+        top: `${y}%`,
+        width: `${30 * scale}px`,
+        height: `${30 * scale}px`,
+        transform: "translate(-50%, -50%)",
+        zIndex: 32,
+        filter: "drop-shadow(0 4px 6px rgba(0, 0, 0, 0.28))"
+      }}
+    >
+      <svg viewBox="0 0 30 30" className="w-full h-full">
+        <circle cx="15" cy="15" r="12" fill={color} opacity="0.4" />
+        <g transform="translate(3, 3)">
+          <path d="M5 2 C5 0, 7 0, 7 2 C7 4, 5 4, 5 2 Z" fill="#FFF" opacity="0.95" />
+          <path d="M2 5 C0 5, 0 7, 2 7 C4 7, 4 5, 2 5 Z" fill="#FFF" opacity="0.95" />
+          <path d="M5 8 C5 10, 7 10, 7 8 C7 6, 5 6, 5 8 Z" fill="#FFF" opacity="0.95" />
+          <path d="M8 5 C10 5, 10 7, 8 7 C6 7, 6 5, 8 5 Z" fill="#FFF" opacity="0.95" />
+          <circle cx="5" cy="5" r="1.2" fill="#FBBF24" />
+        </g>
+        <g transform="translate(13, 6)">
+          <path d="M5 2 C5 0, 7 0, 7 2 C7 4, 5 4, 5 2 Z" fill="#FFF" opacity="0.95" />
+          <path d="M2 5 C0 5, 0 7, 2 7 C4 7, 4 5, 2 5 Z" fill="#FFF" opacity="0.95" />
+          <circle cx="5" cy="5" r="1" fill="#FBBF24" />
+        </g>
+        <g transform="translate(7, 13)">
+          <path d="M5 2 C5 0, 7 0, 7 2 C7 4, 5 4, 5 2 Z" fill="#FFF" opacity="0.9" />
+          <path d="M2 5 C0 5, 0 7, 2 7 C4 7, 4 5, 2 5 Z" fill="#FFF" opacity="0.9" />
+          <circle cx="5" cy="5" r="1" fill="#FBBF24" />
+        </g>
       </svg>
     </div>
   );
@@ -683,8 +758,8 @@ export default function GiftBoxVisual({
   // Procedural Top-layer crinkle paper shreds (rendered above products for realistic nesting depth)
   const topShreds = useMemo(() => {
     const config = styling.filler;
-    // Increased to 12 items for enhanced overlap (product nesting)
-    return Array.from({ length: 12 }).map((_, i) => {
+    // Increased to 28 items for deep nesting and textured look
+    return Array.from({ length: 28 }).map((_, i) => {
       const isHorizontal = Math.random() > 0.5;
       const color = config.shreds[Math.floor(Math.random() * config.shreds.length)];
       const width = isHorizontal ? 55 + Math.random() * 35 : 8 + Math.random() * 4;
@@ -854,9 +929,10 @@ export default function GiftBoxVisual({
     const productAreaRatio = items.reduce((sum, item) => sum + (item.pctW * item.pctH), 0) / 10000;
     const freeSpaceRatio = 1 - productAreaRatio;
     
-    let targetCount = Math.min(3, Math.max(1, Math.round(freeSpaceRatio * 3.2)));
+    // Allow up to 6 florist items to fill empty slots generously per user request
+    let targetCount = Math.min(6, Math.max(3, Math.round(freeSpaceRatio * 5.5)));
     if (occasionId === "corporate") {
-      targetCount = Math.min(2, targetCount); // Corporate is very minimal
+      targetCount = Math.min(3, targetCount); // Corporate stays cleaner
     }
 
     const selected = [];
@@ -864,7 +940,7 @@ export default function GiftBoxVisual({
       let tooClose = false;
       for (const sel of selected) {
         const d = Math.sqrt(Math.pow(cand.cx - sel.cx, 2) + Math.pow(cand.cy - sel.cy, 2));
-        if (d < 22) { // Maintain minimum separation between decorations
+        if (d < 20) { // Maintain minimum separation between decorations
           tooClose = true;
           break;
         }
@@ -887,11 +963,16 @@ export default function GiftBoxVisual({
       }
 
       let isFlower = false;
+      let flowerType = "rose";
       if (styling.flowerColors) {
         if (occasionId === "wedding" && idx === 0) {
           type = "baby_breath";
         } else if (idx % 2 === 0) {
           isFlower = true;
+          // Mix flower varieties based on indexes
+          if (idx === 0) flowerType = "rose";
+          else if (idx === 2) flowerType = "daisy";
+          else flowerType = "hydrangea";
         }
       }
 
@@ -901,6 +982,7 @@ export default function GiftBoxVisual({
         cy: s.cy,
         rotate: (idx * 75 + 45) % 360,
         isFlower,
+        flowerType,
         type
       };
     });
@@ -1354,17 +1436,24 @@ export default function GiftBoxVisual({
           {floristDecors.map(decor => {
             if (decor.isFlower) {
               const colors = styling.flowerColors || { pri: "#EF4444", sec: "#C94F6D", inn: "#FFF0F2" };
-              return (
-                <RoseFlower
-                  key={decor.id}
-                  x={decor.cx}
-                  y={decor.cy}
-                  scale={1.0}
-                  primaryColor={colors.pri}
-                  secondaryColor={colors.sec}
-                  innerColor={colors.inn}
-                />
-              );
+              if (decor.flowerType === "daisy") {
+                return <DaisyFlower key={decor.id} x={decor.cx} y={decor.cy} scale={1.05} />;
+              } else if (decor.flowerType === "hydrangea") {
+                const hColor = occasionId === "wedding" ? "#F5D0C5" : (occasionId === "birthday" ? "#F472B6" : "#C084FC");
+                return <HydrangeaFlower key={decor.id} x={decor.cx} y={decor.cy} scale={1.1} color={hColor} />;
+              } else {
+                return (
+                  <RoseFlower
+                    key={decor.id}
+                    x={decor.cx}
+                    y={decor.cy}
+                    scale={1.0}
+                    primaryColor={colors.pri}
+                    secondaryColor={colors.sec}
+                    innerColor={colors.inn}
+                  />
+                );
+              }
             }
 
             // Render foliage types
