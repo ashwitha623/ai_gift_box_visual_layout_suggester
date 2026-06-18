@@ -36,8 +36,44 @@ const generateWavyPath = (w, h, isHoriz) => {
   }
 };
 
+// Retrieve occasion-specific paper filler config
+function getOccasionFillerColors(occasion) {
+  switch (occasion) {
+    case "birthday":
+      return {
+        base: "#FFECF0",
+        shreds: ["#FF6B6B", "#4DABF7", "#FFD43B", "#51CF66", "#F06595", "#CC5DE8", "#FFF0F6"]
+      };
+    case "corporate":
+      return {
+        base: "#111827", // deep black/grey
+        shreds: ["#1F2937", "#111827", "#D4AF37", "#0B1D37", "#4B5563"]
+      };
+    case "wedding":
+      return {
+        base: "#FCFBF9", // pure silk white
+        shreds: ["#FFFFFF", "#FAF6F0", "#E8DCC4", "#F5EFE6", "#D4AF37"]
+      };
+    case "anniversary":
+      return {
+        base: "#4A0404", // deep velvet red
+        shreds: ["#C94F6D", "#8B0000", "#FF6B8B", "#FFF0F2", "#D4AF37", "#5C0612"]
+      };
+    case "graduation":
+      return {
+        base: "#EFECE9",
+        shreds: ["#1E293B", "#F8FAFC", "#D4AF37", "#64748B", "#475569"]
+      };
+    default:
+      return {
+        base: "#D7B48E", // Kraft brown default
+        shreds: ["#8B623A", "#A0784E", "#B58D5F", "#C49A6C", "#D7B48E", "#E2CDAF"]
+      };
+  }
+}
+
 // High-performance canvas-drawn crinkle paper bed
-function CrinklePaperCanvas() {
+function CrinklePaperCanvas({ occasion }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -55,29 +91,24 @@ function CrinklePaperCanvas() {
     };
 
     const drawShreds = (ctx, w, h) => {
-      ctx.fillStyle = "#D7B48E"; // Kraft brown base
+      const config = getOccasionFillerColors(occasion);
+      ctx.fillStyle = config.base;
       ctx.fillRect(0, 0, w, h);
 
-      const colors = [
-        "#8B623A", // Dark Kraft
-        "#A0784E", // Wood-wool brown
-        "#B58D5F", // Warm tan
-        "#C49A6C", // Tan filler
-        "#D7B48E", // Light Kraft
-        "#E2CDAF", // Cream tan
-      ];
-
       ctx.save();
-      ctx.shadowColor = "rgba(40, 20, 5, 0.22)";
-      ctx.shadowBlur = 3.5;
+      ctx.shadowColor = occasion === "corporate" || occasion === "anniversary" 
+        ? "rgba(0, 0, 0, 0.45)" 
+        : "rgba(40, 20, 5, 0.22)";
+      ctx.shadowBlur = 4;
       ctx.shadowOffsetX = 1;
       ctx.shadowOffsetY = 1.8;
 
       // Draw dense wood wool (450 strands)
-      for (let i = 0; i < 450; i++) {
-        const color = colors[Math.floor(Math.random() * colors.length)];
+      const count = 450;
+      for (let i = 0; i < count; i++) {
+        const color = config.shreds[Math.floor(Math.random() * config.shreds.length)];
         ctx.strokeStyle = color;
-        ctx.lineWidth = 1.2 + Math.random() * 0.8;
+        ctx.lineWidth = 1.1 + Math.random() * 0.9;
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
 
@@ -113,7 +144,7 @@ function CrinklePaperCanvas() {
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
     return () => window.removeEventListener("resize", resizeCanvas);
-  }, []);
+  }, [occasion]);
 
   return (
     <canvas
@@ -168,7 +199,6 @@ function ProductTile({ p, slot, index }) {
           return;
         }
 
-        // BFS Flood-Fill Background Removal Filter
         const W = canvas.width;
         const H = canvas.height;
         const visited = new Uint8Array(W * H);
@@ -259,22 +289,22 @@ function ProductTile({ p, slot, index }) {
         top: `${slot.pctY}%`,
         width: `${slot.pctW}%`,
         height: `${slot.pctH}%`,
-        zIndex: 20 + index, // Rendered safely above the ribbon bands
+        zIndex: 20 + index, 
         background: "transparent",
-        filter: "drop-shadow(0 8px 12px rgba(35, 15, 5, 0.42)) drop-shadow(0 2px 4px rgba(35, 15, 5, 0.18))",
+        filter: "drop-shadow(0 10px 15px rgba(20, 10, 5, 0.45)) drop-shadow(0 3px 6px rgba(20, 10, 5, 0.2))",
         transition: "filter 0.3s ease, transform 0.3s ease"
       }}
       whileHover={{
         scale: 1.05,
-        y: -4,
-        filter: "drop-shadow(0 16px 20px rgba(35, 15, 5, 0.52)) drop-shadow(0 5px 8px rgba(35, 15, 5, 0.3))",
+        y: -5,
+        filter: "drop-shadow(0 20px 25px rgba(20, 10, 5, 0.55)) drop-shadow(0 8px 12px rgba(20, 10, 5, 0.35))",
         zIndex: 150
       }}
     >
       <img
         src={processed ? imgSrc : (p.image || fallbackSrc)}
         alt={p.name}
-        className="max-w-full max-h-full object-contain select-none pointer-events-none transform transition-transform duration-300 group-hover:scale-[1.02]"
+        className="max-w-full max-h-full object-contain select-none pointer-events-none transform transition-transform duration-300 group-hover:scale-[1.03]"
         onError={(e) => {
           e.currentTarget.src = fallbackSrc;
         }}
@@ -285,55 +315,46 @@ function ProductTile({ p, slot, index }) {
 
 export default function GiftBoxVisual({
   products,
-  ribbonHex = "#D4AF37", // Premium Gold Ribbon
+  ribbonHex = "#D4AF37",
   layoutId = "recommended",
   size = "lg",
-  customizations = {} // name, message, photoUrl, logoUrl, customText, occasion
+  customizations = {}
 }) {
-  
+  const occasionId = customizations.occasion || "just_because";
+
   // Dynamically generate packing layout in the visualizer based on active layoutId
   const layoutData = useMemo(() => {
-    const occasionId = customizations.occasion || "just_because";
-    
-    // We execute the selection recommendation system on the fly
     const recs = generateRecommendations({
       occasion: occasionId,
       occasionTitle: occasionId.charAt(0).toUpperCase() + occasionId.slice(1),
       products,
-      budget: 100000, // unlimited budget fallback
-      boxSize: "Large"
+      budget: customizations.budget || 100000,
+      boxSize: customizations.boxSize || "Medium"
     });
 
     const activeLayoutId = layoutId || "recommended";
-    const selectedLayout = recs.recommended.id === activeLayoutId 
-      ? recs.recommended 
-      : (recs.alternatives.find(a => a.id === activeLayoutId) || recs.recommended);
-
-    return selectedLayout;
-  }, [products, layoutId, customizations.occasion]);
+    if (recs.recommended.id === activeLayoutId) {
+      return recs.recommended;
+    }
+    const found = recs.alternatives.find(a => a.id === activeLayoutId);
+    return found || recs.recommended;
+  }, [products, layoutId, occasionId, customizations.budget, customizations.boxSize]);
 
   const maxW = size === "lg" ? "max-w-3xl" : "max-w-xs";
 
   // Procedural Top-layer crinkle paper shreds (rendered above products for realistic nesting depth)
   const topShreds = useMemo(() => {
-    const colors = [
-      "#A0784E", // Wood-wool brown
-      "#B58D5F", // Warm tan
-      "#8B623A", // Dark Kraft brown
-      "#D7B48E", // Light Kraft paper
-      "#C49A6C", // Tan filler
-      "#E2CDAF", // Pale cream tan
-    ];
+    const config = getOccasionFillerColors(occasionId);
     return Array.from({ length: 8 }).map((_, i) => {
       const isHorizontal = Math.random() > 0.5;
-      const color = colors[Math.floor(Math.random() * colors.length)];
+      const color = config.shreds[Math.floor(Math.random() * config.shreds.length)];
       const width = isHorizontal ? 60 + Math.random() * 40 : 8 + Math.random() * 4;
       const height = isHorizontal ? 8 + Math.random() * 4 : 60 + Math.random() * 40;
 
       return {
         id: i,
-        left: Math.random() * 90 + 5,
-        top: Math.random() * 90 + 5,
+        left: Math.random() * 80 + 10,
+        top: Math.random() * 80 + 10,
         width,
         height,
         rotate: Math.random() * 360,
@@ -342,13 +363,13 @@ export default function GiftBoxVisual({
         isHorizontal
       };
     });
-  }, []);
+  }, [occasionId]);
 
   if (!layoutData) return null;
   
   const { box, items } = layoutData;
 
-  // Style configurations for each box template style
+  // Box background styling mapping to template configurations
   const boxBgStyle = {
     luxury_black: {
       background: "linear-gradient(135deg, #1C1C1C 0%, #0C0C0C 100%)",
@@ -427,7 +448,7 @@ export default function GiftBoxVisual({
         <div
           className="relative w-full h-full rounded-lg"
           style={{
-            background: "#D7B48E", // Kraft paper base
+            background: "#D7B48E",
             border: `10px solid ${boxBgStyle.innerRim}`,
             boxShadow: `
               inset 0 14px 28px rgba(0, 0, 0, 0.55),
@@ -439,7 +460,7 @@ export default function GiftBoxVisual({
           }}
         >
           {/* Canvas crinkle paper bed */}
-          <CrinklePaperCanvas />
+          <CrinklePaperCanvas occasion={occasionId} />
 
           {/* Ribbon Shadows */}
           <div
@@ -556,7 +577,7 @@ export default function GiftBoxVisual({
             </motion.div>
           )}
 
-          {/* Greeting Card - Styled to match "Especially For You" */}
+          {/* Greeting Card */}
           {(customizations.message || customizations.name) && (
             <motion.div
               initial={{ opacity: 0, scale: 0.8, rotate: 6 }}
