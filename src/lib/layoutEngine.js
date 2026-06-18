@@ -1,7 +1,7 @@
-import { BOX_TEMPLATES, formatINR } from "./giftdata";
+import { BOX_TEMPLATES, formatINR } from "./giftdata.js";
 
 // 2D Packing Optimization Algorithm
-function packLayout(box, products, layoutStyle) {
+function runPack(box, products, layoutStyle, useCenterOption) {
   const margin = 1.2; // Border safety margin (cm) from walls
   const boxL = box.length;
   const boxW = box.width;
@@ -12,13 +12,9 @@ function packLayout(box, products, layoutStyle) {
   const placed = [];
   
   // Initialize candidate points
-  let candidatePoints = [];
+  let candidatePoints = [{ x: margin, y: margin }];
   
-  if (layoutStyle === "space_utilization") {
-    candidatePoints.push({ x: margin, y: margin });
-  } else {
-    // For recommended and showcase, try placing at top-left first, but also support a centered starting position
-    candidatePoints.push({ x: margin, y: margin });
+  if (useCenterOption) {
     candidatePoints.push({ isCenterOption: true });
   }
 
@@ -162,6 +158,14 @@ function packLayout(box, products, layoutStyle) {
     pctW: (item.w / boxL) * 100,
     pctH: (item.h / boxW) * 100
   }));
+}
+
+function packLayout(box, products, layoutStyle) {
+  if (layoutStyle === "recommended" || layoutStyle === "showcase") {
+    const centeredResult = runPack(box, products, layoutStyle, true);
+    if (centeredResult) return centeredResult;
+  }
+  return runPack(box, products, layoutStyle, false);
 }
 
 // Calculate scores for a placed box layout
