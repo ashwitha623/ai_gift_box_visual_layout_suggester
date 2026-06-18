@@ -10,16 +10,27 @@ function packLayout(box, products, layoutStyle) {
   const sorted = [...products].sort((a, b) => (b.length * b.width) - (a.length * a.width));
 
   const placed = [];
-  // Initialize candidates list with the top-left margin point
-  let candidatePoints = [{ x: margin, y: margin }];
+  
+  // Initialize candidate points
+  let candidatePoints = [];
+  
+  if (layoutStyle === "space_utilization") {
+    candidatePoints.push({ x: margin, y: margin });
+  } else {
+    // For recommended and showcase, try placing at top-left first, but also support a centered starting position
+    candidatePoints.push({ x: margin, y: margin });
+    candidatePoints.push({ isCenterOption: true });
+  }
 
   for (const p of sorted) {
     let bestPoint = null;
     let bestOrient = null;
+    let bestX = null;
+    let bestY = null;
     let bestCost = Infinity;
 
     // Filter duplicate or out-of-bound candidate points
-    candidatePoints = candidatePoints.filter(pt => pt.x < boxL - margin && pt.y < boxW - margin);
+    candidatePoints = candidatePoints.filter(pt => pt.isCenterOption || (pt.x < boxL - margin && pt.y < boxW - margin));
 
     for (const pt of candidatePoints) {
       // Try both normal and rotated (90 deg) orientations
@@ -29,13 +40,37 @@ function packLayout(box, products, layoutStyle) {
       ];
 
       for (const orient of orients) {
-        const px1 = pt.x;
-        const py1 = pt.y;
+        let px1, py1;
+
+        if (pt.isCenterOption) {
+          if (placed.length > 0) continue; // Center starting option is only for the first (largest) item
+          px1 = (boxL - orient.w) / 2;
+          py1 = (boxW - orient.h) / 2;
+        } else if (pt.parent) {
+          const requiredGap = (p.fragile || pt.parent.product.fragile) ? 2.0 : 0.6;
+          if (pt.relation === "right") {
+            px1 = pt.parent.x + pt.parent.w + requiredGap;
+            py1 = pt.y;
+          } else if (pt.relation === "below") {
+            px1 = pt.x;
+            py1 = pt.parent.y + pt.parent.h + requiredGap;
+          } else if (pt.relation === "left") {
+            px1 = pt.parent.x - requiredGap - orient.w;
+            py1 = pt.y;
+          } else if (pt.relation === "above") {
+            px1 = pt.x;
+            py1 = pt.parent.y - requiredGap - orient.h;
+          }
+        } else {
+          px1 = pt.x;
+          py1 = pt.y;
+        }
+
         const px2 = px1 + orient.w;
         const py2 = py1 + orient.h;
 
         // 1. Boundary check: does it fit inside box margin limits?
-        if (px2 > boxL - margin || py2 > boxW - margin) {
+        if (px1 < margin || py1 < margin || px2 > boxL - margin || py2 > boxW - margin) {
           continue;
         }
 
@@ -48,7 +83,7 @@ function packLayout(box, products, layoutStyle) {
 
           // Safety gap check: 2.0cm if either is fragile, 0.6cm otherwise
           const requiredGap = (p.fragile || other.product.fragile) ? 2.0 : 0.6;
-          if (dist < requiredGap) {
+          if (dist < requiredGap - 0.01) {
             valid = false;
             break;
           }
@@ -87,6 +122,8 @@ function packLayout(box, products, layoutStyle) {
           bestCost = cost;
           bestPoint = pt;
           bestOrient = orient;
+          bestX = px1;
+          bestY = py1;
         }
       }
     }
@@ -99,17 +136,22 @@ function packLayout(box, products, layoutStyle) {
     // Place product
     const placedItem = {
       product: p,
-      x: bestPoint.x,
-      y: bestPoint.y,
+      x: bestX,
+      y: bestY,
       w: bestOrient.w,
       h: bestOrient.h,
       rotated: bestOrient.rotated
     };
     placed.push(placedItem);
 
-    // Add new candidate points (corner packing heuristics)
-    candidatePoints.push({ x: placedItem.x + placedItem.w, y: placedItem.y });
-    candidatePoints.push({ x: placedItem.x, y: placedItem.y + placedItem.h });
+    // Add new candidate points (corner packing heuristics in all 4 directions if not space utilization)
+    candidatePoints.push({ x: placedItem.x + placedItem.w, y: placedItem.y, parent: placedItem, relation: "right" });
+    candidatePoints.push({ x: placedItem.x, y: placedItem.y + placedItem.h, parent: placedItem, relation: "below" });
+    
+    if (layoutStyle !== "space_utilization") {
+      candidatePoints.push({ x: placedItem.x, y: placedItem.y, parent: placedItem, relation: "left" });
+      candidatePoints.push({ x: placedItem.x, y: placedItem.y, parent: placedItem, relation: "above" });
+    }
   }
 
   // Convert absolute cm coordinates to percentages relative to box dimensions
