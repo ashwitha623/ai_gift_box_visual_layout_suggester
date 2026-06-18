@@ -4,7 +4,7 @@ import graduationImg from "@/assets/images/graduation.jpg";
 import weddingImg from "@/assets/images/wedding.png";
 import festivalImg from "@/assets/images/festival.jpg";
 import babyShowerImg from "@/assets/images/baby_shower.jpg";
-import friendshipImg from "@/assets/images/friendship.jpg";
+import friendshipImg from "@/assets/images/friendship.png";
 import farewellImg from "@/assets/images/farewell.jpg";
 import corporateImg from "@/assets/images/corporate.jpg";
 import justBecauseImg from "@/assets/images/just_because.jpg";
