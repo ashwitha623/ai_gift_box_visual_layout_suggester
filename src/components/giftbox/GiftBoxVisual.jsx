@@ -1498,7 +1498,7 @@ export default function GiftBoxVisual({
                   height: `${s.height}px`,
                   transform: `rotate(${s.rotate}deg)`,
                   opacity: s.opacity * 0.9,
-                  zIndex: 40, // sit slightly above products for nesting depth
+                  zIndex: 4, // sit underneath products so they remain fully clear
                   filter: "drop-shadow(1px 1.5px 1.5px rgba(0, 0, 0, 0.4))"
                 }}
                 viewBox={`0 0 ${s.width} ${s.height}`}
