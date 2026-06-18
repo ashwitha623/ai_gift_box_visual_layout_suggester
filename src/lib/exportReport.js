@@ -32,7 +32,6 @@ export function downloadSummary(layout, occasion, products, details, totalPrice)
     `Recipient: ${details.name || "—"}`,
     `Occasion: ${occasion.title}`,
     `Box Size: ${details.boxSize}`,
-    `Budget: ${formatINR(details.budget)}`,
     `Products Total: ${formatINR(totalPrice)}`,
     "",
     `Layout Style: ${layout.name}`,
