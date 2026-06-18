@@ -73,8 +73,8 @@ function CrinklePaperCanvas() {
       ctx.shadowOffsetX = 1;
       ctx.shadowOffsetY = 1.8;
 
-      // Draw dense wood wool (1600 strands)
-      for (let i = 0; i < 1200; i++) {
+      // Draw dense wood wool (450 strands)
+      for (let i = 0; i < 450; i++) {
         const color = colors[Math.floor(Math.random() * colors.length)];
         ctx.strokeStyle = color;
         ctx.lineWidth = 1.2 + Math.random() * 0.8;
@@ -324,7 +324,7 @@ export default function GiftBoxVisual({
       "#C49A6C", // Tan filler
       "#E2CDAF", // Pale cream tan
     ];
-    return Array.from({ length: 30 }).map((_, i) => {
+    return Array.from({ length: 8 }).map((_, i) => {
       const isHorizontal = Math.random() > 0.5;
       const color = colors[Math.floor(Math.random() * colors.length)];
       const width = isHorizontal ? 60 + Math.random() * 40 : 8 + Math.random() * 4;

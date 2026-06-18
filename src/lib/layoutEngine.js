@@ -161,11 +161,48 @@ function runPack(box, products, layoutStyle, useCenterOption) {
 }
 
 function packLayout(box, products, layoutStyle) {
-  if (layoutStyle === "recommended" || layoutStyle === "showcase") {
-    const centeredResult = runPack(box, products, layoutStyle, true);
-    if (centeredResult) return centeredResult;
+  // Try packing using different scale factors from 1.0 down to 0.3
+  const scales = [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3];
+  
+  for (const scale of scales) {
+    const scaledProducts = products.map(p => ({
+      ...p,
+      length: Math.max(2.0, p.length * scale),
+      width: Math.max(2.0, p.width * scale),
+      height: Math.max(2.0, p.height * scale)
+    }));
+    
+    let result = null;
+    if (layoutStyle === "recommended" || layoutStyle === "showcase") {
+      result = runPack(box, scaledProducts, layoutStyle, true);
+    }
+    if (!result) {
+      result = runPack(box, scaledProducts, layoutStyle, false);
+    }
+    
+    if (result) {
+      return result;
+    }
   }
-  return runPack(box, products, layoutStyle, false);
+  
+  // Ultimate fallback: if nothing fits at 0.3 scale, force place them overlapping from the top-left margin to avoid empty box
+  return products.map((p, i) => {
+    const w = Math.max(3.0, p.length * 0.35);
+    const h = Math.max(3.0, p.width * 0.35);
+    const offset = 1.2 + i * 2.0;
+    return {
+      product: p,
+      x: offset,
+      y: offset,
+      w,
+      h,
+      rotated: false,
+      pctX: (offset / box.length) * 100,
+      pctY: (offset / box.width) * 100,
+      pctW: (w / box.length) * 100,
+      pctH: (h / box.width) * 100
+    };
+  });
 }
 
 // Calculate scores for a placed box layout
