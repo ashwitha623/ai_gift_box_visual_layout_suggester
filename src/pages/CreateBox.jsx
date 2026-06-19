@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, Sparkles, Loader2 } from "lucide-react";
@@ -30,6 +30,36 @@ export default function CreateBox() {
   const [result, setResult] = useState(null);
   const [generating, setGenerating] = useState(false);
 
+  // Restore state from sessionStorage on mount
+  useEffect(() => {
+    const saved = sessionStorage.getItem("paperplane_builder_state");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.occasion) setOccasion(parsed.occasion);
+        if (parsed.products) setProducts(parsed.products);
+        if (parsed.details) setDetails(parsed.details);
+        if (parsed.result) setResult(parsed.result);
+        if (parsed.step !== undefined) setStep(parsed.step);
+      } catch (e) {
+        console.error("Failed to restore builder state", e);
+      }
+    }
+  }, []);
+
+  // Persist state to sessionStorage on changes
+  useEffect(() => {
+    if (step > 0 || products.length > 0 || details.name) {
+      sessionStorage.setItem("paperplane_builder_state", JSON.stringify({
+        occasion,
+        products,
+        details,
+        result,
+        step
+      }));
+    }
+  }, [occasion, products, details, result, step]);
+
   const toggleProduct = (p) =>
     setProducts((prev) => (prev.some((s) => s.id === p.id) ? prev.filter((s) => s.id !== p.id) : prev.length < 8 ? [...prev, p] : prev));
 
@@ -45,41 +75,25 @@ export default function CreateBox() {
   const selectedTotal = products.reduce((s, p) => s + p.price, 0);
 
   const handleGenerate = async () => {
-  setGenerating(true);
-  setStep(3);
+    setGenerating(true);
+    setStep(3);
 
-  setTimeout(async () => {
-    const generatedResult = generateRecommendations({
-      occasion: occasion.id,
-      occasionTitle: occasion.title,
-      products,
-      budget: details.budget,
-      boxSize: details.boxSize,
-    });
+    setTimeout(() => {
+      const generatedResult = generateRecommendations({
+        occasion: occasion.id,
+        occasionTitle: occasion.title,
+        products,
+        budget: details.budget,
+        boxSize: details.boxSize,
+      });
 
-    setResult(generatedResult);
-
-    try {
-      await axios.post(
-        "http://localhost:5000/api/save-layout",
-        {
-          occasion: occasion.title,
-          products: products.map((p) => p.name),
-          layout: generatedResult.recommended.name,
-          ribbon: generatedResult.recommended.ribbon.color,
-        }
-      );
-
-      console.log("Layout saved successfully");
-    } catch (error) {
-      console.error("Error saving layout:", error);
-    }
-
-    setGenerating(false);
-  }, 2200);
-};
+      setResult(generatedResult);
+      setGenerating(false);
+    }, 2200);
+  };
 
   const restart = () => {
+    sessionStorage.removeItem("paperplane_builder_state");
     setStep(0); setOccasion(null); setProducts([]); setResult(null);
     setDetails({
       name: "",

@@ -1,8 +1,9 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Sparkles, Brain, Eye, FileText, ArrowRight, Gift, Ribbon, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OCCASIONS, PRODUCTS } from "@/lib/giftdata";
+import { ProtectedAction } from "@/components/AuthModalContext";
 
 const FEATURES = [
   { icon: Brain, title: "Intelligent Layout Engine", desc: "Analyzes occasion, product sizes, budget and box size to recommend the perfect arrangement style." },
@@ -12,6 +13,8 @@ const FEATURES = [
 ];
 
 export default function Home() {
+  const navigate = useNavigate();
+
   return (
     <div>
       {/* Hero */}
@@ -37,11 +40,11 @@ export default function Home() {
                   Create Gift Box <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
-              <Link to="/layouts">
+              <ProtectedAction action={() => navigate("/layouts")} redirectTarget="/layouts">
                 <Button size="lg" variant="outline" className="rounded-full px-8 h-12 text-base bg-white">
                   Layout History
                 </Button>
-              </Link>
+              </ProtectedAction>
             </div>
           </motion.div>
 

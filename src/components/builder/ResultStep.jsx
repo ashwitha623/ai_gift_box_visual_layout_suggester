@@ -1,6 +1,6 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Download, FileText, Sparkles, RefreshCw, ShoppingCart, CheckCircle, ShieldCheck } from "lucide-react";
+import { Download, FileText, Sparkles, RefreshCw, ShoppingCart, CheckCircle, ShieldCheck, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -10,6 +10,7 @@ import ReportCard from "@/components/giftbox/ReportCard";
 import LayoutComparison from "@/components/giftbox/LayoutComparison";
 import { exportReportPDF, downloadSummary } from "@/lib/exportReport";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuthAction } from "@/components/AuthModalContext";
 import axios from "axios";
 import confetti from "canvas-confetti";
 
@@ -17,7 +18,9 @@ export default function ResultStep({ result, occasion, products, details, onRest
   const [activeLayout, setActiveLayout] = useState(result.recommended);
   const reportRef = useRef(null);
   const [exporting, setExporting] = useState(false);
+  const [savingLayout, setSavingLayout] = useState(false);
   const { toast } = useToast();
+  const { withAuth } = useAuthAction();
 
   // Checkout Modal State
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -31,6 +34,64 @@ export default function ResultStep({ result, occasion, products, details, onRest
     await exportReportPDF(reportRef.current, details.name || "gift-box");
     setExporting(false);
   };
+
+  const handleSaveLayout = async () => {
+    setSavingLayout(true);
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/save-layout",
+        {
+          occasion: occasion.title,
+          products: products.map((p) => p.name),
+          layout: activeLayout.name,
+          ribbon: activeLayout.ribbon.color,
+        }
+      );
+
+      if (res.data.success) {
+        toast({
+          title: "Layout Saved",
+          description: "This design has been added to your Layout History.",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to save layout.",
+          variant: "destructive"
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: "Error",
+        description: "Failed to connect to backend server.",
+        variant: "destructive"
+      });
+    }
+    setSavingLayout(false);
+  };
+
+  const handleDownloadSummary = () => {
+    downloadSummary(activeLayout, occasion, products, details, result.totalPrice);
+  };
+
+  // Hash checking to auto-execute action after authentication
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash === "#place-order") {
+      window.history.replaceState(null, null, " ");
+      setCheckoutOpen(true);
+    } else if (hash === "#save-layout") {
+      window.history.replaceState(null, null, " ");
+      handleSaveLayout();
+    } else if (hash === "#download-pdf") {
+      window.history.replaceState(null, null, " ");
+      handlePDF();
+    } else if (hash === "#download-summary") {
+      window.history.replaceState(null, null, " ");
+      handleDownloadSummary();
+    }
+  }, []);
 
   const handlePlaceOrder = async () => {
     setPlacingOrder(true);
@@ -68,6 +129,30 @@ export default function ResultStep({ result, occasion, products, details, onRest
     setPlacingOrder(false);
   };
 
+  const onPlaceOrderClick = () => {
+    withAuth(() => {
+      setCheckoutOpen(true);
+    }, "/create#place-order");
+  };
+
+  const onSaveLayoutClick = () => {
+    withAuth(() => {
+      handleSaveLayout();
+    }, "/create#save-layout");
+  };
+
+  const onPDFClick = () => {
+    withAuth(() => {
+      handlePDF();
+    }, "/create#download-pdf");
+  };
+
+  const onSummaryClick = () => {
+    withAuth(() => {
+      handleDownloadSummary();
+    }, "/create#download-summary");
+  };
+
   return (
     <div>
       <div className="text-center mb-8">
@@ -100,13 +185,16 @@ export default function ResultStep({ result, occasion, products, details, onRest
       />
 
       <div className="flex flex-wrap justify-center gap-3 mt-10">
-        <Button onClick={() => setCheckoutOpen(true)} className="rounded-full bg-primary hover:bg-primary/90 text-white border-0 shadow-md px-6">
+        <Button onClick={onPlaceOrderClick} className="rounded-full bg-primary hover:bg-primary/90 text-white border-0 shadow-md px-6">
           <ShoppingCart className="w-4 h-4 mr-2" /> Place Gifting Order
         </Button>
-        <Button onClick={handlePDF} disabled={exporting} variant="outline" className="rounded-full border px-6">
+        <Button onClick={onSaveLayoutClick} disabled={savingLayout} variant="outline" className="rounded-full border px-6 bg-white hover:bg-slate-50 text-slate-700">
+          <Bookmark className="w-4 h-4 mr-2 text-[#C5A880]" /> {savingLayout ? "Saving Layout..." : "Save Layout"}
+        </Button>
+        <Button onClick={onPDFClick} disabled={exporting} variant="outline" className="rounded-full border px-6">
           <FileText className="w-4 h-4 mr-2" /> {exporting ? "Exporting..." : "Export Report (PDF)"}
         </Button>
-        <Button variant="ghost" onClick={() => downloadSummary(activeLayout, occasion, products, details, result.totalPrice)} className="rounded-full px-6 text-muted-foreground">
+        <Button variant="ghost" onClick={onSummaryClick} className="rounded-full px-6 text-muted-foreground">
           <Download className="w-4 h-4 mr-2" /> Download Summary
         </Button>
         <Button variant="ghost" onClick={onRestart} className="rounded-full px-6 text-muted-foreground">

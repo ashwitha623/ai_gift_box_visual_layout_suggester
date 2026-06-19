@@ -1,15 +1,18 @@
 import { useState, useEffect } from "react";
-import { Link, Outlet, useLocation } from "react-router-dom";
-import { Send, ChevronDown, Sparkles, Calendar, Package, Users, ShieldAlert, Briefcase, Archive, LayoutGrid, LogOut, Key, Bell, FileText, ClipboardList, Truck, Twitter, Instagram, Linkedin, Facebook, User, Mail, BookOpen, MessageSquare, X } from "lucide-react";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Send, ChevronDown, Sparkles, Calendar, Package, Users, ShieldAlert, Briefcase, Archive, LayoutGrid, LogOut, Key, Bell, FileText, ClipboardList, Truck, Twitter, Instagram, Linkedin, Facebook, User, Mail, BookOpen, MessageSquare, X, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuthAction, ProtectedAction } from "./AuthModalContext";
 
 export default function Layout() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const { withAuth } = useAuthAction();
   const [adminOpen, setAdminOpen] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
@@ -46,19 +49,50 @@ export default function Layout() {
     }, 1200);
   };
 
+  const protectedRoutes = [
+    "/crm",
+    "/ai-assistant",
+    "/design-approvals",
+    "/orders",
+    "/returns",
+    "/notifications",
+    "/layouts",
+    "/reports"
+  ];
+
   useEffect(() => {
     // Read session on page load
     const userStr = localStorage.getItem("currentUser");
+    const user = userStr ? JSON.parse(userStr) : null;
     if (userStr) {
-      setCurrentUser(JSON.parse(userStr));
+      setCurrentUser(user);
+    } else {
+      setCurrentUser(null);
     }
-  }, [pathname]); // Refresh on navigation
+
+    // Intercept direct page access by guest
+    if (!user && protectedRoutes.some(route => pathname === route || pathname.startsWith(route + "/"))) {
+      navigate("/create");
+      setTimeout(() => {
+        if (window.openAuthModal) {
+          window.openAuthModal(pathname);
+        }
+      }, 100);
+    }
+  }, [pathname, navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem("currentUser");
     sessionStorage.removeItem("dataAccessUnlocked");
     setCurrentUser(null);
     window.location.href = "/";
+  };
+
+  const handleProtectedNavigate = (path) => {
+    setToolsOpen(false);
+    withAuth(() => {
+      navigate(path);
+    }, path);
   };
 
   const isAdmin = currentUser?.role === "admin";
@@ -105,70 +139,106 @@ export default function Layout() {
             </Link>
 
             {/* Gifting Tools Dropdown (Available to Customers/Corporate) */}
-            {currentUser && (
-              <div className="relative">
-                <Button
-                  variant="ghost"
-                  onClick={() => { setToolsOpen(!toolsOpen); setAdminOpen(false); }}
-                  className="rounded-full text-xs font-semibold text-primary hover:text-accent flex items-center gap-1"
-                >
-                  Gifting Tools <ChevronDown className="w-3.5 h-3.5" />
-                </Button>
-                {toolsOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white border border-border rounded-2xl shadow-xl py-2 z-50 animate-in fade-in slide-in-from-top-2">
-                    <Link 
-                      to="/crm" 
-                      onClick={() => setToolsOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-primary hover:bg-secondary/50 hover:text-accent"
-                    >
-                      <Calendar className="w-4 h-4" /> CRM Calendar
-                    </Link>
-                    <Link 
-                      to="/ai-assistant" 
-                      onClick={() => setToolsOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-primary hover:bg-secondary/50 hover:text-accent"
-                    >
-                      <Sparkles className="w-4 h-4" /> AI Assistant
-                    </Link>
-                    <Link 
-                      to="/design-approvals" 
-                      onClick={() => setToolsOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-primary hover:bg-secondary/50 hover:text-accent"
-                    >
-                      <FileText className="w-4 h-4" /> Design Approvals
-                    </Link>
-                    <Link 
-                      to="/fulfillment" 
-                      onClick={() => setToolsOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-primary hover:bg-secondary/50 hover:text-accent"
-                    >
-                      <Truck className="w-4 h-4" /> Order Flow Steps
-                    </Link>
-                    <Link 
-                      to="/orders" 
-                      onClick={() => setToolsOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-primary hover:bg-secondary/50 hover:text-accent"
-                    >
-                      <Package className="w-4 h-4" /> Track Orders
-                    </Link>
-                    <Link 
-                      to="/returns" 
-                      onClick={() => setToolsOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-primary hover:bg-secondary/50 hover:text-accent"
-                    >
-                      <ShieldAlert className="w-4 h-4" /> Return Request
-                    </Link>
-                    <Link 
-                      to="/notifications" 
-                      onClick={() => setToolsOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-primary hover:bg-secondary/50 hover:text-accent"
-                    >
-                      <Bell className="w-4 h-4" /> Notifications
-                    </Link>
-                  </div>
-                )}
-              </div>
-            )}
+            <div className="relative">
+              <Button
+                variant="ghost"
+                onClick={() => { setToolsOpen(!toolsOpen); setAdminOpen(false); }}
+                className="rounded-full text-xs font-semibold text-primary hover:text-accent flex items-center gap-1"
+              >
+                Gifting Tools <ChevronDown className="w-3.5 h-3.5" />
+              </Button>
+              {toolsOpen && (
+                <div className="absolute right-0 mt-2 w-52 bg-white border border-border rounded-2xl shadow-xl py-2.5 z-50 animate-in fade-in slide-in-from-top-2">
+                  
+                  {/* CRM Calendar - Protected */}
+                  <button
+                    onClick={() => handleProtectedNavigate("/crm")}
+                    className="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold text-primary hover:bg-secondary/50 hover:text-accent text-left transition-all"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-primary" /> CRM Calendar
+                    </span>
+                    {!currentUser && <Lock className="w-3.5 h-3.5 text-[#C5A880]" />}
+                  </button>
+
+                  {/* AI Assistant - Protected */}
+                  <button
+                    onClick={() => handleProtectedNavigate("/ai-assistant")}
+                    className="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold text-primary hover:bg-secondary/50 hover:text-accent text-left transition-all"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-primary" /> AI Assistant
+                    </span>
+                    {!currentUser && <Lock className="w-3.5 h-3.5 text-[#C5A880]" />}
+                  </button>
+
+                  {/* Design Approvals - Protected */}
+                  <button
+                    onClick={() => handleProtectedNavigate("/design-approvals")}
+                    className="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold text-primary hover:bg-secondary/50 hover:text-accent text-left transition-all"
+                  >
+                    <span className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-primary" /> Design Approvals
+                    </span>
+                    {!currentUser && <Lock className="w-3.5 h-3.5 text-[#C5A880]" />}
+                  </button>
+
+                  {/* Order Flow Steps - Public */}
+                  <Link 
+                    to="/fulfillment" 
+                    onClick={() => setToolsOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-primary hover:bg-secondary/50 hover:text-accent transition-all"
+                  >
+                    <Truck className="w-4 h-4 text-primary" /> Order Flow Steps
+                  </Link>
+
+                  {/* Track Orders - Protected */}
+                  <button
+                    onClick={() => handleProtectedNavigate("/orders")}
+                    className="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold text-primary hover:bg-secondary/50 hover:text-accent text-left transition-all"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Package className="w-4 h-4 text-primary" /> Track Orders
+                    </span>
+                    {!currentUser && <Lock className="w-3.5 h-3.5 text-[#C5A880]" />}
+                  </button>
+
+                  {/* Return Requests - Protected */}
+                  <button
+                    onClick={() => handleProtectedNavigate("/returns")}
+                    className="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold text-primary hover:bg-secondary/50 hover:text-accent text-left transition-all"
+                  >
+                    <span className="flex items-center gap-2">
+                      <ShieldAlert className="w-4 h-4 text-primary" /> Return Requests
+                    </span>
+                    {!currentUser && <Lock className="w-3.5 h-3.5 text-[#C5A880]" />}
+                  </button>
+
+                  {/* Notifications - Protected */}
+                  <button
+                    onClick={() => handleProtectedNavigate("/notifications")}
+                    className="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold text-primary hover:bg-secondary/50 hover:text-accent text-left transition-all"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Bell className="w-4 h-4 text-primary" /> Notifications
+                    </span>
+                    {!currentUser && <Lock className="w-3.5 h-3.5 text-[#C5A880]" />}
+                  </button>
+
+                  {/* Layout History - Protected */}
+                  <button
+                    onClick={() => handleProtectedNavigate("/layouts")}
+                    className="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold text-primary hover:bg-secondary/50 hover:text-accent text-left transition-all"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Archive className="w-4 h-4 text-primary" /> Layout History
+                    </span>
+                    {!currentUser && <Lock className="w-3.5 h-3.5 text-[#C5A880]" />}
+                  </button>
+
+                </div>
+              )}
+            </div>
 
             {/* Admin Portals Dropdown (Strictly restricted to role === 'admin') */}
             {isAdmin && (
@@ -333,8 +403,16 @@ export default function Layout() {
               <h4 className="text-[10px] font-extrabold tracking-widest text-[#C5A880] uppercase mb-5">Product</h4>
               <ul className="space-y-3 text-xs text-slate-400">
                 <li><Link to="/create" className="hover:text-white transition-colors">Gift Builder</Link></li>
-                <li><Link to="/layouts" className="hover:text-white transition-colors">Layout History</Link></li>
-                <li><Link to="/design-approvals" className="hover:text-white transition-colors">Design Approvals</Link></li>
+                <li>
+                  <ProtectedAction action={() => navigate("/layouts")} redirectTarget="/layouts" className="hover:text-white transition-colors">
+                    Layout History
+                  </ProtectedAction>
+                </li>
+                <li>
+                  <ProtectedAction action={() => navigate("/design-approvals")} redirectTarget="/design-approvals" className="hover:text-white transition-colors">
+                    Design Approvals
+                  </ProtectedAction>
+                </li>
               </ul>
             </div>
             {/* COLUMN 3 */}
@@ -342,8 +420,16 @@ export default function Layout() {
               <h4 className="text-[10px] font-extrabold tracking-widest text-[#C5A880] uppercase mb-5">Business</h4>
               <ul className="space-y-3 text-xs text-slate-400">
                 <li><Link to="/corporate" className="hover:text-white transition-colors">Corporate Enquiries</Link></li>
-                <li><Link to="/orders" className="hover:text-white transition-colors">Order Tracking</Link></li>
-                <li><Link to="/crm/customer/2" className="hover:text-white transition-colors">CRM Records</Link></li>
+                <li>
+                  <ProtectedAction action={() => navigate("/orders")} redirectTarget="/orders" className="hover:text-white transition-colors">
+                    Order Tracking
+                  </ProtectedAction>
+                </li>
+                <li>
+                  <ProtectedAction action={() => navigate("/crm/customer/2")} redirectTarget="/crm/customer/2" className="hover:text-white transition-colors">
+                    CRM Records
+                  </ProtectedAction>
+                </li>
               </ul>
             </div>
             {/* COLUMN 4 */}
@@ -359,7 +445,11 @@ export default function Layout() {
                   </button>
                 </li>
                 <li><Link to="/faq" className="hover:text-white transition-colors">FAQs</Link></li>
-                <li><Link to="/notifications" className="hover:text-white transition-colors">Notifications</Link></li>
+                <li>
+                  <ProtectedAction action={() => navigate("/notifications")} redirectTarget="/notifications" className="hover:text-white transition-colors">
+                    Notifications
+                  </ProtectedAction>
+                </li>
               </ul>
             </div>
           </div>

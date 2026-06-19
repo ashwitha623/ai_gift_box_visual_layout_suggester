@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
 import { ShieldCheck, UserPlus, Lock, Key, Mail, Sparkles, Send, Eye, EyeOff } from "lucide-react";
@@ -19,6 +19,13 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("signup") === "true") {
+      setIsLogin(false);
+    }
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -35,8 +42,15 @@ export default function Auth() {
         if (res.data.success) {
           localStorage.setItem("currentUser", JSON.stringify(res.data.user));
           toast({ title: "Welcome back!", description: `Logged in successfully as ${res.data.user.username}.` });
-          // Redirect
-          window.location.href = res.data.user.role === "admin" ? "/dashboard" : "/";
+          
+          // Redirect to the originally selected feature if any
+          const params = new URLSearchParams(window.location.search);
+          const redirect = params.get("redirect");
+          if (redirect) {
+            window.location.href = decodeURIComponent(redirect);
+          } else {
+            window.location.href = res.data.user.role === "admin" ? "/dashboard" : "/";
+          }
         }
       } else {
         // Signup Flow
