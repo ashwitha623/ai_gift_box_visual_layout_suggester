@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Send, ChevronDown, Sparkles, Calendar, Package, Users, ShieldAlert, Briefcase, Archive, LayoutGrid, LogOut, Key, Bell, FileText, ClipboardList, Truck, Twitter, Instagram, Linkedin, Facebook, User, Mail, BookOpen, MessageSquare, X, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,23 @@ export default function Layout() {
   const [modalMessage, setModalMessage] = useState("");
   const [modalLoading, setModalLoading] = useState(false);
   const { toast } = useToast();
+  const toolsRef = useRef(null);
+  const adminRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (toolsRef.current && !toolsRef.current.contains(event.target)) {
+        setToolsOpen(false);
+      }
+      if (adminRef.current && !adminRef.current.contains(event.target)) {
+        setAdminOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleModalSubmit = (e) => {
     e.preventDefault();
@@ -143,7 +160,7 @@ export default function Layout() {
             </Link>
 
             {/* Gifting Tools Dropdown (Available to Customers/Corporate) */}
-            <div className="relative">
+            <div ref={toolsRef} className="relative">
               <Button
                 variant="ghost"
                 onClick={() => { setToolsOpen(!toolsOpen); setAdminOpen(false); }}
@@ -248,7 +265,7 @@ export default function Layout() {
 
             {/* Admin Portals Dropdown (Strictly restricted to role === 'admin') */}
             {isAdmin && (
-              <div className="relative">
+              <div ref={adminRef} className="relative">
                 <Button
                   variant="ghost"
                   onClick={() => { setAdminOpen(!adminOpen); setToolsOpen(false); }}
