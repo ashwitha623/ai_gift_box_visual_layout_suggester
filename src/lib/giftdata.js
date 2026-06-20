@@ -31,7 +31,7 @@ import premiumDarkChocImg from "@/assets/images/premium_dark_choc.jpg";
 import coffeeMugImg from "@/assets/images/coffee_mug.png";
 import journalImg from "@/assets/images/journal.png";
 import scentedCandleImg from "@/assets/images/scented_candle.jpg";
-import photoFrameImg from "@/assets/images/photo_frame.jpg";
+import photoFrameImg from "@/assets/images/photo_frame.png";
 import plantPotImg from "@/assets/images/plant_pot.jpg";
 
 import perfumeImg from "@/assets/images/perfume.png";
@@ -45,7 +45,7 @@ import nameMugImg from "@/assets/images/name_mug.jpg";
 import engravedKeychainImg from "@/assets/images/engraved_keychain.png";
 
 import deskOrganizerImg from "@/assets/images/desk_organizer.jpg";
-import notebookSetImg from "@/assets/images/notebook_set.jpg";
+import notebookSetImg from "@/assets/images/notebook_set.png";
 import premiumPenImg from "@/assets/images/premium_pen.jpg";
 import corporateHamperImg from "@/assets/images/corporate_hamper.jpg";
 // Category-level fallback images (used when a product image fails to load)
