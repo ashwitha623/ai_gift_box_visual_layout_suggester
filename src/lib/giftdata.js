@@ -20,8 +20,8 @@ import earringsImg from "@/assets/images/earrings.png";
 
 import roseBouquetImg from "@/assets/images/rose_bouquet.jpg";
 import lilyBouquetImg from "@/assets/images/lily_bouquet.jpg";
-import tulipBouquetImg from "@/assets/images/tulip_bouquet.jpg";
-import mixedFlowersImg from "@/assets/images/mixed_flowers.jpg";
+import tulipBouquetImg from "@/assets/images/tulip_bouquet.png";
+import mixedFlowersImg from "@/assets/images/mixed_flowers.png";
 
 import ferreroRocherImg from "@/assets/images/ferrero_rocher.png";
 import lindtCollectionImg from "@/assets/images/lindt_collection.jpg";
