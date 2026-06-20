@@ -7,6 +7,15 @@ import { BOX_SIZES, formatINR } from "@/lib/giftdata";
 
 export default function RecipientStep({ details, onChange, selectedTotal }) {
   
+  const getMinDeliveryDate = () => {
+    const today = new Date();
+    today.setDate(today.getDate() + 5);
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
   // Handles loading local images as base64 data URLs for instant rendering
   const handleFileChange = (key, file) => {
     if (!file) return;
@@ -81,6 +90,7 @@ export default function RecipientStep({ details, onChange, selectedTotal }) {
           <Label className="font-semibold text-xs text-primary">Preferred Delivery Date <span className="text-rose-500">*</span></Label>
           <Input
             type="date"
+            min={getMinDeliveryDate()}
             value={details.deliveryDate || ""}
             onChange={(e) => onChange({ ...details, deliveryDate: e.target.value })}
             className="rounded-xl h-11 bg-white"
@@ -154,14 +164,17 @@ export default function RecipientStep({ details, onChange, selectedTotal }) {
               <button
                 key={size}
                 onClick={() => onChange({ ...details, boxSize: size })}
-                className={`flex flex-col items-center gap-2 rounded-xl border-2 py-3 transition-all ${
+                className={`flex flex-col items-center gap-1.5 rounded-xl border-2 py-3.5 transition-all ${
                   details.boxSize === size
                     ? "border-primary bg-secondary shadow-md shadow-primary/10"
                     : "border-border bg-white hover:border-primary/40"
                 }`}
               >
                 <Package className={`${size === "Small" ? "w-5 h-5" : size === "Medium" ? "w-7 h-7" : "w-9 h-9"} text-primary`} />
-                <span className="text-xs font-medium">{size}</span>
+                <span className="text-xs font-bold text-primary">{size}</span>
+                <span className="text-[10px] font-medium text-slate-400">
+                  {size === "Small" ? "26 x 18 x 11 cm" : size === "Medium" ? "30 x 22 x 12 cm" : "34 x 26 x 14 cm"}
+                </span>
               </button>
             ))}
           </div>
