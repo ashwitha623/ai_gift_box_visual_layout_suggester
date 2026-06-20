@@ -19,6 +19,7 @@ export default function ReturnsPortal() {
   const [orderId, setOrderId] = useState("");
   const [type, setType] = useState("Refund");
   const [reason, setReason] = useState("");
+  const [errors, setErrors] = useState({});
 
   const [currentUser, setCurrentUser] = useState(null);
 
@@ -43,10 +44,15 @@ export default function ReturnsPortal() {
 
   const handleFileReturn = async (e) => {
     e.preventDefault();
-    if (!orderId || !reason) {
-      toast({ title: "Validation Error", description: "Please enter Order ID and Reason.", variant: "destructive" });
+    const newErrors = {};
+    if (!orderId.trim()) newErrors.orderId = "* Order ID is required.";
+    if (!reason.trim()) newErrors.reason = "* Reason is required.";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
+    setErrors({});
 
     try {
       await axios.post("http://localhost:5000/api/returns", {
@@ -58,6 +64,7 @@ export default function ReturnsPortal() {
       toast({ title: "Request Filed", description: "Your return request has been submitted to admin approval." });
       setOrderId("");
       setReason("");
+      setErrors({});
       loadReturns();
     } catch (err) {
       console.error(err);
@@ -93,9 +100,13 @@ export default function ReturnsPortal() {
                   type="number"
                   placeholder="e.g. 1" 
                   value={orderId} 
-                  onChange={(e) => setOrderId(e.target.value)} 
+                  onChange={(e) => {
+                    setOrderId(e.target.value);
+                    setErrors(prev => ({ ...prev, orderId: "" }));
+                  }} 
                   className="rounded-xl h-11"
                 />
+                {errors.orderId && <p className="text-xs text-rose-600 font-semibold mt-1">{errors.orderId}</p>}
               </div>
 
               <div className="space-y-2">
@@ -117,9 +128,13 @@ export default function ReturnsPortal() {
                 <Textarea 
                   placeholder="Explain why you wish to return or refund this order..." 
                   value={reason} 
-                  onChange={(e) => setReason(e.target.value)} 
+                  onChange={(e) => {
+                    setReason(e.target.value);
+                    setErrors(prev => ({ ...prev, reason: "" }));
+                  }} 
                   className="rounded-xl h-24 bg-white"
                 />
+                {errors.reason && <p className="text-xs text-rose-600 font-semibold mt-1">{errors.reason}</p>}
               </div>
 
               <Button type="submit" className="w-full rounded-xl bg-primary hover:bg-primary/90 text-white font-semibold h-11 shadow-lg shadow-primary/10">

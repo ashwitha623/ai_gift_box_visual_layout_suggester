@@ -24,6 +24,7 @@ export default function AdminDashboard() {
   const [prodPrice, setProdPrice] = useState("");
   const [prodSize, setProdSize] = useState("Medium");
   const [prodStock, setProdStock] = useState("");
+  const [errors, setErrors] = useState({});
 
   const [currentUser, setCurrentUser] = useState(null);
 
@@ -73,10 +74,16 @@ export default function AdminDashboard() {
   // Product Save/Update
   const handleSaveProduct = async (e) => {
     e.preventDefault();
-    if (!prodName || !prodPrice || !prodStock) {
-      toast({ title: "Validation Error", description: "Name, Price, and Stock are required.", variant: "destructive" });
+    const newErrors = {};
+    if (!prodName.trim()) newErrors.prodName = "* Product Name is required.";
+    if (!prodPrice.toString().trim()) newErrors.prodPrice = "* Price is required.";
+    if (!prodStock.toString().trim()) newErrors.prodStock = "* Stock Count is required.";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
+    setErrors({});
 
     try {
       const payload = {
@@ -101,6 +108,7 @@ export default function AdminDashboard() {
       setProdName("");
       setProdPrice("");
       setProdStock("");
+      setErrors({});
       loadDashboardData();
     } catch (err) {
       console.error(err);
@@ -115,6 +123,7 @@ export default function AdminDashboard() {
     setProdPrice(p.price);
     setProdSize(p.size);
     setProdStock(p.stock);
+    setErrors({});
     setActiveTab("inventory");
   };
 
@@ -256,7 +265,16 @@ export default function AdminDashboard() {
                     <form onSubmit={handleSaveProduct} className="space-y-4">
                       <div className="space-y-1">
                         <Label className="font-semibold text-xs text-primary">Product Name</Label>
-                        <Input placeholder="e.g. Lavender Candle" value={prodName} onChange={(e) => setProdName(e.target.value)} className="rounded-xl h-10" />
+                        <Input 
+                          placeholder="e.g. Lavender Candle" 
+                          value={prodName} 
+                          onChange={(e) => {
+                            setProdName(e.target.value);
+                            setErrors(prev => ({ ...prev, prodName: "" }));
+                          }} 
+                          className="rounded-xl h-10" 
+                        />
+                        {errors.prodName && <p className="text-xs text-rose-600 font-semibold mt-1">{errors.prodName}</p>}
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
@@ -284,11 +302,29 @@ export default function AdminDashboard() {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
                           <Label className="font-semibold text-xs text-primary">Price (₹)</Label>
-                          <Input type="number" value={prodPrice} onChange={(e) => setProdPrice(e.target.value)} className="rounded-xl h-10" />
+                          <Input 
+                            type="number" 
+                            value={prodPrice} 
+                            onChange={(e) => {
+                              setProdPrice(e.target.value);
+                              setErrors(prev => ({ ...prev, prodPrice: "" }));
+                            }} 
+                            className="rounded-xl h-10" 
+                          />
+                          {errors.prodPrice && <p className="text-xs text-rose-600 font-semibold mt-1">{errors.prodPrice}</p>}
                         </div>
                         <div className="space-y-1">
                           <Label className="font-semibold text-xs text-primary">Stock Count</Label>
-                          <Input type="number" value={prodStock} onChange={(e) => setProdStock(e.target.value)} className="rounded-xl h-10" />
+                          <Input 
+                            type="number" 
+                            value={prodStock} 
+                            onChange={(e) => {
+                              setProdStock(e.target.value);
+                              setErrors(prev => ({ ...prev, prodStock: "" }));
+                            }} 
+                            className="rounded-xl h-10" 
+                          />
+                          {errors.prodStock && <p className="text-xs text-rose-600 font-semibold mt-1">{errors.prodStock}</p>}
                         </div>
                       </div>
 
@@ -297,7 +333,7 @@ export default function AdminDashboard() {
                           {editingProduct ? "Save Changes" : "Add Product"}
                         </Button>
                         {editingProduct && (
-                          <Button type="button" variant="outline" onClick={() => { setEditingProduct(null); setProdName(""); setProdPrice(""); setProdStock(""); }} className="rounded-xl h-10 text-xs px-3">
+                          <Button type="button" variant="outline" onClick={() => { setEditingProduct(null); setProdName(""); setProdPrice(""); setProdStock(""); setErrors({}); }} className="rounded-xl h-10 text-xs px-3">
                             Cancel
                           </Button>
                         )}

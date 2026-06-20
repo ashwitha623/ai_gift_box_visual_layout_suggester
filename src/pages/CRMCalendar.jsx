@@ -39,7 +39,7 @@ export default function CRMCalendar() {
   const handleAddContact = async (e) => {
     e.preventDefault();
     if (!name || !occasionDate) {
-      setFormError("Please fill in the required details.");
+      setFormError("* Please fill in the required details.");
       return;
     }
     setFormError("");

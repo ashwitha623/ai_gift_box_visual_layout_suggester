@@ -19,6 +19,7 @@ export default function CorporatePortal() {
   const [budget, setBudget] = useState("");
   const [deliveryDate, setDeliveryDate] = useState("");
   const [message, setMessage] = useState("");
+  const [errors, setErrors] = useState({});
 
   const [currentUser, setCurrentUser] = useState(null);
 
@@ -51,10 +52,17 @@ export default function CorporatePortal() {
 
   const handleCreateEnquiry = async (e) => {
     e.preventDefault();
-    if (!companyName || !theme || !budget || !deliveryDate) {
-      toast({ title: "Validation Error", description: "Please enter Company Name, Theme, Budget, and Date.", variant: "destructive" });
+    const newErrors = {};
+    if (!companyName.trim()) newErrors.companyName = "* Company Name is required.";
+    if (!theme.trim()) newErrors.theme = "* Theme / Occasion is required.";
+    if (!budget.trim()) newErrors.budget = "* Budget is required.";
+    if (!deliveryDate.trim()) newErrors.deliveryDate = "* Target Delivery Date is required.";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
+    setErrors({});
 
     try {
       // Map B2B enquiry to campaign endpoint for backend compatibility
@@ -137,9 +145,13 @@ export default function CorporatePortal() {
                 <Input 
                   placeholder="e.g. Acme Corp" 
                   value={companyName} 
-                  onChange={(e) => setCompanyName(e.target.value)} 
+                  onChange={(e) => {
+                    setCompanyName(e.target.value);
+                    setErrors(prev => ({ ...prev, companyName: "" }));
+                  }} 
                   className="rounded-xl h-11"
                 />
+                {errors.companyName && <p className="text-xs text-rose-600 font-semibold mt-1">{errors.companyName}</p>}
               </div>
 
               <div className="space-y-2">
@@ -147,9 +159,13 @@ export default function CorporatePortal() {
                 <Input 
                   placeholder="e.g. Client Appreciation, Diwali Hampers" 
                   value={theme} 
-                  onChange={(e) => setTheme(e.target.value)} 
+                  onChange={(e) => {
+                    setTheme(e.target.value);
+                    setErrors(prev => ({ ...prev, theme: "" }));
+                  }} 
                   className="rounded-xl h-11"
                 />
+                {errors.theme && <p className="text-xs text-rose-600 font-semibold mt-1">{errors.theme}</p>}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -159,9 +175,13 @@ export default function CorporatePortal() {
                     type="number"
                     placeholder="e.g. 50000" 
                     value={budget} 
-                    onChange={(e) => setBudget(e.target.value)} 
+                    onChange={(e) => {
+                      setBudget(e.target.value);
+                      setErrors(prev => ({ ...prev, budget: "" }));
+                    }} 
                     className="rounded-xl h-11"
                   />
+                  {errors.budget && <p className="text-xs text-rose-600 font-semibold mt-1">{errors.budget}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -169,9 +189,13 @@ export default function CorporatePortal() {
                   <Input 
                     type="date" 
                     value={deliveryDate} 
-                    onChange={(e) => setDeliveryDate(e.target.value)} 
+                    onChange={(e) => {
+                      setDeliveryDate(e.target.value);
+                      setErrors(prev => ({ ...prev, deliveryDate: "" }));
+                    }} 
                     className="rounded-xl h-11 bg-white text-xs"
                   />
+                  {errors.deliveryDate && <p className="text-xs text-rose-600 font-semibold mt-1">{errors.deliveryDate}</p>}
                 </div>
               </div>
 

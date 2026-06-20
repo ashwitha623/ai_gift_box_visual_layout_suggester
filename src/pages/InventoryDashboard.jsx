@@ -26,6 +26,7 @@ export default function InventoryDashboard() {
   const [packSku, setPackSku] = useState("");
   const [packQty, setPackQty] = useState("");
   const [packMin, setPackMin] = useState("");
+  const [errors, setErrors] = useState({});
 
   const { toast } = useToast();
 
@@ -84,10 +85,17 @@ export default function InventoryDashboard() {
 
   const handleSavePackaging = async (e) => {
     e.preventDefault();
-    if (!packName || !packSku || !packQty || !packMin) {
-      toast({ title: "Validation Error", description: "All fields are required.", variant: "destructive" });
+    const newErrors = {};
+    if (!packName.trim()) newErrors.packName = "* Material Name is required.";
+    if (!packSku.trim()) newErrors.packSku = "* SKU Code is required.";
+    if (!packQty.toString().trim()) newErrors.packQty = "* Available Qty is required.";
+    if (!packMin.toString().trim()) newErrors.packMin = "* Min Threshold is required.";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
+    setErrors({});
 
     try {
       const payload = {
@@ -112,6 +120,7 @@ export default function InventoryDashboard() {
       setPackQty("");
       setPackMin("");
       setEditingPack(null);
+      setErrors({});
       setShowAddPackaging(false);
       loadInventory();
     } catch (err) {
@@ -138,6 +147,7 @@ export default function InventoryDashboard() {
     setPackSku(item.sku);
     setPackQty(item.availableQty);
     setPackMin(item.minThreshold);
+    setErrors({});
     setShowAddPackaging(true);
   };
 
@@ -277,7 +287,7 @@ export default function InventoryDashboard() {
               </Select>
             )}
             {activeTab === "packaging" && (
-              <Button onClick={() => { setEditingPack(null); setPackName(""); setPackSku(""); setPackQty(""); setPackMin(""); setShowAddPackaging(true); }} className="rounded-full bg-primary hover:bg-primary/95 text-white h-10 text-xs font-semibold px-4 flex items-center gap-1">
+              <Button onClick={() => { setEditingPack(null); setPackName(""); setPackSku(""); setPackQty(""); setPackMin(""); setErrors({}); setShowAddPackaging(true); }} className="rounded-full bg-primary hover:bg-primary/95 text-white h-10 text-xs font-semibold px-4 flex items-center gap-1">
                 <Plus className="w-4 h-4" /> Add Packaging
               </Button>
             )}
@@ -305,7 +315,16 @@ export default function InventoryDashboard() {
                     <form onSubmit={handleSavePackaging} className="space-y-4">
                       <div className="space-y-1">
                         <Label className="text-xs font-semibold text-primary">Material Name</Label>
-                        <Input value={packName} onChange={(e) => setPackName(e.target.value)} placeholder="e.g. Lavender Wrapping Paper" className="rounded-xl h-10 text-xs" />
+                        <Input 
+                          value={packName} 
+                          onChange={(e) => {
+                            setPackName(e.target.value);
+                            setErrors(prev => ({ ...prev, packName: "" }));
+                          }} 
+                          placeholder="e.g. Lavender Wrapping Paper" 
+                          className="rounded-xl h-10 text-xs" 
+                        />
+                        {errors.packName && <p className="text-xs text-rose-600 font-semibold mt-1">{errors.packName}</p>}
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
@@ -320,22 +339,51 @@ export default function InventoryDashboard() {
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs font-semibold text-primary">SKU Code</Label>
-                          <Input value={packSku} onChange={(e) => setPackSku(e.target.value)} placeholder="e.g. WRP-LVN" className="rounded-xl h-10 text-xs" />
+                          <Input 
+                            value={packSku} 
+                            onChange={(e) => {
+                              setPackSku(e.target.value);
+                              setErrors(prev => ({ ...prev, packSku: "" }));
+                            }} 
+                            placeholder="e.g. WRP-LVN" 
+                            className="rounded-xl h-10 text-xs" 
+                          />
+                          {errors.packSku && <p className="text-xs text-rose-600 font-semibold mt-1">{errors.packSku}</p>}
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
                           <Label className="text-xs font-semibold text-primary">Available Qty</Label>
-                          <Input type="number" value={packQty} onChange={(e) => setPackQty(e.target.value)} placeholder="e.g. 100" className="rounded-xl h-10 text-xs" />
+                          <Input 
+                            type="number" 
+                            value={packQty} 
+                            onChange={(e) => {
+                              setPackQty(e.target.value);
+                              setErrors(prev => ({ ...prev, packQty: "" }));
+                            }} 
+                            placeholder="e.g. 100" 
+                            className="rounded-xl h-10 text-xs" 
+                          />
+                          {errors.packQty && <p className="text-xs text-rose-600 font-semibold mt-1">{errors.packQty}</p>}
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs font-semibold text-primary">Min Threshold</Label>
-                          <Input type="number" value={packMin} onChange={(e) => setPackMin(e.target.value)} placeholder="e.g. 15" className="rounded-xl h-10 text-xs" />
+                          <Input 
+                            type="number" 
+                            value={packMin} 
+                            onChange={(e) => {
+                              setPackMin(e.target.value);
+                              setErrors(prev => ({ ...prev, packMin: "" }));
+                            }} 
+                            placeholder="e.g. 15" 
+                            className="rounded-xl h-10 text-xs" 
+                          />
+                          {errors.packMin && <p className="text-xs text-rose-600 font-semibold mt-1">{errors.packMin}</p>}
                         </div>
                       </div>
                       <div className="flex gap-2.5 pt-3">
                         <Button type="submit" className="flex-1 rounded-xl bg-primary hover:bg-primary/95 text-white h-10 text-xs font-semibold">{editingPack ? "Save Changes" : "Create Material"}</Button>
-                        <Button type="button" variant="outline" onClick={() => setShowAddPackaging(false)} className="rounded-xl h-10 text-xs">Cancel</Button>
+                        <Button type="button" variant="outline" onClick={() => { setShowAddPackaging(false); setErrors({}); }} className="rounded-xl h-10 text-xs">Cancel</Button>
                       </div>
                     </form>
                   </motion.div>

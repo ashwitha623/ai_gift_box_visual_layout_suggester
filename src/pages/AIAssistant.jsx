@@ -40,6 +40,7 @@ export default function AIAssistant() {
   const [corpBudget, setCorpBudget] = useState("2500");
   const [corpOccasion, setCorpOccasion] = useState("corporate");
   const [corpResult, setCorpResult] = useState(null);
+  const [corpError, setCorpError] = useState("");
 
   // Recommendations Handler
   const handleRecommend = async () => {
@@ -98,10 +99,11 @@ export default function AIAssistant() {
 
   // Proposal Generator Handler
   const handleCorporateProposal = async () => {
-    if (!corpName) {
-      toast({ title: "Validation Error", description: "Please enter Company Name.", variant: "destructive" });
+    if (!corpName.trim()) {
+      setCorpError("* Company Name is required.");
       return;
     }
+    setCorpError("");
     setLoading(true);
     try {
       const res = await axios.post("http://localhost:5000/api/ai/corporate-proposal", {
@@ -403,7 +405,16 @@ export default function AIAssistant() {
                     <div className="space-y-4">
                       <div>
                         <Label className="font-semibold text-xs text-primary">Corporate Client Name</Label>
-                        <Input placeholder="e.g. Google India, Deloitte" value={corpName} onChange={(e) => setCorpName(e.target.value)} className="rounded-xl h-11 mt-1.5" />
+                        <Input 
+                          placeholder="e.g. Google India, Deloitte" 
+                          value={corpName} 
+                          onChange={(e) => {
+                            setCorpName(e.target.value);
+                            setCorpError("");
+                          }} 
+                          className="rounded-xl h-11 mt-1.5" 
+                        />
+                        {corpError && <p className="text-xs text-rose-600 font-semibold mt-1">{corpError}</p>}
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">

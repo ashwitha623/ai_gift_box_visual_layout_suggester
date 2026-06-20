@@ -171,7 +171,7 @@ export default function CreateBox() {
       )}
       {step === 2 && !isDetailsValid && (
         <p className="text-center text-xs text-rose-600 font-semibold mt-3 animate-pulse">
-          Please fill out all required fields marked with * to proceed.
+          * Please fill out all required fields marked with * to proceed.
         </p>
       )}
     </div>

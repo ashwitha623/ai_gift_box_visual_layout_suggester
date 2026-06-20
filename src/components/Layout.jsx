@@ -23,6 +23,7 @@ export default function Layout() {
   const [modalSubject, setModalSubject] = useState("");
   const [modalMessage, setModalMessage] = useState("");
   const [modalLoading, setModalLoading] = useState(false);
+  const [modalErrors, setModalErrors] = useState({});
   const { toast } = useToast();
   const toolsRef = useRef(null);
   const adminRef = useRef(null);
@@ -114,14 +115,17 @@ export default function Layout() {
 
   const handleModalSubmit = (e) => {
     e.preventDefault();
-    if (!modalName.trim() || !modalEmail.trim() || !modalSubject.trim() || !modalMessage.trim()) {
-      toast({
-        title: "Required Fields Missing",
-        description: "Please fill out all required fields.",
-        variant: "destructive"
-      });
+    const newErrors = {};
+    if (!modalName.trim()) newErrors.name = "* Name is required.";
+    if (!modalEmail.trim()) newErrors.email = "* Email address is required.";
+    if (!modalSubject.trim()) newErrors.subject = "* Subject is required.";
+    if (!modalMessage.trim()) newErrors.message = "* Message is required.";
+
+    if (Object.keys(newErrors).length > 0) {
+      setModalErrors(newErrors);
       return;
     }
+    setModalErrors({});
     setModalLoading(true);
     setTimeout(() => {
       toast({
@@ -132,6 +136,7 @@ export default function Layout() {
       setModalEmail("");
       setModalSubject("");
       setModalMessage("");
+      setModalErrors({});
       setModalLoading(false);
       setContactOpen(false);
     }, 1200);
@@ -539,7 +544,10 @@ export default function Layout() {
               <ul className="space-y-3 text-xs text-slate-400">
                 <li>
                   <button 
-                    onClick={() => setContactOpen(true)} 
+                    onClick={() => {
+                      setContactOpen(true);
+                      setModalErrors({});
+                    }} 
                     className="hover:text-white transition-colors text-left"
                   >
                     Help Center
@@ -599,7 +607,10 @@ export default function Layout() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setContactOpen(false)}
+              onClick={() => {
+                setContactOpen(false);
+                setModalErrors({});
+              }}
               className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
             />
             
@@ -614,7 +625,10 @@ export default function Layout() {
               {/* Close Button */}
               <button 
                 type="button"
-                onClick={() => setContactOpen(false)}
+                onClick={() => {
+                  setContactOpen(false);
+                  setModalErrors({});
+                }}
                 className="absolute right-4 top-4 p-1.5 rounded-full hover:bg-slate-100 transition-colors text-muted-foreground hover:text-foreground"
                 aria-label="Close modal"
               >
@@ -642,11 +656,14 @@ export default function Layout() {
                         <Input
                           placeholder="Name"
                           value={modalName}
-                          onChange={(e) => setModalName(e.target.value)}
+                          onChange={(e) => {
+                            setModalName(e.target.value);
+                            setModalErrors(prev => ({ ...prev, name: "" }));
+                          }}
                           className="pl-9 rounded-xl h-10 bg-background text-xs"
-                          required
                         />
                       </div>
+                      {modalErrors.name && <p className="text-[10px] text-rose-600 font-semibold mt-0.5">{modalErrors.name}</p>}
                     </div>
 
                     <div className="space-y-1">
@@ -657,11 +674,14 @@ export default function Layout() {
                           type="email"
                           placeholder="Email address"
                           value={modalEmail}
-                          onChange={(e) => setModalEmail(e.target.value)}
+                          onChange={(e) => {
+                            setModalEmail(e.target.value);
+                            setModalErrors(prev => ({ ...prev, email: "" }));
+                          }}
                           className="pl-9 rounded-xl h-10 bg-background text-xs"
-                          required
                         />
                       </div>
+                      {modalErrors.email && <p className="text-[10px] text-rose-600 font-semibold mt-0.5">{modalErrors.email}</p>}
                     </div>
                   </div>
 
@@ -672,11 +692,14 @@ export default function Layout() {
                       <Input
                         placeholder="Subject"
                         value={modalSubject}
-                        onChange={(e) => setModalSubject(e.target.value)}
+                        onChange={(e) => {
+                          setModalSubject(e.target.value);
+                          setModalErrors(prev => ({ ...prev, subject: "" }));
+                        }}
                         className="pl-9 rounded-xl h-10 bg-background text-xs"
-                        required
                       />
                     </div>
+                    {modalErrors.subject && <p className="text-[10px] text-rose-600 font-semibold mt-0.5">{modalErrors.subject}</p>}
                   </div>
 
                   <div className="space-y-1">
@@ -686,11 +709,14 @@ export default function Layout() {
                       <Textarea
                         placeholder="Message"
                         value={modalMessage}
-                        onChange={(e) => setModalMessage(e.target.value)}
+                        onChange={(e) => {
+                          setModalMessage(e.target.value);
+                          setModalErrors(prev => ({ ...prev, message: "" }));
+                        }}
                         className="pl-9 rounded-xl min-h-[100px] bg-background pt-2 text-xs"
-                        required
                       />
                     </div>
+                    {modalErrors.message && <p className="text-[10px] text-rose-600 font-semibold mt-0.5">{modalErrors.message}</p>}
                   </div>
 
                   <Button
