@@ -67,7 +67,8 @@ export default function AIAssistant() {
         occasion: msgOccasion,
         tone: msgTone,
         relationship: msgRel,
-        keywords: msgKeywords
+        keywords: msgKeywords,
+        currentMessage: msgResult
       });
       setMsgResult(res.data.message);
       setLoading(false);

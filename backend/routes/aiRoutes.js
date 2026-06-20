@@ -105,28 +105,76 @@ router.post("/ai/recommend", async (req, res) => {
 
 // 2. AI Personalized Message Generator
 router.post("/ai/generate-message", (req, res) => {
-  const { occasion, tone, relationship, keywords } = req.body;
+  const { occasion, tone, relationship, keywords, currentMessage } = req.body;
 
   const messages = {
     birthday: {
-      warm: `Wishing you the happiest of birthdays! May this year bring you endless joy, laughter, and beautiful memories. So grateful to have you in my life. Cheers to you!`,
-      formal: `May your birthday mark the beginning of a wonderful year filled with success, prosperity, and happiness. Happy Birthday.`,
-      playful: `Happy Birthday! Another year older, but definitely not wiser! Wishing you a fantastic day filled with cake, laughter, and zero adult responsibilities!`
+      warm: [
+        `Wishing you the happiest of birthdays! May this year bring you endless joy, laughter, and beautiful memories. So grateful to have you in my life. Cheers to you!`,
+        `Happy Birthday! Sending you warmest wishes on your special day. May your day be filled with love, laughter, and all the things that make you happiest.`,
+        `May this birthday be just the beginning of a year filled with happy moments and wonderful dreams. Wishing you a truly special and memorable day!`
+      ],
+      formal: [
+        `May your birthday mark the beginning of a wonderful year filled with success, prosperity, and happiness. Happy Birthday.`,
+        `On behalf of the entire team, we wish you a very happy birthday. May the year ahead bring you new opportunities and continued professional growth.`,
+        `Sending you warmest congratulations on your birthday. We wish you health, happiness, and success in all your future endeavors.`
+      ],
+      playful: [
+        `Happy Birthday! Another year older, but definitely not wiser! Wishing you a fantastic day filled with cake, laughter, and zero adult responsibilities!`,
+        `Happy Birthday! I was going to send you something special, but then I remembered you already have me in your life. Have an amazing day of celebrations!`,
+        `Happy Birthday! May your day be filled with lots of fun, laughter, and cake, and may your hangover tomorrow be exceptionally mild!`
+      ]
     },
     anniversary: {
-      warm: `Happy Anniversary to a wonderful couple! Seeing the love and joy you share is truly inspiring. Wishing you many more beautiful years of partnership and happiness together.`,
-      formal: `Congratulations on your anniversary. Wishing you continued happiness and shared success in the years ahead.`,
-      playful: `Happy Anniversary! You guys still tolerate each other, and that is a true milestone. Wishing you a fun day of celebrating your love!`
+      warm: [
+        `Happy Anniversary to a wonderful couple! Seeing the love and joy you share is truly inspiring. Wishing you many more beautiful years of partnership and happiness together.`,
+        `Happy Anniversary! Wishing you a day as special as your love story. May the bond you share grow stronger and more beautiful with each passing year.`,
+        `Warmest congratulations on your anniversary. Your journey together is a beautiful testament to love and devotion. Wishing you a lifetime of happiness.`
+      ],
+      formal: [
+        `Congratulations on your anniversary. Wishing you continued happiness and shared success in the years ahead.`,
+        `Sending our best wishes on this special anniversary milestone. We celebrate your dedication and wish you continued prosperity together.`,
+        `Please accept our warmest congratulations on your anniversary. May you continue to find joy and fulfillment in your shared journey.`
+      ],
+      playful: [
+        `Happy Anniversary! You guys still tolerate each other, and that is a true milestone. Wishing you a fun day of celebrating your love!`,
+        `Happy Anniversary to the couple who makes marriage look easy (even when we all know it’s a team sport of compromise). Cheers to another great year!`,
+        `Happy Anniversary! I’m so happy you two found each other. Who else would put up with your quirks? Have a wonderful day of celebrations!`
+      ]
     },
     corporate: {
-      warm: `We want to extend our heartfelt appreciation for your hard work and dedication. It's a privilege having you on our team. Wishing you continued success!`,
-      formal: `Thank you for your outstanding contribution and commitment. We value our professional relationship and look forward to continued collaboration.`,
-      playful: `Thank you for being an awesome colleague! Work would be so boring without our daily chats. You rock!`
+      warm: [
+        `We want to extend our heartfelt appreciation for your hard work and dedication. It's a privilege having you on our team. Wishing you continued success!`,
+        `Thank you for bringing your positive energy and excellence to work every day. We are so grateful to have you as part of our professional family.`,
+        `Your hard work and dedication do not go unnoticed. Thank you for being such an inspiring colleague and support system. Wishing you all the best.`
+      ],
+      formal: [
+        `Thank you for your outstanding contribution and commitment. We value our professional relationship and look forward to continued collaboration.`,
+        `We sincerely appreciate your dedication to excellence and your contributions to our organizational milestones. We value your partnership.`,
+        `Accept our formal appreciation for your valuable support. We look forward to achieving many more milestones of success together.`
+      ],
+      playful: [
+        `Thank you for being an awesome colleague! Work would be so boring without our daily chats. You rock!`,
+        `Thanks for being the person who actually gets things done around here (and for keeping us all sane). We appreciate you!`,
+        `Thank you for your hard work! We would say we don't know what we'd do without you, but we really don't want to find out. Cheers!`
+      ]
     }
   };
 
   const selectedOccasion = messages[occasion] || messages.birthday;
-  const greeting = selectedOccasion[tone] || selectedOccasion.warm;
+  const templates = selectedOccasion[tone] || selectedOccasion.warm;
+
+  // Filter out current message base if provided to ensure a new generation
+  let filteredTemplates = templates;
+  if (currentMessage) {
+    filteredTemplates = templates.filter(t => !currentMessage.startsWith(t));
+  }
+  if (filteredTemplates.length === 0) {
+    filteredTemplates = templates; // Fallback
+  }
+
+  // Randomly select one of the filtered templates
+  const greeting = filteredTemplates[Math.floor(Math.random() * filteredTemplates.length)];
   
   res.json({
     success: true,
