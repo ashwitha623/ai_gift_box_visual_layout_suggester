@@ -19,6 +19,7 @@ export default function CRMCalendar() {
   const [relationship, setRelationship] = useState("");
   const [occasionType, setOccasionType] = useState("birthday");
   const [occasionDate, setOccasionDate] = useState("");
+  const [formError, setFormError] = useState("");
 
   useEffect(() => {
     loadCRM();
@@ -38,9 +39,10 @@ export default function CRMCalendar() {
   const handleAddContact = async (e) => {
     e.preventDefault();
     if (!name || !occasionDate) {
-      toast({ title: "Validation Error", description: "Please fill in Name and Date.", variant: "destructive" });
+      setFormError("Please fill in the required details.");
       return;
     }
+    setFormError("");
 
     try {
       await axios.post("http://localhost:5000/api/crm", {
@@ -104,7 +106,7 @@ export default function CRMCalendar() {
                 <Input 
                   placeholder="e.g. Priyah Patel" 
                   value={name} 
-                  onChange={(e) => setName(e.target.value)} 
+                  onChange={(e) => { setName(e.target.value); setFormError(""); }} 
                   className="rounded-xl h-11"
                 />
               </div>
@@ -139,10 +141,16 @@ export default function CRMCalendar() {
                 <Input 
                   type="date" 
                   value={occasionDate} 
-                  onChange={(e) => setOccasionDate(e.target.value)} 
+                  onChange={(e) => { setOccasionDate(e.target.value); setFormError(""); }} 
                   className="rounded-xl h-11 bg-white"
                 />
               </div>
+
+              {formError && (
+                <p className="text-xs text-rose-600 font-semibold text-center animate-pulse">
+                  {formError}
+                </p>
+              )}
 
               <Button type="submit" className="w-full rounded-xl bg-primary hover:bg-primary/90 text-white font-semibold h-11 shadow-lg shadow-primary/10">
                 <Plus className="w-4 h-4 mr-2" /> Add Contact Date
