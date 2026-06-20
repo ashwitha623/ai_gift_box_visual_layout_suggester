@@ -100,7 +100,7 @@ export default function CRMCalendar() {
             </h2>
             <form onSubmit={handleAddContact} className="space-y-5">
               <div className="space-y-2">
-                <Label className="font-semibold text-xs text-primary">Contact Name</Label>
+                <Label className="font-semibold text-xs text-primary">Contact Name <span className="text-rose-500">*</span></Label>
                 <Input 
                   placeholder="e.g. Priyah Patel" 
                   value={name} 
@@ -135,7 +135,7 @@ export default function CRMCalendar() {
               </div>
 
               <div className="space-y-2">
-                <Label className="font-semibold text-xs text-primary">Milestone Date</Label>
+                <Label className="font-semibold text-xs text-primary">Milestone Date <span className="text-rose-500">*</span></Label>
                 <Input 
                   type="date" 
                   value={occasionDate} 
