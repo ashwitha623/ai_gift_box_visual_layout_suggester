@@ -34,7 +34,7 @@ import scentedCandleImg from "@/assets/images/scented_candle.jpg";
 import photoFrameImg from "@/assets/images/photo_frame.jpg";
 import plantPotImg from "@/assets/images/plant_pot.jpg";
 
-import perfumeImg from "@/assets/images/perfume.jpg";
+import perfumeImg from "@/assets/images/perfume.png";
 import watchImg from "@/assets/images/watch.png";
 import leatherWalletImg from "@/assets/images/leather_wallet.jpg";
 import luxuryHamperImg from "@/assets/images/luxury_hamper.jpg";
