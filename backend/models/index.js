@@ -87,24 +87,49 @@ async function initDb() {
       console.log("Default corporate account created: corporate / corporate");
     }
 
-    // Seed products if empty
-    const productCount = await Product.count();
-    if (productCount === 0) {
-      const initialProducts = [
-        { name: "Teddy Bear", category: "Soft Toys", price: 899, size: "Large", stock: 15, image: null },
-        { name: "Rabbit Plush", category: "Soft Toys", price: 649, size: "Medium", stock: 20, image: null },
-        { name: "Panda Plush", category: "Soft Toys", price: 749, size: "Medium", stock: 12, image: null },
-        { name: "Bracelet", category: "Jewelry", price: 1499, size: "Small", stock: 25, image: null },
-        { name: "Necklace", category: "Jewelry", price: 2499, size: "Small", stock: 8, image: null },
-        { name: "Rose Bouquet", category: "Flowers", price: 1199, size: "Large", stock: 30, image: null },
-        { name: "Lindt Collection", category: "Chocolates", price: 1299, size: "Medium", stock: 18, image: null },
-        { name: "Scented Candle", category: "Lifestyle Gifts", price: 549, size: "Small", stock: 40, image: null },
-        { name: "Perfume", category: "Premium Gifts", price: 3499, size: "Small", stock: 10, image: null },
-        { name: "Watch", category: "Premium Gifts", price: 5999, size: "Small", stock: 5, image: null }
-      ];
-      await Product.bulkCreate(initialProducts);
-      console.log("Products catalog pre-seeded in the database with null images.");
+    // Seed products catalog matching frontend giftdata
+    const initialProducts = [
+      { name: "Teddy Bear", category: "Soft Toys", price: 899, size: "Large", stock: 15, image: null },
+      { name: "Rabbit Plush", category: "Soft Toys", price: 649, size: "Medium", stock: 20, image: null },
+      { name: "Panda Plush", category: "Soft Toys", price: 749, size: "Medium", stock: 12, image: null },
+      { name: "Bracelet", category: "Jewelry", price: 1499, size: "Small", stock: 25, image: null },
+      { name: "Necklace", category: "Jewelry", price: 2499, size: "Small", stock: 8, image: null },
+      { name: "Ring", category: "Jewelry", price: 1999, size: "Small", stock: 15, image: null },
+      { name: "Earrings", category: "Jewelry", price: 1299, size: "Small", stock: 20, image: null },
+      { name: "Rose Bouquet", category: "Flowers", price: 1199, size: "Large", stock: 30, image: null },
+      { name: "Lily Bouquet", category: "Flowers", price: 1399, size: "Large", stock: 15, image: null },
+      { name: "Tulip Bouquet", category: "Flowers", price: 1299, size: "Large", stock: 15, image: null },
+      { name: "Mixed Flowers", category: "Flowers", price: 1499, size: "Large", stock: 20, image: null },
+      { name: "Ferrero Rocher", category: "Chocolates", price: 799, size: "Small", stock: 25, image: null },
+      { name: "Lindt Collection", category: "Chocolates", price: 1299, size: "Medium", stock: 18, image: null },
+      { name: "Chocolate Box", category: "Chocolates", price: 999, size: "Small", stock: 20, image: null },
+      { name: "Premium Dark Choc", category: "Chocolates", price: 599, size: "Small", stock: 30, image: null },
+      { name: "Coffee Mug", category: "Lifestyle Gifts", price: 449, size: "Small", stock: 25, image: null },
+      { name: "Journal", category: "Lifestyle Gifts", price: 599, size: "Small", stock: 35, image: null },
+      { name: "Scented Candle", category: "Lifestyle Gifts", price: 549, size: "Small", stock: 40, image: null },
+      { name: "Photo Frame", category: "Lifestyle Gifts", price: 699, size: "Medium", stock: 15, image: null },
+      { name: "Plant Pot", category: "Lifestyle Gifts", price: 649, size: "Medium", stock: 15, image: null },
+      { name: "Perfume", category: "Premium Gifts", price: 3499, size: "Small", stock: 10, image: null },
+      { name: "Watch", category: "Premium Gifts", price: 5999, size: "Small", stock: 5, image: null },
+      { name: "Leather Wallet", category: "Premium Gifts", price: 2499, size: "Small", stock: 12, image: null },
+      { name: "Luxury Hamper", category: "Premium Gifts", price: 4999, size: "Large", stock: 8, image: null },
+      { name: "Personalized Journal", category: "Personalized Gifts", price: 749, size: "Small", stock: 20, image: null },
+      { name: "Photo Cushion", category: "Personalized Gifts", price: 899, size: "Medium", stock: 15, image: null },
+      { name: "Name Mug", category: "Personalized Gifts", price: 599, size: "Small", stock: 20, image: null },
+      { name: "Engraved Keychain", category: "Personalized Gifts", price: 399, size: "Small", stock: 50, image: null },
+      { name: "Desk Organizer", category: "Corporate Gifts", price: 1299, size: "Medium", stock: 15, image: null },
+      { name: "Notebook Set", category: "Corporate Gifts", price: 699, size: "Small", stock: 25, image: null },
+      { name: "Premium Pen", category: "Corporate Gifts", price: 1899, size: "Small", stock: 20, image: null },
+      { name: "Corporate Hamper", category: "Corporate Gifts", price: 2999, size: "Large", stock: 10, image: null }
+    ];
+
+    for (const p of initialProducts) {
+      await Product.findOrCreate({
+        where: { name: p.name },
+        defaults: p
+      });
     }
+    console.log("Products catalog synchronized in the database.");
 
     // Query all products to link orders
     const products = await Product.findAll();

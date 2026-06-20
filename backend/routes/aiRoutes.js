@@ -1,37 +1,106 @@
 const express = require("express");
 const router = express.Router();
+const { Product } = require("../models");
 
 // 1. AI Gift Recommendation Assistant
-router.post("/ai/recommend", (req, res) => {
-  const { occasion, budget, relationship, preferences } = req.body;
-  const numBudget = parseInt(budget) || 5000;
-  
-  // Custom mock recommendations
-  let suggestedGifts = ["Luxury Journal", "Scented Candle", "Lindt Collection"];
-  let suggestedThemes = "Warm Pastel & Gold Elegance";
-  let suggestedColors = ["#E6C280", "#1E293B", "#FAF7F2"];
+router.post("/ai/recommend", async (req, res) => {
+  try {
+    const { occasion, budget, relationship, preferences } = req.body;
+    const numBudget = parseInt(budget) || 5000;
+    
+    // Fetch all products from database
+    const products = await Product.findAll();
+    
+    // Categorize occasion matches
+    let occasionCategories = [];
+    if (occasion === "birthday") {
+      occasionCategories = ["Soft Toys", "Chocolates", "Jewelry", "Lifestyle Gifts"];
+    } else if (occasion === "corporate") {
+      occasionCategories = ["Corporate Gifts", "Lifestyle Gifts", "Chocolates"];
+    } else if (occasion === "anniversary" || occasion === "wedding" || relationship === "romantic") {
+      occasionCategories = ["Jewelry", "Flowers", "Premium Gifts", "Chocolates"];
+    } else {
+      occasionCategories = ["Chocolates", "Lifestyle Gifts", "Personalized Gifts", "Flowers"];
+    }
 
-  if (occasion === "birthday") {
-    suggestedGifts = ["Teddy Bear", "Ferrero Rocher", "Bracelet"];
-    suggestedThemes = "Vibrant & Playful Celebrations";
-    suggestedColors = ["#F4A7B9", "#E0B0FF", "#FFFDD0"];
-  } else if (occasion === "corporate") {
-    suggestedGifts = ["Desk Organizer", "Notebook Set", "Premium Pen"];
-    suggestedThemes = "Sophisticated Classic Corporate";
-    suggestedColors = ["#9AA5B1", "#1F2937", "#FFFFFF"];
-  } else if (relationship === "romantic") {
-    suggestedGifts = ["Rose Bouquet", "Necklace", "Chocolate Box"];
-    suggestedThemes = "Deep Crimson & Soft Silk Bow Romance";
-    suggestedColors = ["#C94F6D", "#722F37", "#ECE2D0"];
+    // Filter products matching occasion categories
+    let pool = products.filter(p => occasionCategories.includes(p.category));
+    if (pool.length === 0) {
+      pool = products; // Fallback to all products
+    }
+
+    // Shuffle pool to give organic recommendations
+    pool.sort(() => 0.5 - Math.random());
+
+    // Search for a combination of up to 3 items that maximizes the total price under the budget
+    let selectedProducts = [];
+    let currentSum = 0;
+    const n = pool.length;
+
+    for (let i = 0; i < n; i++) {
+      const p1 = pool[i];
+      if (p1.price <= numBudget) {
+        if (p1.price > currentSum) {
+          selectedProducts = [p1];
+          currentSum = p1.price;
+        }
+        for (let j = i + 1; j < n; j++) {
+          const p2 = pool[j];
+          if (p1.price + p2.price <= numBudget) {
+            if (p1.price + p2.price > currentSum) {
+              selectedProducts = [p1, p2];
+              currentSum = p1.price + p2.price;
+            }
+            for (let k = j + 1; k < n; k++) {
+              const p3 = pool[k];
+              const combSum = p1.price + p2.price + p3.price;
+              if (combSum <= numBudget) {
+                if (combSum > currentSum) {
+                  selectedProducts = [p1, p2, p3];
+                  currentSum = combSum;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // If nothing fit because budget is too low, pick the single cheapest item
+    if (selectedProducts.length === 0 && products.length > 0) {
+      const cheapest = [...products].sort((a, b) => a.price - b.price)[0];
+      selectedProducts.push(cheapest);
+      currentSum = cheapest.price;
+    }
+
+    const suggestedGifts = selectedProducts.map(p => p.name);
+    
+    // Styling themes mapping
+    let suggestedThemes = "Warm Pastel & Gold Elegance";
+    let suggestedColors = ["#E6C280", "#1E293B", "#FAF7F2"];
+
+    if (occasion === "birthday") {
+      suggestedThemes = "Vibrant & Playful Celebrations";
+      suggestedColors = ["#F4A7B9", "#E0B0FF", "#FFFDD0"];
+    } else if (occasion === "corporate") {
+      suggestedThemes = "Sophisticated Classic Corporate";
+      suggestedColors = ["#9AA5B1", "#1F2937", "#FFFFFF"];
+    } else if (occasion === "anniversary" || occasion === "wedding" || relationship === "romantic") {
+      suggestedThemes = "Deep Crimson & Soft Silk Bow Romance";
+      suggestedColors = ["#C94F6D", "#722F37", "#ECE2D0"];
+    }
+
+    res.json({
+      success: true,
+      suggestedGifts,
+      suggestedThemes,
+      suggestedColors,
+      explanation: `Based on your budget of ₹${numBudget.toLocaleString("en-IN")} and relationship '${relationship}', we recommend a ${suggestedThemes} styling to match the recipient's preference for '${preferences || "gourmet sweets and accessories"}'.`
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: err.message });
   }
-
-  res.json({
-    success: true,
-    suggestedGifts,
-    suggestedThemes,
-    suggestedColors,
-    explanation: `Based on your budget of ₹${numBudget.toLocaleString("en-IN")} and relationship '${relationship}', we recommend a ${suggestedThemes} styling to match the recipient's preference for '${preferences || "gourmet sweets and accessories"}'.`
-  });
 });
 
 // 2. AI Personalized Message Generator
