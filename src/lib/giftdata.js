@@ -9,27 +9,27 @@ import farewellImg from "@/assets/images/farewell.jpg";
 import corporateImg from "@/assets/images/corporate.jpg";
 import justBecauseImg from "@/assets/images/just_because.jpg";
 
-import teddyBearImg from "@/assets/images/teddy_bear.jpg";
+import teddyBearImg from "@/assets/images/teddy_bear.png";
 import rabbitPlushImg from "@/assets/images/rabbit_plush.png";
 import pandaPlushImg from "@/assets/images/panda_plush.jpg";
 
-import braceletImg from "@/assets/images/bracelet.jpg";
+import braceletImg from "@/assets/images/bracelet.png";
 import necklaceImg from "@/assets/images/necklace.jpg";
 import ringImg from "@/assets/images/ring.jpg";
-import earringsImg from "@/assets/images/earrings.jpg";
+import earringsImg from "@/assets/images/earrings.png";
 
 import roseBouquetImg from "@/assets/images/rose_bouquet.jpg";
 import lilyBouquetImg from "@/assets/images/lily_bouquet.jpg";
 import tulipBouquetImg from "@/assets/images/tulip_bouquet.jpg";
 import mixedFlowersImg from "@/assets/images/mixed_flowers.jpg";
 
-import ferreroRocherImg from "@/assets/images/ferrero_rocher.jpg";
+import ferreroRocherImg from "@/assets/images/ferrero_rocher.png";
 import lindtCollectionImg from "@/assets/images/lindt_collection.jpg";
-import chocolateBoxImg from "@/assets/images/chocolate_box.jpg";
+import chocolateBoxImg from "@/assets/images/chocolate_box.png";
 import premiumDarkChocImg from "@/assets/images/premium_dark_choc.jpg";
 
-import coffeeMugImg from "@/assets/images/coffee_mug.jpg";
-import journalImg from "@/assets/images/journal.jpg";
+import coffeeMugImg from "@/assets/images/coffee_mug.png";
+import journalImg from "@/assets/images/journal.png";
 import scentedCandleImg from "@/assets/images/scented_candle.jpg";
 import photoFrameImg from "@/assets/images/photo_frame.jpg";
 import plantPotImg from "@/assets/images/plant_pot.jpg";
@@ -37,7 +37,7 @@ import plantPotImg from "@/assets/images/plant_pot.jpg";
 import perfumeImg from "@/assets/images/perfume.png";
 import watchImg from "@/assets/images/watch.png";
 import leatherWalletImg from "@/assets/images/leather_wallet.jpg";
-import luxuryHamperImg from "@/assets/images/luxury_hamper.jpg";
+import luxuryHamperImg from "@/assets/images/luxury_hamper.png";
 
 import personalizedJournalImg from "@/assets/images/personalized_journal.jpg";
 import photoCushionImg from "@/assets/images/photo_cushion.jpg";
