@@ -26,6 +26,76 @@ export default function Layout() {
   const { toast } = useToast();
   const toolsRef = useRef(null);
   const adminRef = useRef(null);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const triggerBrowserNotification = (n) => {
+    if (!("Notification" in window)) return;
+    if (Notification.permission !== "granted") return;
+
+    const title = "🎁 Paper Plane Reminder";
+    const body = n.message || "Demo Notification Successfully Triggered";
+
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: 'SHOW_NOTIFICATION',
+        title: title,
+        body: body,
+        icon: '/paper_plane_logo.png',
+        badge: '/paper_plane_logo.png',
+        data: { id: n.id }
+      });
+    } else {
+      new Notification(title, {
+        body: body,
+        icon: '/paper_plane_logo.png',
+        badge: '/paper_plane_logo.png'
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (!currentUser) {
+      setUnreadCount(0);
+      return;
+    }
+
+    const fetchNotifications = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/notifications");
+        const notifications = res.data;
+        const unread = notifications.filter(n => n.status === "Unread");
+        setUnreadCount(unread.length);
+
+        const displayedStr = localStorage.getItem("displayed_notifications");
+        const displayed = displayedStr ? JSON.parse(displayedStr) : [];
+        let updatedDisplayed = [...displayed];
+        let hasNew = false;
+
+        for (const n of unread) {
+          if (!displayed.includes(n.id)) {
+            triggerBrowserNotification(n);
+            updatedDisplayed.push(n.id);
+            hasNew = true;
+          }
+        }
+
+        if (hasNew) {
+          localStorage.setItem("displayed_notifications", JSON.stringify(updatedDisplayed));
+        }
+      } catch (err) {
+        console.error("Error fetching notifications", err);
+      }
+    };
+
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000); // Poll every 30s
+    window.addEventListener("refresh-notifications", fetchNotifications);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("refresh-notifications", fetchNotifications);
+    };
+  }, [currentUser]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -339,6 +409,18 @@ export default function Layout() {
             {/* Auth Session State Buttons */}
             {currentUser ? (
               <div className="flex items-center gap-2 border-l border-border pl-3 ml-1">
+                {/* Navbar Bell Icon Badge */}
+                <Link to="/notifications" className="relative mr-1.5 flex items-center">
+                  <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 text-primary hover:text-accent p-0">
+                    <Bell className="w-[18px] h-[18px]" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-600 text-[9px] font-black text-white animate-pulse">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </Button>
+                </Link>
+
                 <span className="text-xs font-bold text-primary bg-secondary px-3 py-1.5 rounded-full border border-border">
                   👤 {currentUser.username}
                 </span>

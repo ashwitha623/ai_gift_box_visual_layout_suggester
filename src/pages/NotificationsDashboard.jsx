@@ -35,10 +35,27 @@ export default function NotificationsDashboard() {
       const res = await axios.put(`http://localhost:5000/api/notifications/${id}/read`);
       if (res.data.success) {
         toast({ title: "Alert Read", description: "Notification marked as read." });
+        // Dispatch event to refresh layout badge count instantly
+        window.dispatchEvent(new Event("refresh-notifications"));
         loadNotifications();
       }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleClearAll = async () => {
+    try {
+      const res = await axios.delete("http://localhost:5000/api/notifications");
+      if (res.data.success) {
+        toast({ title: "Cleared", description: "All notifications cleared successfully." });
+        setNotifications([]);
+        // Dispatch event to refresh layout badge count instantly
+        window.dispatchEvent(new Event("refresh-notifications"));
+      }
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Error", description: "Failed to clear notifications.", variant: "destructive" });
     }
   };
 
@@ -61,9 +78,14 @@ export default function NotificationsDashboard() {
             <h1 className="text-4xl font-extrabold font-heading text-primary tracking-tight">Notification Center</h1>
             <p className="text-muted-foreground mt-2">Manage customer alerts and live read/unread notification logs.</p>
           </div>
-          <Button onClick={loadNotifications} variant="outline" className="rounded-full border hover:bg-slate-50 flex items-center gap-2">
-            <RefreshCw className="w-4 h-4" /> Sync Alerts
-          </Button>
+          <div className="flex gap-2.5">
+            <Button onClick={handleClearAll} variant="destructive" className="rounded-full flex items-center gap-2 text-xs font-semibold px-5">
+              Clear All Logs
+            </Button>
+            <Button onClick={loadNotifications} variant="outline" className="rounded-full border hover:bg-slate-50 flex items-center gap-2 text-xs font-semibold px-5">
+              <RefreshCw className="w-4 h-4" /> Sync Alerts
+            </Button>
+          </div>
         </div>
 
 

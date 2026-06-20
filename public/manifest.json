@@ -1,0 +1,15 @@
+{
+  "short_name": "PaperPlane",
+  "name": "Paper Plane Gifting Platform",
+  "icons": [
+    {
+      "src": "/paper_plane_logo.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#FAF7F2",
+  "theme_color": "#071A3D",
+  "display": "standalone"
+}

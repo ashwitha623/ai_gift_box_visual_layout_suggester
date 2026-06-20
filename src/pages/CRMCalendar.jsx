@@ -66,16 +66,110 @@ export default function CRMCalendar() {
     }
   };
 
+  const requestNotificationPermission = async () => {
+    if (!("Notification" in window)) {
+      toast({
+        title: "Feature Not Supported",
+        description: "Browser notifications are not supported in this browser.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (Notification.permission === "granted") {
+      return true;
+    }
+
+    if (Notification.permission !== "denied") {
+      const permission = await Notification.requestPermission();
+      if (permission === "granted") {
+        toast({
+          title: "Notifications Enabled",
+          description: "Thank you! You will now receive Paper Plane alerts."
+        });
+        return true;
+      }
+    }
+
+    toast({
+      title: "Notification Permission Denied",
+      description: "Paper Plane requires notification access to trigger reminders. Please enable notifications in your browser settings.",
+      variant: "destructive"
+    });
+    return false;
+  };
+
   const handleTriggerReminder = async (id, name) => {
+    const hasPermission = await requestNotificationPermission();
+    if (!hasPermission) return;
+
     try {
       await axios.post(`http://localhost:5000/api/crm/${id}/reminder`);
       toast({ 
-        title: "Reminder Activated", 
-        description: `Alert confirmation email scheduled for ${name}.` 
+        title: "Success", 
+        description: "Reminder scheduled successfully. You will receive a Paper Plane browser notification at the selected time." 
       });
+      // Dispatch event to refresh layout badge count instantly
+      window.dispatchEvent(new Event("refresh-notifications"));
       loadCRM();
     } catch (err) {
       console.error(err);
+      toast({
+        title: "Error",
+        description: "Failed to schedule reminder.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleSendTestNotification = async () => {
+    const hasPermission = await requestNotificationPermission();
+    if (!hasPermission) return;
+
+    try {
+      const res = await axios.post("http://localhost:5000/api/notifications/test");
+      const newNotification = res.data.notification;
+
+      // Add to displayed list to prevent duplicate popup from Layout's polling loop
+      const displayedStr = localStorage.getItem("displayed_notifications");
+      const displayed = displayedStr ? JSON.parse(displayedStr) : [];
+      localStorage.setItem("displayed_notifications", JSON.stringify([...displayed, newNotification.id]));
+
+      // Trigger native notification immediately via Service Worker
+      const title = "🎁 Paper Plane Reminder";
+      const body = newNotification.message || "Demo Notification Successfully Triggered";
+
+      if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+          type: 'SHOW_NOTIFICATION',
+          title: title,
+          body: body,
+          icon: '/paper_plane_logo.png',
+          badge: '/paper_plane_logo.png',
+          data: { id: newNotification.id }
+        });
+      } else {
+        new Notification(title, {
+          body: body,
+          icon: '/paper_plane_logo.png',
+          badge: '/paper_plane_logo.png'
+        });
+      }
+
+      toast({
+        title: "Test Sent",
+        description: "Demo notification triggered successfully."
+      });
+
+      // Dispatch event to refresh layout badge count instantly
+      window.dispatchEvent(new Event("refresh-notifications"));
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: "Error",
+        description: "Failed to send test notification.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -161,9 +255,18 @@ export default function CRMCalendar() {
           {/* CRM Calendar Grid */}
           <div className="lg:col-span-2 space-y-8">
             <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 shadow-md">
-              <h2 className="text-2xl font-bold font-heading mb-6 flex items-center gap-2 text-primary">
-                <Bell className="w-5 h-5 text-accent" /> Upcoming Occasions & Reminders
-              </h2>
+              <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <h2 className="text-2xl font-bold font-heading flex items-center gap-2 text-primary">
+                  <Bell className="w-5 h-5 text-accent" /> Upcoming Occasions & Reminders
+                </h2>
+                <Button 
+                  onClick={handleSendTestNotification}
+                  variant="outline"
+                  className="rounded-full border hover:bg-slate-50 flex items-center gap-2 text-xs font-semibold text-primary"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-accent animate-pulse" /> Send Test Notification
+                </Button>
+              </div>
 
               {loading ? (
                 <div className="text-center py-10">Loading contacts...</div>

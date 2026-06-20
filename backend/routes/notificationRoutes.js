@@ -40,5 +40,39 @@ putEndpoint = router.put("/notifications/:id/read", async (req, res) => {
   }
 });
 
+// Clear all notifications for the active user
+router.delete("/notifications", optionalUser, async (req, res) => {
+  try {
+    const filter = {};
+    if (req.userRole !== "admin") {
+      if (!req.userId) {
+        return res.status(403).json({ success: false, message: "Access Denied" });
+      }
+      filter.userId = req.userId;
+    }
+    await Notification.destroy({ where: filter });
+    res.json({ success: true, message: "All notifications cleared successfully." });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Trigger demo-friendly test notification and persist in database
+router.post("/notifications/test", optionalUser, async (req, res) => {
+  try {
+    const targetUserId = req.userId || 1; // Default to mock user ID 1
+    const notification = await Notification.create({
+      userId: targetUserId,
+      type: "Test Notification",
+      message: "Demo Notification Successfully Triggered",
+      channel: "Browser Push",
+      status: "Unread"
+    });
+    res.json({ success: true, notification });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 module.exports = router;
 
