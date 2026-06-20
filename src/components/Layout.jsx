@@ -148,7 +148,12 @@ export default function Layout() {
               </Button>
             </Link>
 
-            <Link to="/create">
+            <Link to="/create" onClick={() => {
+              sessionStorage.removeItem("paperplane_builder_state");
+              if (pathname === "/create") {
+                window.location.reload();
+              }
+            }}>
               <Button
                 variant="ghost"
                 className={`rounded-full text-xs font-semibold ${
@@ -369,7 +374,12 @@ export default function Layout() {
               </Link>
             )}
 
-            <Link to="/create" className="hidden sm:block">
+            <Link to="/create" onClick={() => {
+              sessionStorage.removeItem("paperplane_builder_state");
+              if (pathname === "/create") {
+                window.location.reload();
+              }
+            }} className="hidden sm:block">
               <Button className="rounded-full bg-primary hover:bg-primary/90 text-accent font-semibold text-xs shadow-md border border-[#C5A880]/30 px-5">
                 Build A Box
               </Button>
@@ -425,7 +435,7 @@ export default function Layout() {
             <div>
               <h4 className="text-[10px] font-extrabold tracking-widest text-[#C5A880] uppercase mb-5">Product</h4>
               <ul className="space-y-3 text-xs text-slate-400">
-                <li><Link to="/create" className="hover:text-white transition-colors">Gift Builder</Link></li>
+                <li><Link to="/create" onClick={() => sessionStorage.removeItem("paperplane_builder_state")} className="hover:text-white transition-colors">Gift Builder</Link></li>
                 <li>
                   <ProtectedAction action={() => navigate("/layouts")} redirectTarget="/layouts" className="hover:text-white transition-colors">
                     Layout History

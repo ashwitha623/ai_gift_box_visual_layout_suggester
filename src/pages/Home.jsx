@@ -35,7 +35,7 @@ export default function Home() {
               An intelligent system that recommends the best gift box arrangement, ribbon color, packaging style, and presentation layout based on selected products and occasion.
             </p>
             <div className="flex flex-wrap justify-center gap-4 mt-9">
-              <Link to="/create">
+              <Link to="/create" onClick={() => sessionStorage.removeItem("paperplane_builder_state")}>
                 <Button size="lg" className="rounded-full bg-gradient-to-r from-primary to-rosegold text-white border-0 shadow-lg shadow-primary/30 hover:opacity-90 px-8 h-12 text-base">
                   Create Gift Box <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
@@ -100,7 +100,7 @@ export default function Home() {
             <h2 className="text-2xl sm:text-3xl font-bold font-heading text-foreground">For Every Occasion</h2>
             <p className="text-muted-foreground mt-2">Ten curated occasions, each with tailored AI styling rules.</p>
           </div>
-          <Link to="/create" className="hidden sm:flex items-center gap-1 text-primary font-medium text-sm hover:gap-2 transition-all">
+          <Link to="/create" onClick={() => sessionStorage.removeItem("paperplane_builder_state")} className="hidden sm:flex items-center gap-1 text-primary font-medium text-sm hover:gap-2 transition-all">
             Start now <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
@@ -125,7 +125,7 @@ export default function Home() {
           <Package className="absolute -top-8 -left-8 w-40 h-40 text-white/10" />
           <h2 className="relative text-2xl sm:text-4xl font-bold font-heading text-white">Ready to design the perfect gift box?</h2>
           <p className="relative text-white/85 mt-3 max-w-xl mx-auto">Let the AI handle the arrangement, ribbon and packaging — you just pick the gifts.</p>
-          <Link to="/create" className="relative inline-block mt-7">
+          <Link to="/create" onClick={() => sessionStorage.removeItem("paperplane_builder_state")} className="relative inline-block mt-7">
             <Button size="lg" className="rounded-full bg-white text-primary hover:bg-white/90 px-8 h-12 text-base font-semibold border-0 shadow-lg">
               Create Gift Box <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
