@@ -148,21 +148,7 @@ export default function Layout() {
               </Button>
             </Link>
 
-            <Link to="/create" onClick={() => {
-              sessionStorage.removeItem("paperplane_builder_state");
-              if (pathname === "/create") {
-                window.location.reload();
-              }
-            }}>
-              <Button
-                variant="ghost"
-                className={`rounded-full text-xs font-semibold ${
-                  pathname === "/create" ? "text-accent bg-secondary/30" : "text-primary hover:text-accent"
-                }`}
-              >
-                Gift Builder
-              </Button>
-            </Link>
+
 
             {/* Gifting Tools Dropdown (Available to Customers/Corporate) */}
             <div ref={toolsRef} className="relative">
