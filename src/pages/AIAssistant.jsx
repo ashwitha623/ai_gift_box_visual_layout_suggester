@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { exportReportPDF } from "@/lib/exportReport";
 
 export default function AIAssistant() {
   const [activeTab, setActiveTab] = useState("recommend");
@@ -117,6 +118,19 @@ export default function AIAssistant() {
     } catch (err) {
       console.error(err);
       setLoading(false);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    const element = document.getElementById("b2b-proposal-card");
+    if (!element) return;
+    toast({ title: "Export Started", description: "PDF proposal is compiling." });
+    try {
+      await exportReportPDF(element, corpResult?.proposalTitle || "B2B Gifting Proposal");
+      toast({ title: "PDF Generated", description: "Styled PDF output created successfully." });
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Export Failed", description: "Failed to generate PDF.", variant: "destructive" });
     }
   };
 
@@ -438,31 +452,33 @@ export default function AIAssistant() {
                   <div className="bg-secondary rounded-3xl p-6 border border-border flex flex-col justify-between min-h-[350px]">
                     {corpResult ? (
                       <div className="space-y-5 text-primary">
-                        <div className="flex items-center justify-between border-b pb-3 border-border">
-                          <h4 className="font-extrabold text-base font-heading">{corpResult.proposalTitle}</h4>
-                          <Badge className="bg-primary text-white">B2B Proposal</Badge>
-                        </div>
+                        <div id="b2b-proposal-card" className="space-y-5 bg-secondary p-4 rounded-2xl">
+                          <div className="flex items-center justify-between border-b pb-3 border-border">
+                            <h4 className="font-extrabold text-base font-heading">{corpResult.proposalTitle}</h4>
+                            <Badge className="bg-primary text-white">B2B Proposal</Badge>
+                          </div>
 
-                        <div className="space-y-2">
-                          <h5 className="font-bold text-xs uppercase tracking-wide">Financial Estimates</h5>
-                          <p className="text-xs text-slate-700">Quantity: <strong>{corpResult.recipientCount} Hampers</strong></p>
-                          <p className="text-xs text-slate-700">Cost Per Box: <strong>₹{corpResult.budgetPerBox}</strong></p>
-                          <p className="text-xs text-slate-700">Total Campaign Estimate: <strong className="text-emerald-700">₹{corpResult.totalEstimate.toLocaleString("en-IN")}</strong></p>
-                        </div>
+                          <div className="space-y-2">
+                            <h5 className="font-bold text-xs uppercase tracking-wide">Financial Estimates</h5>
+                            <p className="text-xs text-slate-700">Quantity: <strong>{corpResult.recipientCount} Hampers</strong></p>
+                            <p className="text-xs text-slate-700">Cost Per Box: <strong>₹{corpResult.budgetPerBox}</strong></p>
+                            <p className="text-xs text-slate-700">Total Campaign Estimate: <strong className="text-emerald-700">₹{corpResult.totalEstimate.toLocaleString("en-IN")}</strong></p>
+                          </div>
 
-                        <div className="space-y-2">
-                          <h5 className="font-bold text-xs uppercase tracking-wide">Recommended Corporate Hampers</h5>
-                          <div className="space-y-1.5">
-                            {corpResult.recommendedHampers.map((h, i) => (
-                              <div key={i} className="text-xs bg-white p-2 rounded-xl border border-border/50">
-                                <strong>{h.name}:</strong> {h.items.join(", ")}
-                              </div>
-                            ))}
+                          <div className="space-y-2">
+                            <h5 className="font-bold text-xs uppercase tracking-wide">Recommended Corporate Hampers</h5>
+                            <div className="space-y-1.5">
+                              {corpResult.recommendedHampers.map((h, i) => (
+                                <div key={i} className="text-xs bg-white p-2 rounded-xl border border-border/50">
+                                  <strong>{h.name}:</strong> {h.items.join(", ")}
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         </div>
 
                         <div className="flex gap-2 border-t pt-4 border-border">
-                          <Button variant="outline" size="sm" onClick={() => toast({ title: "Export Started", description: "PDF proposal is compiling." })} className="rounded-full border hover:bg-white text-xs font-semibold px-4 py-2">
+                          <Button variant="outline" size="sm" onClick={handleExportPDF} className="rounded-full border hover:bg-white text-xs font-semibold px-4 py-2">
                             <Download className="w-3.5 h-3.5 mr-1" /> Export Proposal (PDF)
                           </Button>
                         </div>
