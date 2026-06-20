@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
+import logoImg from "@/assets/images/paper_plane_logo.png";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -73,9 +74,11 @@ export default function Auth() {
       <div className="w-full max-w-md bg-card border border-border rounded-3xl p-8 shadow-xl">
         {/* Header logo */}
         <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20 border border-[#C5A880]/30 mx-auto mb-4">
-            <Send className="w-5 h-5 text-accent" />
-          </div>
+          <img 
+            src={logoImg} 
+            alt="Paper Plane Logo" 
+            className="w-12 h-12 rounded-2xl shadow-lg border border-[#C5A880]/30 mx-auto mb-4 object-cover" 
+          />
           <h2 className="text-3xl font-extrabold font-heading text-primary tracking-tight">
             {isLogin ? "Welcome to Paper Plane" : "Create Gifting Account"}
           </h2>

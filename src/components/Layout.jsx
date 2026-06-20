@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthAction, ProtectedAction } from "./AuthModalContext";
+import logoImg from "@/assets/images/paper_plane_logo.png";
 
 export default function Layout() {
   const { pathname } = useLocation();
@@ -106,9 +107,11 @@ export default function Layout() {
           
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20 border border-[#C5A880]/30">
-              <Send className="w-4 h-4 text-accent" />
-            </div>
+            <img 
+              src={logoImg} 
+              alt="Paper Plane Logo" 
+              className="w-9 h-9 rounded-xl shadow-lg border border-[#C5A880]/30 object-cover" 
+            />
             <span className="font-heading font-extrabold text-lg tracking-tight text-primary">
               Paper Plane
             </span>
@@ -457,10 +460,12 @@ export default function Layout() {
           {/* Bottom Bar */}
           <div className="flex flex-col md:flex-row items-center justify-between pt-8 text-xs text-slate-500 gap-4">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center border border-[#C5A880]/30 shadow-md">
-                <Send className="w-3.5 h-3.5 text-accent" />
-              </div>
+             <Link to="/" className="flex items-center gap-2.5">
+              <img 
+                src={logoImg} 
+                alt="Paper Plane Logo" 
+                className="w-8 h-8 rounded-lg border border-[#C5A880]/30 shadow-md object-cover" 
+              />
               <span className="font-heading font-extrabold text-sm tracking-tight text-white">
                 Paper Plane
               </span>
