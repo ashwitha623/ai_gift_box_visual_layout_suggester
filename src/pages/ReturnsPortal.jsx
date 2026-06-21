@@ -56,19 +56,20 @@ export default function ReturnsPortal() {
 
     try {
       await axios.post("http://localhost:5000/api/returns", {
-        orderId: parseInt(orderId),
+        orderId: orderId.trim(),
         type,
         reason
       });
 
-      toast({ title: "Request Filed", description: "Your return request has been submitted to admin approval." });
+      toast({ title: "Request Filed", description: "Your return request has been submitted for admin approval." });
       setOrderId("");
       setReason("");
       setErrors({});
       loadReturns();
     } catch (err) {
       console.error(err);
-      toast({ title: "Error", description: "Failed to file request.", variant: "destructive" });
+      const errMsg = err.response?.data?.message || err.response?.data?.error || "Failed to file request.";
+      toast({ title: "Error", description: errMsg, variant: "destructive" });
     }
   };
 
@@ -97,8 +98,8 @@ export default function ReturnsPortal() {
               <div className="space-y-2">
                 <Label className="font-semibold text-xs text-primary">Order ID</Label>
                 <Input 
-                  type="number"
-                  placeholder="e.g. 1" 
+                  type="text"
+                  placeholder="e.g. 1 or PP-543210" 
                   value={orderId} 
                   onChange={(e) => {
                     setOrderId(e.target.value);

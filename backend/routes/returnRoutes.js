@@ -31,8 +31,25 @@ router.get("/returns", optionalUser, async (req, res) => {
 router.post("/returns", async (req, res) => {
   try {
     const { orderId, type, reason } = req.body;
+    
+    // Validate if the order exists (lookup by numerical ID or tracking ID string)
+    let order = null;
+    if (orderId && !isNaN(orderId)) {
+      order = await Order.findByPk(parseInt(orderId));
+    }
+    if (!order && orderId) {
+      order = await Order.findOne({ where: { trackingId: String(orderId).trim() } });
+    }
+
+    if (!order) {
+      return res.status(404).json({ 
+        success: false, 
+        message: `Order "${orderId}" does not exist in our system.` 
+      });
+    }
+
     const request = await Return.create({
-      orderId,
+      orderId: order.id,
       type, // 'Return', 'Replacement', 'Refund'
       reason,
       status: "Pending"
