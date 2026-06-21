@@ -24,7 +24,7 @@ export default function ResultStep({ result, occasion, products, details, onRest
 
   // Checkout Modal State
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("Card");
+  const [paymentMethod, setPaymentMethod] = useState("COD");
   const [placingOrder, setPlacingOrder] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [trackingId, setTrackingId] = useState("");
@@ -247,17 +247,11 @@ export default function ResultStep({ result, occasion, products, details, onRest
 
               {/* Payment selector */}
               <div className="space-y-3">
-                <Label className="font-bold text-xs text-primary uppercase tracking-wide">Select Payment Gateway</Label>
-                <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="grid grid-cols-3 gap-3">
-                  {["Card", "UPI", "Net Banking"].map((m) => (
-                    <label key={m} className={`flex flex-col items-center gap-1.5 border-2 rounded-2xl py-3 px-1 cursor-pointer hover:border-primary/50 transition-colors ${
-                      paymentMethod === m ? "border-primary bg-secondary/50" : "border-border bg-white"
-                    }`}>
-                      <RadioGroupItem value={m} className="hidden" />
-                      <span className="text-xs font-bold text-primary">{m}</span>
-                    </label>
-                  ))}
-                </RadioGroup>
+                <Label className="font-bold text-xs text-primary uppercase tracking-wide">Payment Method</Label>
+                <div className="flex flex-col items-center gap-1.5 border border-primary/20 rounded-2xl py-4 px-4 bg-secondary/20">
+                  <span className="text-sm font-extrabold text-primary">💵 Cash on Delivery (COD)</span>
+                  <span className="text-[10.5px] text-muted-foreground text-center mt-1">Pay with cash when your customized luxury gift box is delivered to your doorstep.</span>
+                </div>
               </div>
 
               <div className="flex gap-3 pt-2">
@@ -266,7 +260,7 @@ export default function ResultStep({ result, occasion, products, details, onRest
                   disabled={placingOrder} 
                   className="flex-1 rounded-full bg-primary hover:bg-primary/95 text-white font-semibold h-11 text-xs shadow-md"
                 >
-                  {placingOrder ? "Processing Payment..." : "Confirm & Pay"}
+                  {placingOrder ? "Placing Order..." : "Confirm Order"}
                 </Button>
                 <Button 
                   variant="ghost" 

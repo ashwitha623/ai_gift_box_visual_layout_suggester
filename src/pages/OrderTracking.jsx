@@ -131,7 +131,7 @@ export default function OrderTracking() {
                     <p>Box Size: <strong>{trackedOrder.boxSize}</strong></p>
                     <p>Ribbon Accent: <strong>{trackedOrder.ribbonColor || "None"}</strong></p>
                     <p>Payment Status: <strong>{trackedOrder.paymentStatus}</strong></p>
-                    <p>Payment Method: <strong>{trackedOrder.paymentMethod}</strong></p>
+                    <p>Payment Method: <strong>Cash on Delivery (COD)</strong></p>
                   </div>
 
                   {trackedOrder.invoiceUrl && (

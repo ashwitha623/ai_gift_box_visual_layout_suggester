@@ -20,8 +20,8 @@ router.post("/orders", async (req, res) => {
       ribbonColor,
       boxSize,
       trackingId,
-      paymentStatus: "Paid", // Automatically mark as paid for mock payments
-      paymentMethod: paymentMethod || "Card",
+      paymentStatus: "Pending", // Cash on Delivery is pending initially
+      paymentMethod: "COD",
       invoiceUrl
     });
 
