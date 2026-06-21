@@ -124,9 +124,6 @@ export default function NotificationsDashboard() {
             <div className="space-y-3">
               {filtered.map(n => {
                 const isUnread = n.status === "Unread";
-                const isEmail = n.channel === "Email";
-                const isWhatsApp = n.channel === "WhatsApp";
-                const isSms = n.channel === "SMS";
 
                 return (
                   <motion.div
@@ -138,13 +135,6 @@ export default function NotificationsDashboard() {
                     <div className="space-y-1 text-xs">
                       <div className="flex items-center gap-2">
                         <span className="font-extrabold text-primary">{n.type}</span>
-                        <Badge className={`text-[8px] font-extrabold tracking-wider ${
-                          isEmail ? "bg-amber-100 text-amber-800" :
-                          isWhatsApp ? "bg-emerald-100 text-emerald-800" :
-                          isSms ? "bg-blue-100 text-blue-800" : "bg-slate-100 text-slate-800"
-                        }`}>
-                          {n.channel}
-                        </Badge>
                       </div>
                       <p className="text-slate-600 font-medium text-xs mt-1">"{n.message}"</p>
                       <span className="text-[10px] text-slate-400 block pt-1">Timestamp: {new Date(n.createdAt).toLocaleString()} · User: {n.user?.username || "customer"}</span>
