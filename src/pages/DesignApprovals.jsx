@@ -7,6 +7,26 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import GiftBoxVisual from "@/components/giftbox/GiftBoxVisual";
+import { Label } from "@/components/ui/label";
+import { PRODUCTS } from "@/lib/giftdata";
+
+function inferOccasion(order) {
+  if (!order) return "just_because";
+  const msg = (order.recipient?.message || "").toLowerCase();
+  const txt = (order.recipient?.customText || "").toLowerCase();
+  
+  if (msg.includes("anniversary") || txt.includes("forever")) return "anniversary";
+  if (msg.includes("birthday") || msg.includes("bday")) return "birthday";
+  if (msg.includes("wedding") || msg.includes("marriage")) return "wedding";
+  if (msg.includes("graduate") || msg.includes("graduation")) return "graduation";
+  if (msg.includes("corp") || msg.includes("company") || msg.includes("business") || msg.includes("partnership") || txt.includes("corp")) return "corporate";
+  if (msg.includes("baby") || msg.includes("shower")) return "baby_shower";
+  if (msg.includes("friend")) return "friendship";
+  if (msg.includes("farewell") || msg.includes("goodbye")) return "farewell";
+  if (msg.includes("festival") || msg.includes("diwali") || msg.includes("eid") || msg.includes("christmas")) return "festival";
+  
+  return "just_because";
+}
 
 export default function DesignApprovals() {
   const [approvals, setApprovals] = useState([]);
@@ -188,14 +208,20 @@ export default function DesignApprovals() {
                 <div className="bg-secondary/20 rounded-2xl p-4 border border-border/60">
                   <div className="text-center font-bold text-[10px] text-slate-400 mb-3 tracking-widest uppercase">Top-Down STUDIO Hamper Mockup</div>
                   <GiftBoxVisual
-                    products={(selectedApproval.order?.items || []).map(i => i.product)}
+                    products={(selectedApproval.order?.items || []).map(i => {
+                      const dbProd = i.product;
+                      if (!dbProd) return null;
+                      const catalogProd = PRODUCTS.find(p => p.name.toLowerCase() === dbProd.name.toLowerCase());
+                      return catalogProd ? { ...dbProd, ...catalogProd, id: dbProd.id } : dbProd;
+                    }).filter(Boolean)}
                     ribbonHex={selectedApproval.order?.ribbonColor || "#D4AF37"}
                     customizations={{
                       name: selectedApproval.order?.recipient?.name,
                       message: selectedApproval.order?.recipient?.message,
                       photoUrl: selectedApproval.order?.recipient?.photoUrl,
                       logoUrl: selectedApproval.order?.recipient?.logoUrl,
-                      customText: selectedApproval.order?.recipient?.customText
+                      customText: selectedApproval.order?.recipient?.customText,
+                      occasion: inferOccasion(selectedApproval.order)
                     }}
                     size="lg"
                   />

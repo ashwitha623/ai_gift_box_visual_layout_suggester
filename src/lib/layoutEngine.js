@@ -421,13 +421,24 @@ function packLayout(box, products, layoutStyle) {
 
     if (result) {
       // Convert layout absolute coordinates to percentages for rendering
-      return result.map(item => ({
-        ...item,
-        pctX: (item.x / box.length) * 100,
-        pctY: (item.y / box.width) * 100,
-        pctW: (item.w / box.length) * 100,
-        pctH: (item.h / box.width) * 100
-      }));
+      return result.map((item, idx) => {
+        const seed = (item.product.id * 7 + idx * 13) % 31; // 0 to 30
+        const rotation = seed - 15; // Strictly clamped between -15 and +15 degrees
+        const cx = item.x + item.w / 2;
+        const cy = item.y + item.h / 2;
+        return {
+          ...item,
+          rotation,
+          centerX: cx,
+          centerY: cy,
+          pctX: (item.x / box.length) * 100,
+          pctY: (item.y / box.width) * 100,
+          pctW: (item.w / box.length) * 100,
+          pctH: (item.h / box.width) * 100,
+          pctCenterX: (cx / box.length) * 100,
+          pctCenterY: (cy / box.width) * 100
+        };
+      });
     }
   }
 
@@ -436,6 +447,10 @@ function packLayout(box, products, layoutStyle) {
     const w = Math.max(3.0, p.length * 0.35);
     const h = Math.max(3.0, p.width * 0.35);
     const offset = 1.2 + i * 2.0;
+    const seed = (p.id * 7 + i * 13) % 31;
+    const rotation = seed - 15; // Strictly clamped between -15 and +15 degrees
+    const cx = offset + w / 2;
+    const cy = offset + h / 2;
     return {
       product: p,
       x: offset,
@@ -443,10 +458,15 @@ function packLayout(box, products, layoutStyle) {
       w,
       h,
       rotated: false,
+      rotation,
+      centerX: cx,
+      centerY: cy,
       pctX: (offset / box.length) * 100,
       pctY: (offset / box.width) * 100,
       pctW: (w / box.length) * 100,
-      pctH: (h / box.width) * 100
+      pctH: (h / box.width) * 100,
+      pctCenterX: (cx / box.length) * 100,
+      pctCenterY: (cy / box.width) * 100
     };
   });
 }

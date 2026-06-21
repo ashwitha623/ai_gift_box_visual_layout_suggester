@@ -766,8 +766,8 @@ function ProductTile({ p, slot, index, box, items }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -20, rotate: (slot.rotated ? 90 : 0) - 10, scale: 0.6 }}
-      animate={{ opacity: 1, y: 0, rotate: slot.rotated ? 90 : 0, scale: 1 }}
+      initial={{ opacity: 0, y: -20, rotate: (slot.rotation || 0) - 10, scale: 0.6 }}
+      animate={{ opacity: 1, y: 0, rotate: slot.rotation || 0, scale: 1 }}
       transition={{
         delay: index * 0.08,
         type: "spring",

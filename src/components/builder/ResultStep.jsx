@@ -169,7 +169,7 @@ export default function ResultStep({ result, occasion, products, details, onRest
 
       <div ref={reportRef} className="bg-background">
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mb-10">
-          <GiftBoxVisual products={products} ribbonHex={activeLayout.ribbon.hex} layoutId={activeLayout.id} customizations={details} />
+          <GiftBoxVisual products={products} ribbonHex={activeLayout.ribbon.hex} layoutId={activeLayout.id} customizations={{ ...details, occasion: occasion.id }} />
         </motion.div>
 
         <ReportCard layout={activeLayout} occasion={occasion} products={products} details={details} totalPrice={result.totalPrice} />
@@ -181,7 +181,7 @@ export default function ResultStep({ result, occasion, products, details, onRest
         active={activeLayout}
         onSelect={setActiveLayout}
         products={products}
-        customizations={details}
+        customizations={{ ...details, occasion: occasion.id }}
       />
 
       <div className="flex flex-wrap justify-center gap-3 mt-10">
