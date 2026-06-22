@@ -1066,12 +1066,12 @@ export default function GiftBoxVisual({
   // Pre-generate scattered decorative accents (pearls, petals, stars, crystals, sparkles) - TRIPLE count
   const accentsList = useMemo(() => {
     let count = 0;
-    if (styling.accents === "pearls") count = 38;
-    else if (styling.accents === "rose-petals") count = 42;
-    else if (styling.accents === "marigold-petals") count = 42;
-    else if (styling.accents === "gold-stars") count = 30;
-    else if (styling.accents === "confetti-pearls") count = 45;
-    else if (styling.accents === "crystals") count = 45; // Crystals for wedding
+    if (styling.accents === "pearls") count = 55;
+    else if (styling.accents === "rose-petals") count = 60;
+    else if (styling.accents === "marigold-petals") count = 60;
+    else if (styling.accents === "gold-stars") count = 45;
+    else if (styling.accents === "confetti-pearls") count = 60;
+    else if (styling.accents === "crystals") count = 60; // Crystals for wedding
 
     return Array.from({ length: count }).map((_, i) => ({
       id: `accent-${i}`,
@@ -1084,7 +1084,7 @@ export default function GiftBoxVisual({
 
   // Pre-generate scattered luxury gold foil flakes (all occasions) - INCREASED count
   const goldFoilFlakesList = useMemo(() => {
-    return Array.from({ length: 28 }).map((_, i) => ({
+    return Array.from({ length: 45 }).map((_, i) => ({
       id: `gold-flake-${i}`,
       x: 8 + Math.random() * 84,
       y: 8 + Math.random() * 84,
@@ -1096,28 +1096,25 @@ export default function GiftBoxVisual({
 
   // Pre-generate scattered magic sparkles (glitter sparkles) for that premium "wow" factor - INCREASED count
   const sparklesList = useMemo(() => {
-    const needsSparkles = ["wedding", "anniversary", "birthday", "festival", "just_because"].includes(occasionId);
-    if (!needsSparkles) return [];
-
-    return Array.from({ length: 36 }).map((_, i) => ({
+    return Array.from({ length: 55 }).map((_, i) => ({
       id: `sparkle-${i}`,
       x: 8 + Math.random() * 84,
       y: 8 + Math.random() * 84,
       scale: 0.55 + Math.random() * 0.7,
       rotate: Math.random() * 360
     }));
-  }, [occasionId]);
+  }, []);
 
-  // Theme-aware lighting effects: Increase density to 48 bulbs for extra glow and warmth
+  // Theme-aware lighting effects: Increase density to 64 bulbs for extra glow and warmth
   const isCorporateOrExec = occasionId === "corporate" || occasionId === "graduation" || box.id === "black_gold";
   const hasFairyLights = !isCorporateOrExec && ["anniversary", "birthday", "wedding", "festival", "just_because"].includes(occasionId);
 
-  // Generate fairy lights coordinates (density increased to 48 with copper wire connection)
+  // Generate fairy lights coordinates (density increased to 64 with copper wire connection)
   const fairyLightsData = useMemo(() => {
     if (!hasFairyLights) return { bulbs: [], wirePath: "" };
     
-    // Generate 48 bulbs
-    const bulbs = Array.from({ length: 48 }).map((_, i) => ({
+    // Generate 64 bulbs
+    const bulbs = Array.from({ length: 64 }).map((_, i) => ({
       id: i,
       x: 8 + Math.random() * 84,
       y: 8 + Math.random() * 84,
