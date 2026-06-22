@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { Calendar, UserPlus, Bell, Gift, Sparkles, Plus, Trash2, Heart, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -334,11 +335,11 @@ export default function CRMCalendar() {
                             <Bell className="w-3.5 h-3.5 mr-1.5" />
                             {contact.reminderSent ? "Active Notification" : "Schedule Alert"}
                           </Button>
-                          <a href="/create">
+                          <Link to="/create">
                             <Button variant="ghost" size="sm" className="rounded-full text-xs font-semibold border hover:bg-white text-muted-foreground">
                               <Gift className="w-3.5 h-3.5 mr-1.5" /> Design Gift
                             </Button>
-                          </a>
+                          </Link>
                         </div>
                       </motion.div>
                     );
