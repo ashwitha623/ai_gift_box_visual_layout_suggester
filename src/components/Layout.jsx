@@ -303,16 +303,7 @@ export default function Layout() {
                     {!currentUser && <Lock className="w-3.5 h-3.5 text-[#C5A880]" />}
                   </button>
 
-                  {/* Notifications - Protected */}
-                  <button
-                    onClick={() => handleProtectedNavigate("/notifications")}
-                    className="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold text-primary hover:bg-secondary/50 hover:text-accent text-left transition-all"
-                  >
-                    <span className="flex items-center gap-2">
-                      <Bell className="w-4 h-4 text-primary" /> Notifications
-                    </span>
-                    {!currentUser && <Lock className="w-3.5 h-3.5 text-[#C5A880]" />}
-                  </button>
+
 
                   {/* Layout History - Protected */}
                   <button

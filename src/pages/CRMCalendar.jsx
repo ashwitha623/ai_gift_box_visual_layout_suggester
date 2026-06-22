@@ -134,56 +134,7 @@ export default function CRMCalendar() {
     }
   };
 
-  const handleSendTestNotification = async () => {
-    const hasPermission = await requestNotificationPermission();
-    if (!hasPermission) return;
 
-    try {
-      const res = await axios.post("http://localhost:5000/api/notifications/test");
-      const newNotification = res.data.notification;
-
-      // Add to displayed list to prevent duplicate popup from Layout's polling loop
-      const displayedStr = localStorage.getItem("displayed_notifications");
-      const displayed = displayedStr ? JSON.parse(displayedStr) : [];
-      localStorage.setItem("displayed_notifications", JSON.stringify([...displayed, newNotification.id]));
-
-      // Trigger native notification immediately via Service Worker
-      const title = "🎁 Paper Plane Reminder";
-      const body = newNotification.message || "Demo Notification Successfully Triggered";
-
-      if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({
-          type: 'SHOW_NOTIFICATION',
-          title: title,
-          body: body,
-          icon: '/paper_plane_logo.png',
-          badge: '/paper_plane_logo.png',
-          data: { id: newNotification.id }
-        });
-      } else {
-        new Notification(title, {
-          body: body,
-          icon: '/paper_plane_logo.png',
-          badge: '/paper_plane_logo.png'
-        });
-      }
-
-      toast({
-        title: "Test Sent",
-        description: "Demo notification triggered successfully."
-      });
-
-      // Dispatch event to refresh layout badge count instantly
-      window.dispatchEvent(new Event("refresh-notifications"));
-    } catch (err) {
-      console.error(err);
-      toast({
-        title: "Error",
-        description: "Failed to send test notification.",
-        variant: "destructive"
-      });
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background py-10 px-6">
@@ -271,13 +222,7 @@ export default function CRMCalendar() {
                 <h2 className="text-2xl font-bold font-heading flex items-center gap-2 text-primary">
                   <Bell className="w-5 h-5 text-accent" /> Upcoming Occasions & Reminders
                 </h2>
-                <Button 
-                  onClick={handleSendTestNotification}
-                  variant="outline"
-                  className="rounded-full border hover:bg-slate-50 flex items-center gap-2 text-xs font-semibold text-primary"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-accent animate-pulse" /> Send Test Notification
-                </Button>
+
               </div>
 
               {loading ? (
