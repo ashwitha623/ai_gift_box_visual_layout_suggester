@@ -276,6 +276,32 @@ async function initDb() {
       console.log("Orders pre-seeded in database.");
     }
 
+    // Seed DesignApproval records for seeded orders if missing
+    const approvalCount = await DesignApproval.count();
+    if (approvalCount === 0) {
+      const orders = await Order.findAll();
+      for (const order of orders) {
+        let approvalStatus = "Draft Created";
+        if (order.status === "Delivered") {
+          approvalStatus = "Final Approved";
+        } else if (order.status === "Packaging" || order.status === "Dispatch") {
+          approvalStatus = "Approved";
+        } else if (order.status === "Quality Check") {
+          approvalStatus = "Awaiting Customer Approval";
+        }
+        
+        await DesignApproval.create({
+          orderId: order.id,
+          status: approvalStatus,
+          revisionNotes: null,
+          history: JSON.stringify([
+            { timestamp: new Date(order.createdAt).toISOString(), action: "Design Draft Created", actor: "System", note: "Auto-generated studio visualizer layout." }
+          ])
+        });
+      }
+      console.log("Design approvals pre-seeded in database.");
+    }
+
     // Seed returns if empty
     const returnCount = await Return.count();
     if (returnCount === 0) {
