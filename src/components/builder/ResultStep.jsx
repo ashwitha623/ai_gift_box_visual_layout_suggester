@@ -170,11 +170,11 @@ export default function ResultStep({ result, occasion, products, details, onRest
         <div className="inline-flex items-center gap-2 bg-secondary text-secondary-foreground rounded-full px-4 py-1.5 text-sm font-medium mb-4">
           <Sparkles className="w-4 h-4 text-primary" /> AI Recommendation Ready
         </div>
-        <h2 className="text-2xl sm:text-3xl font-bold font-heading text-primary">
-          {details.name ? `${details.name}'s` : "Your"} {occasion.title} Gift Box
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold font-heading text-primary truncate px-2">
+          {details.name ? `${details.name.length > 15 ? details.name.substring(0, 15) + "..." : details.name}'s` : "Your"} {occasion.title.length > 15 ? occasion.title.substring(0, 15) + "..." : occasion.title} Gift Box
         </h2>
-        <p className="text-muted-foreground mt-2">
-          Recommended layout: <span className="font-semibold text-primary">{activeLayout.name}</span> · Match Score {activeLayout.matchScore}%
+        <p className="text-muted-foreground mt-2 text-xs sm:text-sm">
+          Recommended layout: <span className="font-semibold text-primary">{activeLayout.name.length > 25 ? activeLayout.name.substring(0, 25) + "..." : activeLayout.name}</span> · Match Score {activeLayout.matchScore}%
         </p>
       </div>
 
@@ -195,20 +195,20 @@ export default function ResultStep({ result, occasion, products, details, onRest
         customizations={{ ...details, occasion: occasion.id }}
       />
 
-      <div className="flex flex-wrap justify-center gap-3 mt-10">
-        <Button onClick={onPlaceOrderClick} className="rounded-full bg-primary hover:bg-primary/90 text-white border-0 shadow-md px-6">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center sm:justify-center gap-3 mt-10 max-w-sm mx-auto sm:max-w-none">
+        <Button onClick={onPlaceOrderClick} className="rounded-full bg-primary hover:bg-primary/90 text-white border-0 shadow-md px-6 w-full sm:w-auto">
           <ShoppingCart className="w-4 h-4 mr-2" /> Place Gifting Order
         </Button>
-        <Button onClick={onSaveLayoutClick} disabled={savingLayout} variant="outline" className="rounded-full border px-6 bg-white hover:bg-slate-50 text-slate-700">
+        <Button onClick={onSaveLayoutClick} disabled={savingLayout} variant="outline" className="rounded-full border px-6 bg-white hover:bg-slate-50 text-slate-700 w-full sm:w-auto">
           <Bookmark className="w-4 h-4 mr-2 text-[#C5A880]" /> {savingLayout ? "Saving Layout..." : "Save Layout"}
         </Button>
-        <Button onClick={onPDFClick} disabled={exporting} variant="outline" className="rounded-full border px-6">
+        <Button onClick={onPDFClick} disabled={exporting} variant="outline" className="rounded-full border px-6 w-full sm:w-auto">
           <FileText className="w-4 h-4 mr-2" /> {exporting ? "Exporting..." : "Export Report (PDF)"}
         </Button>
-        <Button variant="ghost" onClick={onSummaryClick} className="rounded-full px-6 text-muted-foreground">
+        <Button variant="ghost" onClick={onSummaryClick} className="rounded-full px-6 text-muted-foreground w-full sm:w-auto">
           <Download className="w-4 h-4 mr-2" /> Download Summary
         </Button>
-        <Button variant="ghost" onClick={onRestart} className="rounded-full px-6 text-muted-foreground">
+        <Button variant="ghost" onClick={onRestart} className="rounded-full px-6 text-muted-foreground w-full sm:w-auto">
           <RefreshCw className="w-4 h-4 mr-2" /> Start Over
         </Button>
       </div>
@@ -237,13 +237,13 @@ export default function ResultStep({ result, occasion, products, details, onRest
               <p className="text-xs text-muted-foreground leading-relaxed">
                 We have generated your custom invoice and dispatched the design parameters to our production queue.
               </p>
-              <div className="flex gap-2 justify-center">
-                <a href="/orders">
-                  <Button className="rounded-full bg-primary hover:bg-primary/95 text-white font-semibold text-xs px-5 h-10 shadow-md">
+              <div className="flex flex-col sm:flex-row gap-2 justify-center items-stretch sm:items-center">
+                <a href="/orders" className="w-full sm:w-auto">
+                  <Button className="rounded-full bg-primary hover:bg-primary/95 text-white font-semibold text-xs px-5 h-10 shadow-md w-full">
                     Track Fulfillment Timeline
                   </Button>
                 </a>
-                <Button variant="ghost" onClick={() => { setCheckoutOpen(false); setOrderSuccess(false); onRestart(); }} className="rounded-full border hover:bg-slate-50 text-xs px-5 h-10">
+                <Button variant="ghost" onClick={() => { setCheckoutOpen(false); setOrderSuccess(false); onRestart(); }} className="rounded-full border hover:bg-slate-50 text-xs px-5 h-10 w-full sm:w-auto">
                   Build Another
                 </Button>
               </div>
@@ -265,18 +265,18 @@ export default function ResultStep({ result, occasion, products, details, onRest
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-2">
+              <div className="flex flex-col sm:flex-row gap-3 pt-2 items-stretch sm:items-center">
                 <Button 
                   onClick={handlePlaceOrder} 
                   disabled={placingOrder} 
-                  className="flex-1 rounded-full bg-primary hover:bg-primary/95 text-white font-semibold h-11 text-xs shadow-md"
+                  className="flex-1 rounded-full bg-primary hover:bg-primary/95 text-white font-semibold h-11 text-xs shadow-md w-full"
                 >
                   {placingOrder ? "Placing Order..." : "Confirm Order"}
                 </Button>
                 <Button 
                   variant="ghost" 
                   onClick={() => setCheckoutOpen(false)} 
-                  className="rounded-full border hover:bg-slate-50 text-xs px-4 h-11"
+                  className="rounded-full border hover:bg-slate-50 text-xs px-4 h-11 w-full sm:w-auto"
                 >
                   Cancel
                 </Button>

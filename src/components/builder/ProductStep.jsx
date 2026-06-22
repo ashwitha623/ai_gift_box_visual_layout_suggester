@@ -47,7 +47,7 @@ export default function ProductStep({ selected, onToggle }) {
         ))}
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+      <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))" }}>
         {filtered.map((p, i) => {
           const isSelected = selected.some((s) => s.id === p.id);
           return (

@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { CATEGORY_FALLBACKS } from "@/lib/giftdata";
 import { generateRecommendations } from "@/lib/layoutEngine";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Helper to generate wavy paths for decorative crinkle elements
 const generateWavyPath = (w, h, isHoriz) => {
@@ -639,7 +640,7 @@ function getVisualScale(p, box, items) {
 }
 
 // Product component containing sizing, shadows, and hover states
-function ProductTile({ p, slot, index, box, items }) {
+function ProductTile({ p, slot, index, box, items, isMobileView }) {
   const fallbackSrc =
     CATEGORY_FALLBACKS[p.category] ||
     CATEGORY_FALLBACKS["Lifestyle Gifts"];
@@ -759,10 +760,22 @@ function ProductTile({ p, slot, index, box, items }) {
 
   // Retrieve scale factor dynamically
   const visualScale = getVisualScale(p, box, items);
-  const visualW = slot.pctW * visualScale;
-  const visualH = slot.pctH * visualScale;
-  const visualX = slot.pctX - (visualW - slot.pctW) / 2;
-  const visualY = slot.pctY - (visualH - slot.pctH) / 2;
+  let pctW = slot.pctW * visualScale;
+  let pctH = slot.pctH * visualScale;
+  let pctX = slot.pctX - (pctW - slot.pctW) / 2;
+  let pctY = slot.pctY - (pctH - slot.pctH) / 2;
+
+  if (isMobileView) {
+    // Compress coordinates towards center (50%) and scale down slightly
+    pctW *= 0.85;
+    pctH *= 0.85;
+    const centerX = pctX + pctW / 2;
+    const centerY = pctY + pctH / 2;
+    const compressedCenterX = 50 + (centerX - 50) * 0.72;
+    const compressedCenterY = 50 + (centerY - 50) * 0.72;
+    pctX = compressedCenterX - pctW / 2;
+    pctY = compressedCenterY - pctH / 2;
+  }
 
   return (
     <motion.div
@@ -776,10 +789,10 @@ function ProductTile({ p, slot, index, box, items }) {
       }}
       className="absolute group flex items-center justify-center pointer-events-auto"
       style={{
-        left: `${visualX}%`,
-        top: `${visualY}%`,
-        width: `${visualW}%`,
-        height: `${visualH}%`,
+        left: `${pctX}%`,
+        top: `${pctY}%`,
+        width: `${pctW}%`,
+        height: `${pctH}%`,
         zIndex: 25 + index, // Above compartments and foam inserts
         background: "transparent",
         filter: "drop-shadow(0 14px 22px rgba(10, 5, 2, 0.48)) drop-shadow(0 4px 8px rgba(10, 5, 2, 0.22))",
@@ -812,6 +825,9 @@ export default function GiftBoxVisual({
   customizations = {}
 }) {
   const occasionId = customizations.occasion || "just_because";
+  const isMobile = useIsMobile();
+  const isMobileView = isMobile || size === "sm";
+  const boundingPadding = isMobileView ? 80 : 140;
 
   // Dynamically generate packing layout in the visualizer based on active layoutId
   const layoutData = useMemo(() => {
@@ -1049,19 +1065,22 @@ export default function GiftBoxVisual({
       else if (cycle === 4) flowerType = "baby_breath"; // baby's breath (tiny white flowers)
       else flowerType = "lavender"; // lavender (purple flower spikes)
       
+      const rawCx = s.cx + (Math.sin(idx) * 1.5);
+      const rawCy = s.cy + (Math.cos(idx) * 1.5);
+
       flowers.push({
         id: `flower-${idx}`,
-        // Add random slight offsets for a natural handcrafted arrangement
-        cx: s.cx + (Math.sin(idx) * 1.5),
-        cy: s.cy + (Math.cos(idx) * 1.5),
-        scale: 0.95 + (idx % 3) * 0.15,
+        // Add random slight offsets for a natural handcrafted arrangement, compressed on mobile
+        cx: isMobileView ? 50 + (rawCx - 50) * 0.72 : rawCx,
+        cy: isMobileView ? 50 + (rawCy - 50) * 0.72 : rawCy,
+        scale: (0.95 + (idx % 3) * 0.15) * (isMobileView ? 0.8 : 1),
         rotate: (idx * 65 + 30) % 360,
         type: flowerType
       });
     });
 
     return { foliage, flowers };
-  }, [items, styling, occasionId, ribbonLayout]);
+  }, [items, styling, occasionId, ribbonLayout, isMobileView]);
 
   // Pre-generate scattered decorative accents (pearls, petals, stars, crystals, sparkles) - TRIPLE count
   const accentsList = useMemo(() => {
@@ -1073,37 +1092,49 @@ export default function GiftBoxVisual({
     else if (styling.accents === "confetti-pearls") count = 60;
     else if (styling.accents === "crystals") count = 60; // Crystals for wedding
 
-    return Array.from({ length: count }).map((_, i) => ({
-      id: `accent-${i}`,
-      x: 8 + Math.random() * 84,
-      y: 8 + Math.random() * 84,
-      scale: 0.65 + Math.random() * 0.6,
-      rotate: Math.random() * 360
-    }));
-  }, [styling.accents]);
+    return Array.from({ length: count }).map((_, i) => {
+      const rx = 8 + Math.random() * 84;
+      const ry = 8 + Math.random() * 84;
+      return {
+        id: `accent-${i}`,
+        x: isMobileView ? 50 + (rx - 50) * 0.72 : rx,
+        y: isMobileView ? 50 + (ry - 50) * 0.72 : ry,
+        scale: (0.65 + Math.random() * 0.6) * (isMobileView ? 0.8 : 1),
+        rotate: Math.random() * 360
+      };
+    });
+  }, [styling.accents, isMobileView]);
 
   // Pre-generate scattered luxury gold foil flakes (all occasions) - INCREASED count
   const goldFoilFlakesList = useMemo(() => {
-    return Array.from({ length: 45 }).map((_, i) => ({
-      id: `gold-flake-${i}`,
-      x: 8 + Math.random() * 84,
-      y: 8 + Math.random() * 84,
-      scale: 0.5 + Math.random() * 0.65,
-      rotate: Math.random() * 360,
-      shapeIdx: i % 4
-    }));
-  }, []);
+    return Array.from({ length: 45 }).map((_, i) => {
+      const rx = 8 + Math.random() * 84;
+      const ry = 8 + Math.random() * 84;
+      return {
+        id: `gold-flake-${i}`,
+        x: isMobileView ? 50 + (rx - 50) * 0.72 : rx,
+        y: isMobileView ? 50 + (ry - 50) * 0.72 : ry,
+        scale: (0.5 + Math.random() * 0.65) * (isMobileView ? 0.8 : 1),
+        rotate: Math.random() * 360,
+        shapeIdx: i % 4
+      };
+    });
+  }, [isMobileView]);
 
   // Pre-generate scattered magic sparkles (glitter sparkles) for that premium "wow" factor - INCREASED count
   const sparklesList = useMemo(() => {
-    return Array.from({ length: 55 }).map((_, i) => ({
-      id: `sparkle-${i}`,
-      x: 8 + Math.random() * 84,
-      y: 8 + Math.random() * 84,
-      scale: 0.55 + Math.random() * 0.7,
-      rotate: Math.random() * 360
-    }));
-  }, []);
+    return Array.from({ length: 55 }).map((_, i) => {
+      const rx = 8 + Math.random() * 84;
+      const ry = 8 + Math.random() * 84;
+      return {
+        id: `sparkle-${i}`,
+        x: isMobileView ? 50 + (rx - 50) * 0.72 : rx,
+        y: isMobileView ? 50 + (ry - 50) * 0.72 : ry,
+        scale: (0.55 + Math.random() * 0.7) * (isMobileView ? 0.8 : 1),
+        rotate: Math.random() * 360
+      };
+    });
+  }, [isMobileView]);
 
   // Theme-aware lighting effects: Increase density to 64 bulbs for extra glow and warmth
   const isCorporateOrExec = occasionId === "corporate" || occasionId === "graduation" || box.id === "black_gold";
@@ -1114,13 +1145,17 @@ export default function GiftBoxVisual({
     if (!hasFairyLights) return { bulbs: [], wirePath: "" };
     
     // Generate 64 bulbs
-    const bulbs = Array.from({ length: 64 }).map((_, i) => ({
-      id: i,
-      x: 8 + Math.random() * 84,
-      y: 8 + Math.random() * 84,
-      scale: 0.65 + Math.random() * 0.65,
-      pulseDelay: Math.random() * 2.5
-    }));
+    const bulbs = Array.from({ length: 64 }).map((_, i) => {
+      const rx = 8 + Math.random() * 84;
+      const ry = 8 + Math.random() * 84;
+      return {
+        id: i,
+        x: isMobileView ? 50 + (rx - 50) * 0.72 : rx,
+        y: isMobileView ? 50 + (ry - 50) * 0.72 : ry,
+        scale: (0.65 + Math.random() * 0.65) * (isMobileView ? 0.8 : 1),
+        pulseDelay: Math.random() * 2.5
+      };
+    });
 
     // Nearest Neighbor path to draw connecting string
     const unvisited = [...bulbs];
@@ -1158,7 +1193,7 @@ export default function GiftBoxVisual({
     }
 
     return { bulbs: ordered, wirePath };
-  }, [hasFairyLights]);
+  }, [hasFairyLights, isMobileView]);
 
   // Find center of hero item for showcasing spotlight
   const heroItem = useMemo(() => {
@@ -1212,7 +1247,7 @@ export default function GiftBoxVisual({
         style={{
           aspectRatio: `${box.length} / ${box.width}`,
           background: boxBgStyle.background,
-          padding: "20px",
+          padding: isMobileView ? "12px" : "20px",
           boxShadow: `
             0 25px 55px rgba(2, 6, 15, 0.4),
             inset 0 1.5px 3px rgba(255, 255, 255, 0.12),
@@ -1229,7 +1264,7 @@ export default function GiftBoxVisual({
           className="relative w-full h-full rounded-lg CompartmentWell"
           style={{
             background: "#D7B48E",
-            border: `10px solid ${boxBgStyle.innerRim}`,
+            border: `${isMobileView ? 6 : 10}px solid ${boxBgStyle.innerRim}`,
             boxShadow: `
               inset 0 14px 28px rgba(0, 0, 0, 0.55),
               inset 14px 0 18px rgba(0, 0, 0, 0.35),
@@ -1750,6 +1785,7 @@ export default function GiftBoxVisual({
                 index={i}
                 box={box}
                 items={items}
+                isMobileView={isMobileView}
               />
             ))}
           </div>
@@ -1790,12 +1826,12 @@ export default function GiftBoxVisual({
             <motion.div
               initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
               animate={{ opacity: 1, scale: 1, rotate: -4 }}
-              className="absolute bg-white p-2 pb-6 rounded-sm border border-slate-200"
+              className="absolute bg-white p-1.5 pb-4 sm:p-2 sm:pb-6 rounded-sm border border-slate-200"
               style={{
-                bottom: "8%",
-                left: "6%",
-                width: "22%",
-                height: "32%",
+                bottom: isMobileView ? "12%" : "8%",
+                left: isMobileView ? "10%" : "6%",
+                width: isMobileView ? "24%" : "22%",
+                height: isMobileView ? "30%" : "32%",
                 zIndex: 15, // Nested in tissue folds
                 boxShadow: "6px 12px 24px rgba(3, 10, 25, 0.25)"
               }}
@@ -1818,12 +1854,12 @@ export default function GiftBoxVisual({
             <motion.div
               initial={{ opacity: 0, scale: 0.8, rotate: 6 }}
               animate={{ opacity: 1, scale: 1, rotate: 4 }}
-              className={`absolute text-slate-800 p-2.5 rounded shadow-xl border flex flex-col justify-between`}
+              className={`absolute text-slate-800 p-1.5 sm:p-2.5 rounded shadow-xl border flex flex-col justify-between`}
               style={{
-                bottom: "8%",
-                right: "6%",
-                width: "26%",
-                height: "24%",
+                bottom: isMobileView ? "12%" : "8%",
+                right: isMobileView ? "10%" : "6%",
+                width: isMobileView ? "28%" : "26%",
+                height: isMobileView ? "24%" : "24%",
                 backgroundColor: styling.card.bg,
                 borderColor: `${styling.card.border}35`,
                 zIndex: 15,
@@ -1852,12 +1888,12 @@ export default function GiftBoxVisual({
             <motion.div
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="absolute bg-white/90 backdrop-blur-sm p-1.5 rounded-full border border-[#D4AF37]/35 flex items-center justify-center shadow-lg"
+              className="absolute bg-white/90 backdrop-blur-sm p-1 rounded-full border border-[#D4AF37]/35 flex items-center justify-center shadow-lg"
               style={{
-                top: "6%",
-                right: "6%",
-                width: "35px",
-                height: "35px",
+                top: isMobileView ? "10%" : "6%",
+                right: isMobileView ? "10%" : "6%",
+                width: isMobileView ? "28px" : "35px",
+                height: isMobileView ? "28px" : "35px",
                 zIndex: 15
               }}
             >
@@ -1874,18 +1910,18 @@ export default function GiftBoxVisual({
             <div
               className="absolute text-center select-none"
               style={{
-                bottom: "4%",
+                bottom: isMobileView ? "6%" : "4%",
                 left: "50%",
                 transform: "translateX(-50%)",
-                width: "50%",
+                width: isMobileView ? "60%" : "50%",
                 zIndex: 50
               }}
             >
               <span
-                className="bg-black/55 backdrop-blur-sm text-yellow-100 text-[8px] font-semibold tracking-widest px-3 py-1 rounded-full border border-[#D4AF37]/35 uppercase"
+                className="bg-black/55 backdrop-blur-sm text-yellow-100 text-[6.5px] sm:text-[8px] font-semibold tracking-widest px-2.5 py-0.5 rounded-full border border-[#D4AF37]/35 uppercase truncate block max-w-full"
                 style={{ fontFamily: "var(--font-heading)" }}
               >
-                {customizations.customText}
+                {customizations.customText.length > 20 ? customizations.customText.substring(0, 20) + "..." : customizations.customText}
               </span>
             </div>
           )}

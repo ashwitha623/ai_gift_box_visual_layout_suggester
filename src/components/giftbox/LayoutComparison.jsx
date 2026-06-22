@@ -91,7 +91,7 @@ export default function LayoutComparison({ recommended, alternatives, active, on
         </button>
 
         {/* Layout Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-5 w-full overflow-hidden px-1 py-2">
+        <div className="grid gap-5 w-full overflow-hidden px-1 py-2" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" }}>
           {sortedLayouts.map((layout) => {
             const isRecommended = layout.id === recommended.id;
             const isActive = layout.id === active.id;
@@ -136,31 +136,31 @@ export default function LayoutComparison({ recommended, alternatives, active, on
 
                   {/* Title and description */}
                   <div className="space-y-1 px-0.5">
-                    <h4 className="font-extrabold text-[12px] text-slate-800 tracking-tight leading-tight">
+                    <h4 className="font-extrabold text-[11px] sm:text-[12px] text-slate-800 tracking-tight leading-tight truncate">
                       {layout.name}
                     </h4>
-                    <p className="text-[10px] text-slate-400 font-medium leading-normal line-clamp-1">
+                    <p className="text-[9px] sm:text-[10px] text-slate-400 font-medium leading-normal line-clamp-1">
                       {layout.description}
                     </p>
                   </div>
 
                   {/* Clean 4-Column Layout Metrics */}
-                  <div className="grid grid-cols-4 gap-1 mt-4 pt-3.5 border-t border-slate-100 text-center">
+                  <div className="grid grid-cols-4 gap-0.5 mt-3 pt-2.5 border-t border-slate-100 text-center">
                     <div className="flex flex-col">
-                      <span className="text-[8px] text-slate-400 font-semibold uppercase tracking-wide">Space</span>
-                      <span className="text-slate-700 font-bold text-[10px] mt-0.5">{layout.scores.spaceUtil}%</span>
+                      <span className="text-[7.5px] sm:text-[8px] text-slate-400 font-semibold uppercase tracking-wide">Space</span>
+                      <span className="text-slate-700 font-bold text-[9px] sm:text-[10px] mt-0.5">{layout.scores.spaceUtil}%</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[8px] text-slate-400 font-semibold uppercase tracking-wide">Aesthetic</span>
-                      <span className="text-slate-700 font-bold text-[10px] mt-0.5">{layout.scores.aesthetic}%</span>
+                      <span className="text-[7.5px] sm:text-[8px] text-slate-400 font-semibold uppercase tracking-wide">Aesthetic</span>
+                      <span className="text-slate-700 font-bold text-[9px] sm:text-[10px] mt-0.5">{layout.scores.aesthetic}%</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[8px] text-slate-400 font-semibold uppercase tracking-wide">Safety</span>
-                      <span className="text-slate-700 font-bold text-[10px] mt-0.5">{layout.scores.safety}%</span>
+                      <span className="text-[7.5px] sm:text-[8px] text-slate-400 font-semibold uppercase tracking-wide">Safety</span>
+                      <span className="text-slate-700 font-bold text-[9px] sm:text-[10px] mt-0.5">{layout.scores.safety}%</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[8px] text-slate-400 font-semibold uppercase tracking-wide">Cost</span>
-                      <span className="text-slate-700 font-bold text-[10px] mt-0.5">{layout.scores.costScore}%</span>
+                      <span className="text-[7.5px] sm:text-[8px] text-slate-400 font-semibold uppercase tracking-wide">Cost</span>
+                      <span className="text-slate-700 font-bold text-[9px] sm:text-[10px] mt-0.5">{layout.scores.costScore}%</span>
                     </div>
                   </div>
                 </div>

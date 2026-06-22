@@ -29,7 +29,7 @@ export default function OccasionStep({ selected, onSelect }) {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-5">
+      <div className="grid gap-4 sm:gap-5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}>
         {OCCASIONS.map((occ, i) => {
           const Icon = ICONS[occ.icon] || Gift;
           const isSelected = selected?.id === occ.id;

@@ -159,7 +159,7 @@ export default function RecipientStep({ details, onChange, selectedTotal }) {
 
         <div className="space-y-3">
           <Label className="font-semibold text-sm text-primary">Box Size</Label>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))" }}>
             {BOX_SIZES.map((size) => (
               <button
                 key={size}
