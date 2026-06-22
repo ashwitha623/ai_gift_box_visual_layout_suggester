@@ -16,7 +16,6 @@ import Auth from '@/pages/Auth';
 import InventoryDashboard from '@/pages/InventoryDashboard';
 import DesignApprovals from '@/pages/DesignApprovals';
 import ProductionOperations from '@/pages/ProductionOperations';
-import FulfillmentCenter from '@/pages/FulfillmentCenter';
 import CRMDetail from '@/pages/CRMDetail';
 import NotificationsDashboard from '@/pages/NotificationsDashboard';
 import PackagingManagement from '@/pages/PackagingManagement';
@@ -47,7 +46,6 @@ function App() {
             <Route path="/inventory" element={<InventoryDashboard />} />
             <Route path="/design-approvals" element={<DesignApprovals />} />
             <Route path="/production" element={<ProductionOperations />} />
-            <Route path="/fulfillment" element={<FulfillmentCenter />} />
             <Route path="/crm/customer/:id" element={<CRMDetail />} />
             <Route path="/notifications" element={<NotificationsDashboard />} />
             <Route path="/packaging" element={<PackagingManagement />} />

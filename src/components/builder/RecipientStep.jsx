@@ -54,6 +54,25 @@ export default function RecipientStep({ details, onChange, selectedTotal }) {
         </div>
 
         <div className="space-y-2">
+          <Label className="font-semibold text-xs text-primary flex items-center justify-between">
+            <span>Recipient Phone <span className="text-rose-500">*</span></span>
+            {details.phone && details.phone.length !== 10 && (
+              <span className="text-rose-500 text-[10px] font-semibold animate-pulse">* Must be exactly 10 digits</span>
+            )}
+          </Label>
+          <Input
+            placeholder="10-digit mobile number"
+            value={details.phone || ""}
+            onChange={(e) => {
+              const val = e.target.value.replace(/\D/g, "").slice(0, 10);
+              onChange({ ...details, phone: val });
+            }}
+            className="rounded-xl h-11"
+            maxLength={10}
+          />
+        </div>
+
+        <div className="space-y-2">
           <Label className="font-semibold text-xs text-primary">Personal Message Card <span className="text-rose-500">*</span></Label>
           <Textarea
             placeholder="Write a heartfelt note to include in the box..."

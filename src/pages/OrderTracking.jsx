@@ -145,6 +145,7 @@ export default function OrderTracking() {
                   <h4 className="font-bold text-xs uppercase tracking-wide text-primary mb-3">Customization Card</h4>
                   <div className="text-xs space-y-2 text-slate-600">
                     <p>Recipient: <strong>{trackedOrder.recipient?.name}</strong></p>
+                    {trackedOrder.recipient?.phone && <p>Phone: <strong>{trackedOrder.recipient.phone}</strong></p>}
                     {trackedOrder.recipient?.message && <p className="italic bg-white p-3 rounded-xl border">"{trackedOrder.recipient.message}"</p>}
                     {trackedOrder.recipient?.customText && <p>Box Lid Text: <strong>{trackedOrder.recipient.customText}</strong></p>}
                   </div>

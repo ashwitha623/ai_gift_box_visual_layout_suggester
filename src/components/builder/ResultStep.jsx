@@ -114,6 +114,7 @@ export default function ResultStep({ result, occasion, products, details, onRest
         ribbonColor: activeLayout.ribbon.color,
         boxSize: activeLayout.box.name,
         recipientName: details.name,
+        recipientPhone: details.phone,
         message: details.message,
         customText: details.customText,
         photoUrl: details.photoUrl,

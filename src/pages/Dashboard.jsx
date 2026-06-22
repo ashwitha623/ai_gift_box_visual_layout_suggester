@@ -225,6 +225,7 @@ export default function AdminDashboard() {
                             </td>
                             <td className="py-4 px-4 text-xs font-medium">
                               Recipient: <strong>{o.recipient?.name || "None"}</strong>
+                              {o.recipient?.phone && <span className="block text-[10px] text-slate-500">Phone: {o.recipient.phone}</span>}
                               {o.recipient?.customText && <span className="block text-[10px] text-accent">Lid: "{o.recipient.customText}"</span>}
                             </td>
                             <td className="py-4 px-4 font-semibold">₹{o.totalPrice}</td>

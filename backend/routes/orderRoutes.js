@@ -6,7 +6,7 @@ const { requireAdmin, optionalUser } = require("../middleware/auth");
 // Create Order (Checkout flow)
 router.post("/orders", async (req, res) => {
   try {
-    const { userId, products, totalPrice, ribbonColor, boxSize, recipientName, message, customText, photoUrl, logoUrl, paymentMethod } = req.body;
+    const { userId, products, totalPrice, ribbonColor, boxSize, recipientName, recipientPhone, message, customText, photoUrl, logoUrl, paymentMethod } = req.body;
     
     // Generate mock tracking ID
     const trackingId = "PP-" + Math.floor(100000 + Math.random() * 900000);
@@ -50,6 +50,7 @@ router.post("/orders", async (req, res) => {
     await Recipient.create({
       orderId: order.id,
       name: recipientName || "Valued Recipient",
+      phone: recipientPhone || "",
       message: message || "",
       customText: customText || "",
       photoUrl: photoUrl || "",

@@ -18,6 +18,7 @@ export default function CreateBox() {
   const [details, setDetails] = useState({
     name: "",
     senderName: "",
+    phone: "",
     message: "",
     customText: "",
     deliveryAddress: "",
@@ -68,7 +69,9 @@ export default function CreateBox() {
     details.senderName?.trim() &&
     details.message?.trim() &&
     details.deliveryAddress?.trim() &&
-    details.deliveryDate?.trim()
+    details.deliveryDate?.trim() &&
+    details.phone?.trim() &&
+    /^\d{10}$/.test(details.phone.trim())
   );
 
   const canNext = step === 0 ? !!occasion : step === 1 ? products.length >= 2 : isDetailsValid;
@@ -98,6 +101,7 @@ export default function CreateBox() {
     setDetails({
       name: "",
       senderName: "",
+      phone: "",
       message: "",
       customText: "",
       deliveryAddress: "",

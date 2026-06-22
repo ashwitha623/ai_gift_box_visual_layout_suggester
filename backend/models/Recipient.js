@@ -21,6 +21,10 @@ const Recipient = sequelize.define("Recipient", {
     type: DataTypes.STRING,
     allowNull: true
   },
+  phone: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
   message: {
     type: DataTypes.TEXT,
     allowNull: true

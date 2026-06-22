@@ -48,6 +48,9 @@ async function initDb() {
     try {
       await sequelize.query("ALTER TABLE crm_contacts ADD COLUMN autoSchedule BOOLEAN DEFAULT 1");
     } catch (e) {}
+    try {
+      await sequelize.query("ALTER TABLE recipients ADD COLUMN phone VARCHAR(255)");
+    } catch (e) {}
 
     // Sync tables
     await sequelize.sync();

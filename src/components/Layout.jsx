@@ -150,8 +150,7 @@ export default function Layout() {
     "/returns",
     "/notifications",
     "/layouts",
-    "/reports",
-    "/fulfillment"
+    "/reports"
   ];
 
   useEffect(() => {
@@ -270,16 +269,7 @@ export default function Layout() {
                     {!currentUser && <Lock className="w-3.5 h-3.5 text-[#C5A880]" />}
                   </button>
 
-                  {/* Order Flow Steps - Protected */}
-                  <button
-                    onClick={() => handleProtectedNavigate("/fulfillment")}
-                    className="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold text-primary hover:bg-secondary/50 hover:text-accent text-left transition-all"
-                  >
-                    <span className="flex items-center gap-2">
-                      <Truck className="w-4 h-4 text-primary" /> Order Flow Steps
-                    </span>
-                    {!currentUser && <Lock className="w-3.5 h-3.5 text-[#C5A880]" />}
-                  </button>
+
 
                   {/* Track Orders - Protected */}
                   <button

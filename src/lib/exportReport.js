@@ -30,6 +30,7 @@ export function downloadSummary(layout, occasion, products, details, totalPrice)
     "=".repeat(45),
     "",
     `Recipient: ${details.name || "—"}`,
+    `Phone: ${details.phone || "—"}`,
     `Occasion: ${occasion.title}`,
     `Box Size: ${details.boxSize}`,
     `Products Total: ${formatINR(totalPrice)}`,
