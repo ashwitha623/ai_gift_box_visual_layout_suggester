@@ -1456,27 +1456,6 @@ export default function GiftBoxVisual({
             </svg>
           )}
 
-          {/* Layout Feature 3: Safe Shipping dense protective foam compartment wells */}
-          {layoutId === "safe_shipping" && items.map((item, idx) => (
-            <div
-              key={`foam-${idx}`}
-              className="absolute pointer-events-none"
-              style={{
-                left: `${item.pctX - 2.0}%`,
-                top: `${item.pctY - 2.0}%`,
-                width: `${item.pctW + 4.0}%`,
-                height: `${item.pctH + 4.0}%`,
-                backgroundColor: "#ECECE7", // High-density packaging foam color
-                borderRadius: "10px",
-                border: "3px double #C2C2B8",
-                boxShadow: "inset 0 4px 10px rgba(0, 0, 0, 0.35), 0 3px 6px rgba(0,0,0,0.15)",
-                zIndex: 20, // Sit directly under products
-                opacity: 0.95
-              }}
-            >
-              <div className="absolute inset-[3px] rounded-[7px] border border-slate-300 opacity-50" />
-            </div>
-          ))}
 
           {/* Fairy Lights Copper Connecting Wire */}
           {hasFairyLights && fairyLightsData.wirePath && (
