@@ -58,7 +58,13 @@ export default function OrderTracking() {
     }
   };
 
-  const currentStageIndex = trackedOrder ? TRACKING_STAGES.indexOf(trackedOrder.status) : -1;
+  const getStageIndex = (status) => {
+    if (!status) return -1;
+    if (status === "Production") return TRACKING_STAGES.indexOf("Customization");
+    return TRACKING_STAGES.indexOf(status);
+  };
+
+  const currentStageIndex = trackedOrder ? getStageIndex(trackedOrder.status) : -1;
 
   return (
     <div className="min-h-screen bg-background py-10 px-6">

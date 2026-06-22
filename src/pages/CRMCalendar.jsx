@@ -44,9 +44,20 @@ export default function CRMCalendar() {
     }
     setFormError("");
 
+    let userId = 1;
+    try {
+      const userStr = localStorage.getItem("currentUser");
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        if (user && user.id) userId = user.id;
+      }
+    } catch (err) {
+      console.error(err);
+    }
+
     try {
       await axios.post("http://localhost:5000/api/crm", {
-        userId: 1, // Mock User ID
+        userId,
         name,
         relationship: relationship || "Friend",
         occasionType,

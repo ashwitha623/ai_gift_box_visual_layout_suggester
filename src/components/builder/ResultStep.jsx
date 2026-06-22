@@ -95,9 +95,20 @@ export default function ResultStep({ result, occasion, products, details, onRest
 
   const handlePlaceOrder = async () => {
     setPlacingOrder(true);
+    let userId = 1;
+    try {
+      const userStr = localStorage.getItem("currentUser");
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        if (user && user.id) userId = user.id;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
     try {
       const res = await axios.post("http://localhost:5000/api/orders", {
-        userId: 1, // Mock Customer ID
+        userId,
         products: products,
         totalPrice: result.totalPrice + activeLayout.box.cost, // Product total plus selected box cost
         ribbonColor: activeLayout.ribbon.color,
