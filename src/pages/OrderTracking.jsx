@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
-import { exportReportPDF } from "@/lib/exportReport";
 
 const TRACKING_STAGES = [
   "Order Placed",
@@ -25,19 +24,6 @@ export default function OrderTracking() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-
-  const handleDownloadInvoice = async () => {
-    const element = document.getElementById("invoice-printable-area");
-    if (!element) return;
-    toast({ title: "Invoice Generating", description: "Your PDF invoice is compiling." });
-    try {
-      await exportReportPDF(element, `Invoice-${trackedOrder.trackingId}`);
-      toast({ title: "Invoice Generated", description: "Invoice PDF saved successfully." });
-    } catch (err) {
-      console.error(err);
-      toast({ title: "Export Failed", description: "Failed to generate PDF.", variant: "destructive" });
-    }
-  };
 
   useEffect(() => {
     loadOrders();
@@ -147,17 +133,6 @@ export default function OrderTracking() {
                     <p>Payment Status: <strong>{trackedOrder.paymentStatus}</strong></p>
                     <p>Payment Method: <strong>{trackedOrder.paymentMethod}</strong></p>
                   </div>
-
-                  {trackedOrder.invoiceUrl && (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={handleDownloadInvoice}
-                      className="rounded-full text-xs font-semibold hover:bg-white text-muted-foreground border"
-                    >
-                      <FileText className="w-3.5 h-3.5 mr-1.5" /> Download Invoice (PDF)
-                    </Button>
-                  )}
                 </div>
 
                 <div className="bg-secondary rounded-2xl p-5 border">
