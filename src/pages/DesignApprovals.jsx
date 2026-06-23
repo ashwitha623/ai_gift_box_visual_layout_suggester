@@ -234,7 +234,9 @@ export default function DesignApprovals() {
                     
                     {/* Notes */}
                     <div className="space-y-1">
-                      <Label className="text-xs font-semibold text-primary">Revision Notes / Feedback</Label>
+                      <Label className="text-xs font-semibold text-primary">
+                        Revision Notes / Feedback <span className="text-rose-500">*</span>
+                      </Label>
                       <Textarea
                         placeholder="Provide details if you require rearrangement of products, alternative ribbon colors, or custom message edits..."
                         value={revisionNotes}
@@ -251,7 +253,17 @@ export default function DesignApprovals() {
                         <CheckCircle className="w-4 h-4" /> Approve Design
                       </Button>
                       <Button
-                        onClick={() => handleUpdateStatus(selectedApproval.id, "Revision Requested", revisionNotes)}
+                        onClick={() => {
+                          if (!revisionNotes?.trim()) {
+                            toast({
+                              title: "Notes Required",
+                              description: "Please enter revision details explaining the requested changes.",
+                              variant: "destructive"
+                            });
+                            return;
+                          }
+                          handleUpdateStatus(selectedApproval.id, "Revision Requested", revisionNotes);
+                        }}
                         variant="destructive"
                         className="flex-1 rounded-xl bg-rose-600 hover:bg-rose-750 text-white font-semibold text-xs h-10 flex items-center justify-center gap-1.5"
                       >
