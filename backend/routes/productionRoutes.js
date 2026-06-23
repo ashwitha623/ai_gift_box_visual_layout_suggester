@@ -48,19 +48,23 @@ router.put("/production/stage/:id", requireAdmin, async (req, res) => {
     await stageItem.update(updates);
 
     // Sync order stage back to main order status
-    const order = await Order.findByPk(stageItem.orderId);
-    if (order && status === "In Progress") {
-      // Map stages to main Order status
-      let mappedStatus = "Order Placed";
-      if (stageItem.stage === "Design") mappedStatus = "Customization";
-      else if (stageItem.stage === "Production") mappedStatus = "Production";
-      else if (stageItem.stage === "Packaging") mappedStatus = "Packaging";
-      else if (stageItem.stage === "Quality Check") mappedStatus = "Quality Check";
-      else if (stageItem.stage === "Dispatch") mappedStatus = "Dispatch";
-      else if (stageItem.stage === "Delivered") mappedStatus = "Delivered";
+      const order = await Order.findByPk(stageItem.orderId);
+      if (order && status === "In Progress") {
+        // Map stages to main Order status
+        let mappedStatus = "Order Placed";
+        if (stageItem.stage === "Design") mappedStatus = "Customization";
+        else if (stageItem.stage === "Production") mappedStatus = "Production";
+        else if (stageItem.stage === "Packaging") mappedStatus = "Packaging";
+        else if (stageItem.stage === "Quality Check") mappedStatus = "Quality Check";
+        else if (stageItem.stage === "Dispatch") mappedStatus = "Dispatch";
+        else if (stageItem.stage === "Delivered") mappedStatus = "Delivered";
 
-      await order.update({ status: mappedStatus });
-    }
+        const orderUpdates = { status: mappedStatus };
+        if (order.paymentMethod === "COD") {
+          orderUpdates.paymentStatus = mappedStatus === "Delivered" ? "Paid" : "Pending";
+        }
+        await order.update(orderUpdates);
+      }
 
     res.json({ success: true, stageItem });
   } catch (err) {
@@ -117,7 +121,11 @@ router.post("/production/order/:orderId/move", requireAdmin, async (req, res) =>
       else if (targetStage === "Dispatch") mappedStatus = "Dispatch";
       else if (targetStage === "Delivered") mappedStatus = "Delivered";
 
-      await order.update({ status: mappedStatus });
+      const orderUpdates = { status: mappedStatus };
+      if (order.paymentMethod === "COD") {
+        orderUpdates.paymentStatus = mappedStatus === "Delivered" ? "Paid" : "Pending";
+      }
+      await order.update(orderUpdates);
     }
 
     res.json({ success: true, message: `Order #${orderId} moved to ${targetStage}` });

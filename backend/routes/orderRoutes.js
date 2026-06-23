@@ -208,15 +208,20 @@ router.get("/orders/track/:trackingId", async (req, res) => {
 // Update order status (Admin fulfillment tracker)
 router.put("/orders/:id/status", requireAdmin, async (req, res) => {
   try {
-    const { id } = req.params;
-    const { status } = req.body; // 'Order Placed', 'Customization', 'Packaging', 'Quality Check', 'Dispatch', 'Delivered'
-    const order = await Order.findByPk(id);
-    if (!order) return res.status(404).json({ success: false, message: "Order not found" });
+     const { id } = req.params;
+     const { status } = req.body; // 'Order Placed', 'Customization', 'Packaging', 'Quality Check', 'Dispatch', 'Delivered'
+     const order = await Order.findByPk(id);
+     if (!order) return res.status(404).json({ success: false, message: "Order not found" });
 
-    await order.update({ status });
-    res.json({ success: true, message: "Status updated successfully", order });
+     const updates = { status };
+     if (order.paymentMethod === "COD") {
+       updates.paymentStatus = status === "Delivered" ? "Paid" : "Pending";
+     }
+
+     await order.update(updates);
+     res.json({ success: true, message: "Status updated successfully", order });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+     res.status(500).json({ success: false, error: err.message });
   }
 });
 

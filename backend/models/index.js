@@ -156,7 +156,7 @@ async function initDb() {
         boxSize: "Large",
         trackingId: "PP-543210",
         paymentStatus: "Paid",
-        paymentMethod: "UPI",
+        paymentMethod: "COD",
         createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000)
       });
       await Recipient.create({
@@ -180,8 +180,8 @@ async function initDb() {
         ribbonColor: "#AA8413",
         boxSize: "Medium",
         trackingId: "PP-876543",
-        paymentStatus: "Paid",
-        paymentMethod: "Net Banking",
+        paymentStatus: "Pending",
+        paymentMethod: "COD",
         createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
       });
       await Recipient.create({
@@ -205,8 +205,8 @@ async function initDb() {
         ribbonColor: "#D4AF37",
         boxSize: "Medium",
         trackingId: "PP-987123",
-        paymentStatus: "Paid",
-        paymentMethod: "Card",
+        paymentStatus: "Pending",
+        paymentMethod: "COD",
         createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)
       });
       await Recipient.create({
@@ -230,8 +230,8 @@ async function initDb() {
         ribbonColor: "#D4AF37",
         boxSize: "Large",
         trackingId: "PP-CORP-4321",
-        paymentStatus: "Paid",
-        paymentMethod: "Card",
+        paymentStatus: "Pending",
+        paymentMethod: "COD",
         createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000)
       });
       await Recipient.create({
@@ -257,8 +257,8 @@ async function initDb() {
         ribbonColor: "#071A3D",
         boxSize: "Small",
         trackingId: "PP-ADM-9988",
-        paymentStatus: "Paid",
-        paymentMethod: "UPI",
+        paymentStatus: "Pending",
+        paymentMethod: "COD",
         createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
       });
       await Recipient.create({
