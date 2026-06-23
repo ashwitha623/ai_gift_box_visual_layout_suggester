@@ -125,6 +125,12 @@ export default function ResultStep({ result, occasion, products, details, onRest
       if (res.data.success) {
         setTrackingId(res.data.trackingId);
         setOrderSuccess(true);
+        // Refresh notifications count instantly
+        window.dispatchEvent(new Event("refresh-notifications"));
+        toast({
+          title: "Order Placed Successfully! 🎉",
+          description: "A design layout draft has been published to your Design Approval Center.",
+        });
         // Fire confetti celebration
         confetti({
           particleCount: 100,
