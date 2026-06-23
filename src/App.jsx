@@ -8,7 +8,6 @@ import Home from '@/pages/Home';
 import CreateBox from '@/pages/CreateBox';
 import Layouts from '@/pages/Layouts';
 import CRMCalendar from '@/pages/CRMCalendar';
-import CorporatePortal from '@/pages/CorporatePortal';
 import ReturnsPortal from '@/pages/ReturnsPortal';
 import OrderTracking from '@/pages/OrderTracking';
 import AIAssistant from '@/pages/AIAssistant';
@@ -37,7 +36,6 @@ function App() {
             <Route path="/crm" element={<CRMCalendar />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/privacy" element={<Privacy />} />
-            <Route path="/corporate" element={<CorporatePortal />} />
             <Route path="/returns" element={<ReturnsPortal />} />
             <Route path="/orders" element={<OrderTracking />} />
             <Route path="/ai-assistant" element={<AIAssistant />} />

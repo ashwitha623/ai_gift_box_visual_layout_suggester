@@ -351,13 +351,6 @@ export default function Layout() {
                       <Users className="w-4 h-4" /> CRM Records
                     </Link>
                     <Link 
-                      to="/corporate" 
-                      onClick={() => setAdminOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-primary hover:bg-secondary/50 hover:text-accent"
-                    >
-                      <Briefcase className="w-4 h-4" /> Corporate Enquiries
-                    </Link>
-                    <Link 
                       to="/packaging" 
                       onClick={() => setAdminOpen(false)}
                       className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-primary hover:bg-secondary/50 hover:text-accent"
@@ -376,14 +369,7 @@ export default function Layout() {
               </div>
             )}
 
-            {/* Corporate Enquiries shortcut if logged in as Corporate client */}
-            {isCorporate && (
-              <Link to="/corporate">
-                <Button variant="ghost" className="rounded-full text-xs font-semibold text-primary hover:text-accent">
-                  Corporate Enquiries 💼
-                </Button>
-              </Link>
-            )}
+
 
             {/* Auth Session State Buttons */}
             {currentUser ? (
@@ -499,7 +485,6 @@ export default function Layout() {
             <div>
               <h4 className="text-[10px] font-extrabold tracking-widest text-[#C5A880] uppercase mb-5">Business</h4>
               <ul className="space-y-3 text-xs text-slate-400">
-                <li><Link to="/corporate" className="hover:text-white transition-colors">Corporate Enquiries</Link></li>
                 <li>
                   <ProtectedAction action={() => navigate("/orders")} redirectTarget="/orders" className="hover:text-white transition-colors">
                     Order Tracking
