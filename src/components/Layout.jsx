@@ -327,14 +327,7 @@ export default function Layout() {
                       onClick={() => setAdminOpen(false)}
                       className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-primary hover:bg-secondary/50 hover:text-accent"
                     >
-                      <LayoutGrid className="w-4 h-4" /> Orders Center
-                    </Link>
-                    <Link 
-                      to="/inventory" 
-                      onClick={() => setAdminOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-primary hover:bg-secondary/50 hover:text-accent"
-                    >
-                      <Package className="w-4 h-4" /> Stock Inventory
+                      <LayoutGrid className="w-4 h-4" /> Gifting & Stock Center
                     </Link>
                     <Link 
                       to="/design-approvals" 

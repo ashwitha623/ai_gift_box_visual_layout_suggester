@@ -13,7 +13,6 @@ import ReturnsPortal from '@/pages/ReturnsPortal';
 import OrderTracking from '@/pages/OrderTracking';
 import AIAssistant from '@/pages/AIAssistant';
 import Auth from '@/pages/Auth';
-import InventoryDashboard from '@/pages/InventoryDashboard';
 import DesignApprovals from '@/pages/DesignApprovals';
 import ProductionOperations from '@/pages/ProductionOperations';
 import CRMDetail from '@/pages/CRMDetail';
@@ -43,7 +42,6 @@ function App() {
             <Route path="/orders" element={<OrderTracking />} />
             <Route path="/ai-assistant" element={<AIAssistant />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/inventory" element={<InventoryDashboard />} />
             <Route path="/design-approvals" element={<DesignApprovals />} />
             <Route path="/production" element={<ProductionOperations />} />
             <Route path="/crm/customer/:id" element={<CRMDetail />} />
