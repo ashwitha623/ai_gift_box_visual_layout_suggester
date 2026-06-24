@@ -187,7 +187,7 @@ export default function ReportsExports() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
           <div>
             <h1 className="text-4xl font-extrabold font-heading text-primary tracking-tight">Reports & Exports Desk</h1>
-            <p className="text-muted-foreground mt-2">Generate professional audits for orders, inventory logs, Kanban teams workflow steps, and calendars.</p>
+            <p className="text-muted-foreground mt-2">Generate professional audits for orders, inventory logs, production workflow steps, and calendars.</p>
           </div>
           <div className="flex gap-2">
             <Button onClick={handleExportCSV} variant="outline" className="rounded-xl border text-xs font-semibold hover:bg-slate-50 flex items-center gap-1.5 h-10 px-3.5">

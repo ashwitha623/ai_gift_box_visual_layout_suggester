@@ -154,7 +154,7 @@ export default function ProductionOperations() {
             <p className="text-muted-foreground mt-2">Manage employee assignments per team (Design, Production, Packaging) and drag-and-drop orders across the stages.</p>
           </div>
           <Button onClick={loadProductionData} variant="outline" className="rounded-full border hover:bg-slate-50 flex items-center gap-2">
-            <RefreshCw className="w-4 h-4" /> Sync Kanban
+            <RefreshCw className="w-4 h-4" /> Sync Board
           </Button>
         </div>
 
@@ -188,7 +188,7 @@ export default function ProductionOperations() {
 
         {/* Drag and Drop Kanban Board Context */}
         {loading ? (
-          <div className="text-center py-20 text-xs">Retrieving Kanban stages...</div>
+          <div className="text-center py-20 text-xs">Retrieving workflow stages...</div>
         ) : (
           <DragDropContext onDragEnd={handleDragEnd}>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-5 overflow-x-auto pb-4">

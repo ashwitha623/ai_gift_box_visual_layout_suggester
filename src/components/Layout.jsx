@@ -341,7 +341,7 @@ export default function Layout() {
                       onClick={() => setAdminOpen(false)}
                       className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-primary hover:bg-secondary/50 hover:text-accent"
                     >
-                      <ClipboardList className="w-4 h-4" /> Kanban Board
+                      <ClipboardList className="w-4 h-4" /> Production Board
                     </Link>
                     <Link 
                       to="/crm/customer/2" 
