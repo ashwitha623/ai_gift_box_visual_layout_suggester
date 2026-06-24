@@ -54,9 +54,14 @@ export default function Home() {
             {(() => {
               const list = PRODUCTS.slice(0, 6);
               const swapped = [...list];
-              const temp = swapped[1];
+              // First swap: index 1 (Rabbit Plush) and index 5 (Ring)
+              let temp = swapped[1];
               swapped[1] = swapped[5];
               swapped[5] = temp;
+              // Second swap: index 2 (Panda Plush) and index 3 (Bracelet/Bangle)
+              temp = swapped[2];
+              swapped[2] = swapped[3];
+              swapped[3] = temp;
               return swapped;
             })().map((p, i) => (
               <div key={p.id} className={`rounded-2xl overflow-hidden shadow-lg aspect-square ${i % 2 ? "translate-y-4" : ""}`}>
