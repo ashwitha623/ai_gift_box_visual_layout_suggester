@@ -10,9 +10,10 @@ const SIZE_COLOR = {
   Large:  "bg-rose-50 text-rose-700 border-rose-200",
 };
 
-export default function ProductStep({ selected, onToggle }) {
+export default function ProductStep({ selected, onToggle, allProducts }) {
   const [category, setCategory] = useState("All");
-  const filtered = category === "All" ? PRODUCTS : PRODUCTS.filter((p) => p.category === category);
+  const productsToUse = allProducts && allProducts.length > 0 ? allProducts : PRODUCTS;
+  const filtered = category === "All" ? productsToUse : productsToUse.filter((p) => p.category === category);
   const total = selected.reduce((s, p) => s + p.price, 0);
 
   return (
@@ -50,15 +51,19 @@ export default function ProductStep({ selected, onToggle }) {
       <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))" }}>
         {filtered.map((p, i) => {
           const isSelected = selected.some((s) => s.id === p.id);
+          const isOut = p.stock === 0;
           return (
             <motion.button
               key={p.id}
               initial={{ opacity: 0, y: 12, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ delay: Math.min(i * 0.025, 0.35), type: "spring", stiffness: 280, damping: 22 }}
-              onClick={() => onToggle(p)}
+              onClick={() => !isOut && onToggle(p)}
+              disabled={isOut}
               className={`group relative text-left rounded-2xl overflow-hidden bg-card transition-all duration-250 ${
-                isSelected
+                isOut
+                  ? "opacity-50 grayscale cursor-not-allowed border border-rose-100"
+                  : isSelected
                   ? "ring-[2.5px] ring-primary shadow-xl shadow-primary/20 scale-[1.02]"
                   : "shadow-sm hover:shadow-xl hover:-translate-y-1 hover:scale-[1.01]"
               }`}
@@ -74,12 +79,18 @@ export default function ProductStep({ selected, onToggle }) {
                 />
 
                 {/* Size badge */}
-                <Badge className={`absolute top-2 left-2 text-[10px] font-semibold border ${SIZE_COLOR[p.size]} shadow-sm`}>
-                  {p.size}
+                <Badge className={`absolute top-2 left-2 text-[10px] font-semibold border ${SIZE_COLOR[p.size || "Medium"]} shadow-sm`}>
+                  {p.size || "Medium"}
                 </Badge>
 
-                {/* Selected overlay */}
-                {isSelected ? (
+                {/* Selected/Out-of-stock overlay */}
+                {isOut ? (
+                  <div className="absolute inset-0 bg-black/45 backdrop-blur-[1px] flex items-center justify-center">
+                    <Badge className="bg-rose-600 text-white border-0 text-[9px] font-bold py-1 px-2.5 tracking-wider shadow">
+                      OUT OF STOCK
+                    </Badge>
+                  </div>
+                ) : isSelected ? (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -105,10 +116,16 @@ export default function ProductStep({ selected, onToggle }) {
                   <span className="text-[11px] text-muted-foreground truncate pr-1">{p.category}</span>
                   <span className="text-sm font-bold text-primary flex-shrink-0">{formatINR(p.price)}</span>
                 </div>
+                
+                {/* Dimensions and Weight */}
+                <div className="mt-2 text-[10px] text-slate-400 font-medium font-mono flex items-center justify-between border-t border-slate-100 pt-2">
+                  <span>{p.length || 0}×{p.width || 0}×{p.height || 0} cm</span>
+                  <span>{p.weight || 0}g</span>
+                </div>
               </div>
 
               {/* Selected bottom accent */}
-              {isSelected && (
+              {isSelected && !isOut && (
                 <div className="absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-primary to-rosegold" />
               )}
             </motion.button>

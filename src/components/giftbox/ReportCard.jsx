@@ -5,7 +5,7 @@ function PackingBlueprint({ layout, products }) {
   const box = layout.box;
   const items = layout.items || [];
   
-  // Scale units by 10 for SVG coordinate system readability
+  // Scale units by 10 for SVG coordinate system readability (1cm = 10px)
   const scale = 10;
   const svgW = box.length * scale;
   const svgH = box.width * scale;
@@ -18,30 +18,46 @@ function PackingBlueprint({ layout, products }) {
 
       <div className="relative flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
         <div className="flex items-center gap-2">
-          <Compass className="w-5 h-5 text-accent" />
+          <Compass className="w-5 h-5 text-accent animate-spin-slow" />
           <div>
             <h4 className="font-extrabold text-sm tracking-tight text-white font-heading">2D Packing Optimizer Blueprint</h4>
             <p className="text-[10px] text-slate-400">Top-down schematic view with physical centimeter coordinates</p>
           </div>
         </div>
-        <Badge className="bg-sky-500/15 border border-sky-400/35 text-sky-400 text-[9px] hover:bg-sky-500/10">
-          Scale 1:10 (cm × 10)
+        <Badge className="bg-sky-500/15 border border-sky-400/35 text-sky-400 text-[9px] hover:bg-sky-500/10 font-mono">
+          Box Size: {box.length}×{box.width}×{box.height} cm
         </Badge>
       </div>
 
       {/* SVG Blueprint Canvas */}
-      <div className="flex items-center justify-center p-4 bg-slate-900/50 rounded-2xl border border-slate-800/60 shadow-inner">
+      <div className="flex items-center justify-center p-6 bg-slate-900/50 rounded-2xl border border-slate-800/60 shadow-inner overflow-x-auto">
         <svg
-          viewBox={`0 0 ${svgW} ${svgH}`}
-          className="w-full max-w-lg aspect-auto h-auto rounded-lg overflow-hidden border border-sky-500/30 bg-[#070b13] shadow-md shadow-sky-950/20"
+          viewBox={`-40 -40 ${svgW + 80} ${svgH + 80}`}
+          className="w-full max-w-lg aspect-auto h-auto rounded-lg overflow-visible bg-[#070b13] shadow-md shadow-sky-950/20"
         >
-          {/* Blueprint Grid Lines */}
+          {/* Blueprint Grid Lines & Markers */}
           <defs>
             <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
               <path d="M 10 0 L 0 0 0 10" fill="none" stroke="#0f172a" strokeWidth="0.5" />
             </pattern>
+            <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8" />
+            </marker>
           </defs>
-          <rect width="100%" height="100%" fill="url(#grid)" />
+          <rect x="0" y="0" width={svgW} height={svgH} fill="url(#grid)" />
+
+          {/* Outer Dimension Arrows & Labels */}
+          {/* Horizontal (Length) Arrow */}
+          <line x1="0" y1="-20" x2={svgW} y2="-20" stroke="#38bdf8" strokeWidth="1.2" marker-start="url(#arrow)" marker-end="url(#arrow)" />
+          <text x={svgW / 2} y="-28" textAnchor="middle" fill="#38bdf8" className="font-mono font-bold select-none" style={{ fontSize: "7px" }}>
+            Length: {box.length} cm
+          </text>
+
+          {/* Vertical (Width) Arrow */}
+          <line x1="-20" y1="0" x2="-20" y2={svgH} stroke="#38bdf8" strokeWidth="1.2" marker-start="url(#arrow)" marker-end="url(#arrow)" />
+          <text x="-28" y={svgH / 2} textAnchor="middle" transform={`rotate(-90, -28, ${svgH / 2})`} fill="#38bdf8" className="font-mono font-bold select-none" style={{ fontSize: "7px" }}>
+            Width: {box.width} cm
+          </text>
 
           {/* Box Outer Bounds */}
           <rect
@@ -51,8 +67,7 @@ function PackingBlueprint({ layout, products }) {
             height={svgH}
             fill="none"
             stroke="#1e3a8a"
-            strokeWidth="2.5"
-            strokeDasharray="none"
+            strokeWidth="2"
           />
 
           {/* Wall Safety Margin line */}
@@ -63,7 +78,7 @@ function PackingBlueprint({ layout, products }) {
             height={svgH - borderMargin * 2}
             fill="none"
             stroke="#1e293b"
-            strokeWidth="1"
+            strokeWidth="0.8"
             strokeDasharray="4 4"
           />
 
@@ -74,36 +89,37 @@ function PackingBlueprint({ layout, products }) {
             const iw = item.w * scale;
             const ih = item.h * scale;
             
-            // Draw safety buffer zone for fragile items (2.0cm buffer)
+            // Draw safety buffer zone for fragile items
             const isFragile = item.product.fragile;
-            const buffer = isFragile ? 1.0 * scale : 0.3 * scale;
+            const fragileBufferValue = layout.template?.fragileBuffer !== undefined ? layout.template.fragileBuffer : 1.5;
+            const buffer = isFragile ? fragileBufferValue * scale : 0.4 * scale;
 
             return (
-              <g key={item.product.id} className="group cursor-pointer">
-                {/* Safety Envelope Zone (Dashed background) */}
+              <g key={item.product.id || idx} className="group">
+                {/* Safety Envelope Buffer Zone */}
                 <rect
                   x={ix - buffer}
                   y={iy - buffer}
                   width={iw + buffer * 2}
                   height={ih + buffer * 2}
-                  fill="none"
+                  fill={isFragile ? "rgba(245, 158, 11, 0.04)" : "rgba(71, 85, 105, 0.02)"}
                   stroke={isFragile ? "#f59e0b" : "#475569"}
-                  strokeWidth="0.8"
+                  strokeWidth="0.7"
                   strokeDasharray="2 3"
-                  opacity="0.4"
+                  opacity="0.65"
                 />
 
-                {/* Main Product Rect */}
+                {/* Main Product Rectangle */}
                 <rect
                   x={ix}
                   y={iy}
                   width={iw}
                   height={ih}
-                  rx="4"
-                  ry="4"
-                  fill={isFragile ? "rgba(239, 68, 68, 0.08)" : "rgba(14, 165, 233, 0.06)"}
+                  rx="3"
+                  ry="3"
+                  fill={isFragile ? "rgba(239, 68, 68, 0.12)" : "rgba(14, 165, 233, 0.08)"}
                   stroke={isFragile ? "#ef4444" : "#0ea5e9"}
-                  strokeWidth="1.6"
+                  strokeWidth="1.5"
                 />
 
                 {/* Inner Cross lines for Fragile item visualization */}
@@ -111,46 +127,59 @@ function PackingBlueprint({ layout, products }) {
                   <path
                     d={`M ${ix} ${iy} L ${ix + iw} ${iy + ih} M ${ix + iw} ${iy} L ${ix} ${iy + ih}`}
                     stroke="#ef4444"
-                    strokeWidth="0.5"
-                    opacity="0.25"
+                    strokeWidth="0.4"
+                    opacity="0.3"
                   />
                 )}
 
                 {/* Product Name Label */}
                 <text
                   x={ix + iw / 2}
-                  y={iy + ih / 2 - 2.5}
+                  y={iy + ih / 2 - 3.5}
                   textAnchor="middle"
                   fill="#f8fafc"
-                  className="font-sans font-bold select-none text-[8.5px]"
-                  style={{ fontSize: "7px" }}
+                  className="font-sans font-bold select-none"
+                  style={{ fontSize: "6.5px" }}
                 >
-                  {item.product.name.substring(0, 16)}
+                  {item.product.name.substring(0, 15)}
                 </text>
 
                 {/* Coordinate Specs */}
                 <text
                   x={ix + iw / 2}
-                  y={iy + ih / 2 + 5.5}
+                  y={iy + ih / 2 + 3.5}
                   textAnchor="middle"
                   fill={isFragile ? "#fca5a5" : "#7dd3fc"}
                   className="font-mono select-none"
-                  style={{ fontSize: "5.5px" }}
+                  style={{ fontSize: "5px" }}
                 >
-                  {`x:${item.x.toFixed(1)} y:${item.y.toFixed(1)} cm`}
+                  {`X:${item.x.toFixed(1)} Y:${item.y.toFixed(1)} cm`}
                 </text>
 
-                {/* Dimension label */}
+                {/* Product 3D Dimensions label */}
                 <text
                   x={ix + iw / 2}
-                  y={iy + ih / 2 + 11.5}
+                  y={iy + ih / 2 + 10}
                   textAnchor="middle"
                   fill="#94a3b8"
                   className="font-mono select-none"
                   style={{ fontSize: "5px" }}
                 >
-                  {`${item.w.toFixed(1)}×${item.h.toFixed(1)} cm`}
+                  {`${item.product.length || item.w.toFixed(1)}×${item.product.width || item.h.toFixed(1)}×${item.product.height || 0} cm · ${item.product.weight || 0}g`}
                 </text>
+
+                {/* Fragile Banner Overlay */}
+                {isFragile && (
+                  <text
+                    x={ix + 4}
+                    y={iy + 8}
+                    fill="#ef4444"
+                    className="font-sans font-black select-none"
+                    style={{ fontSize: "4.5px" }}
+                  >
+                    ⚠️ FRAGILE
+                  </text>
+                )}
               </g>
             );
           })}
@@ -161,7 +190,7 @@ function PackingBlueprint({ layout, products }) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5 text-[10px] text-slate-400 border-t border-slate-900 pt-4 font-medium">
         <div className="flex items-center gap-2">
           <div className="w-4 h-3 rounded border border-sky-500 bg-sky-500/10 flex-shrink-0" />
-          <span>Regular Product</span>
+          <span>Regular Product Footprint</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-3 rounded border border-rose-500 bg-rose-500/10 flex-shrink-0 relative overflow-hidden">
@@ -170,12 +199,12 @@ function PackingBlueprint({ layout, products }) {
           <span>Fragile Product (Alert)</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-3 border border-dashed border-amber-500/50 flex-shrink-0" />
-          <span>Safety Buffer Zone</span>
+          <div className="w-4 h-3 border border-dashed border-amber-500/50 bg-amber-500/5 flex-shrink-0" />
+          <span>Fragile Safety Buffer ({layout.template?.fragileBuffer !== undefined ? layout.template.fragileBuffer : 1.5}cm)</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-3 border border-dotted border-slate-700 flex-shrink-0" />
-          <span>Box Wall Margin</span>
+          <span>Box Wall Margin (1.2cm)</span>
         </div>
       </div>
     </div>
@@ -190,6 +219,11 @@ export default function ReportCard({ layout, occasion, products, details, totalP
   const usedSpaceVolume = products.reduce((s, p) => s + (p.length * p.width * p.height), 0);
   const remainingSpaceVolume = Math.max(0, boxVolume - usedSpaceVolume);
   const spaceUtilPercent = layout.scores.spaceUtil;
+
+  // Calculate weight capacities
+  const totalWeight = products.reduce((s, p) => s + (p.weight || 0), 0);
+  const boxWeightCapacity = box.maxWeight || 5000;
+  const remainingWeightCapacity = Math.max(0, boxWeightCapacity - totalWeight);
 
   return (
     <div className="bg-card rounded-3xl shadow-lg overflow-hidden border border-border mt-8">
@@ -273,7 +307,23 @@ export default function ReportCard({ layout, occasion, products, details, totalP
                 </div>
                 <div className="flex justify-between">
                   <span className="font-semibold text-muted-foreground">Remaining Space Volume:</span>
-                  <span className="font-bold text-slate-500">{remainingSpaceVolume.toLocaleString()} cm³ ({100 - spaceUtilPercent}%)</span>
+                  <span className="font-bold text-slate-500">{remainingSpaceVolume.toLocaleString()} cm³ ({(100 - spaceUtilPercent).toFixed(1)}%)</span>
+                </div>
+                <div className="border-t border-border/60 pt-2.5 flex justify-between">
+                  <span className="font-semibold text-muted-foreground">Total Product Weight:</span>
+                  <span className="font-bold text-slate-700">{(totalWeight / 1000).toFixed(2)} kg ({totalWeight} g)</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold text-muted-foreground">Max Weight Capacity:</span>
+                  <span className="font-bold text-slate-700">{(boxWeightCapacity / 1000).toFixed(2)} kg ({boxWeightCapacity} g)</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold text-muted-foreground">Remaining Weight Cap:</span>
+                  <span className="font-bold text-emerald-600">{(remainingWeightCapacity / 1000).toFixed(2)} kg ({remainingWeightCapacity} g)</span>
+                </div>
+                <div className="border-t border-border/60 pt-2.5 flex justify-between">
+                  <span className="font-semibold text-muted-foreground">Packing Efficiency Score:</span>
+                  <span className="font-bold text-primary">{layout.scores.efficiency}%</span>
                 </div>
               </div>
             </div>

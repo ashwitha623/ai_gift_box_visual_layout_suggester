@@ -1,14 +1,16 @@
 const express = require("express");
 const router = express.Router();
-const { Product, PackagingMaterial } = require("../models");
+const { Product, PackagingMaterial, PackagingBox, LayoutTemplate } = require("../models");
 const { requireAdmin } = require("../middleware/auth");
 
-// Get full inventory (Products and Packaging)
+// Get full inventory (Products, Packaging, Boxes, and Layout Templates)
 router.get("/inventory", async (req, res) => {
   try {
     const products = await Product.findAll();
     const packaging = await PackagingMaterial.findAll();
-    res.json({ products, packaging });
+    const boxes = await PackagingBox.findAll();
+    const layoutTemplates = await LayoutTemplate.findAll();
+    res.json({ products, packaging, boxes, layoutTemplates });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -99,6 +101,111 @@ router.delete("/inventory/packaging/:id", requireAdmin, async (req, res) => {
     if (!item) return res.status(404).json({ success: false, message: "Item not found" });
     await item.destroy();
     res.json({ success: true, message: "Item deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Packaging Boxes CRUD
+router.post("/inventory/boxes", requireAdmin, async (req, res) => {
+  try {
+    const { name, length, width, height, maxWeight, cost, style, ribbonStyle, ribbonHex, packagingTheme, occasions } = req.body;
+    const lVal = parseFloat(length) || 0;
+    const wVal = parseFloat(width) || 0;
+    const hVal = parseFloat(height) || 0;
+    const volume = lVal * wVal * hVal;
+    
+    const box = await PackagingBox.create({
+      name,
+      length: lVal,
+      width: wVal,
+      height: hVal,
+      maxWeight: parseFloat(maxWeight) || 0,
+      volume,
+      cost: parseInt(cost) || 300,
+      style: style || "Classic Luxury Rigid",
+      ribbonStyle: ribbonStyle || "Gold Satin Ribbon",
+      ribbonHex: ribbonHex || "#D4AF37",
+      packagingTheme: packagingTheme || "Royal Luxury",
+      occasions: occasions || "birthday,anniversary,wedding,corporate,graduation,festival,baby_shower,friendship,farewell,just_because"
+    });
+    res.json({ success: true, box });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+router.put("/inventory/boxes/:id", requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, length, width, height, maxWeight, cost, style, ribbonStyle, ribbonHex, packagingTheme, occasions } = req.body;
+    const box = await PackagingBox.findByPk(id);
+    if (!box) return res.status(404).json({ success: false, message: "Box configuration not found" });
+
+    const lVal = parseFloat(length) || 0;
+    const wVal = parseFloat(width) || 0;
+    const hVal = parseFloat(height) || 0;
+    const volume = lVal * wVal * hVal;
+
+    await box.update({
+      name,
+      length: lVal,
+      width: wVal,
+      height: hVal,
+      maxWeight: parseFloat(maxWeight) || 0,
+      volume,
+      cost: parseInt(cost) || 300,
+      style: style || box.style,
+      ribbonStyle: ribbonStyle || box.ribbonStyle,
+      ribbonHex: ribbonHex || box.ribbonHex,
+      packagingTheme: packagingTheme || box.packagingTheme,
+      occasions: occasions || box.occasions
+    });
+    res.json({ success: true, box });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+router.delete("/inventory/boxes/:id", requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const box = await PackagingBox.findByPk(id);
+    if (!box) return res.status(404).json({ success: false, message: "Box configuration not found" });
+    await box.destroy();
+    res.json({ success: true, message: "Box configuration deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Layout Templates CRUD
+router.get("/inventory/layout-templates", async (req, res) => {
+  try {
+    const templates = await LayoutTemplate.findAll();
+    res.json(templates);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+router.put("/inventory/layout-templates/:id", requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { minSpacing, fragileBuffer, allowRotation, alignmentPreference, preferredPlacementZone, description } = req.body;
+    const template = await LayoutTemplate.findByPk(id);
+    if (!template) return res.status(404).json({ success: false, message: "Layout template not found" });
+
+    await template.update({
+      minSpacing: parseFloat(minSpacing) !== undefined ? parseFloat(minSpacing) : template.minSpacing,
+      fragileBuffer: parseFloat(fragileBuffer) !== undefined ? parseFloat(fragileBuffer) : template.fragileBuffer,
+      allowRotation: allowRotation !== undefined ? allowRotation : template.allowRotation,
+      alignmentPreference: alignmentPreference || template.alignmentPreference,
+      preferredPlacementZone: preferredPlacementZone || template.preferredPlacementZone,
+      description: description !== undefined ? description : template.description
+    });
+
+    res.json({ success: true, template });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

@@ -52,6 +52,16 @@ const Order = sequelize.define("Order", {
     type: DataTypes.STRING,
     allowNull: true
   },
+  spaceUtil: {
+    type: DataTypes.FLOAT,
+    allowNull: true,
+    defaultValue: 0
+  },
+  packingEfficiency: {
+    type: DataTypes.FLOAT,
+    allowNull: true,
+    defaultValue: 0
+  },
   createdAt: {
     type: DataTypes.DATE,
     allowNull: false,

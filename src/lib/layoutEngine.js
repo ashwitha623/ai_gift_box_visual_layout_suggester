@@ -17,7 +17,7 @@ function isValidPlacement(x, y, w, h, boxL, boxW, margin, gap, placed) {
 }
 
 // 1. Premium Showcase: Center largest item, place others radially
-function packShowcase(box, products, scale, margin, gap) {
+function packShowcase(box, products, scale, margin, gap, template) {
   const boxL = box.length;
   const boxW = box.width;
   const placed = [];
@@ -53,9 +53,11 @@ function packShowcase(box, products, scale, margin, gap) {
 
     // Try normal and rotated orientations
     const orientations = [
-      { w: normalW, h: normalH, rotated: false },
-      { w: normalH, h: normalW, rotated: true }
+      { w: normalW, h: normalH, rotated: false }
     ];
+    if (template?.allowRotation !== false) {
+      orientations.push({ w: normalH, h: normalW, rotated: true });
+    }
 
     // Try placing at radial angle
     const baseTheta = (i * 2 * Math.PI) / N;
@@ -98,7 +100,7 @@ function packShowcase(box, products, scale, margin, gap) {
 }
 
 // 2. Luxury Symmetrical: Mirror left/right sides
-function packSymmetrical(box, products, scale, margin, gap) {
+function packSymmetrical(box, products, scale, margin, gap, template) {
   const boxL = box.length;
   const boxW = box.width;
   const placed = [];
@@ -155,9 +157,11 @@ function packSymmetrical(box, products, scale, margin, gap) {
       // Try orientation rotation if out of bounds
       let orientationOk = false;
       const orients = [
-        { w, h, rotated: false },
-        { w: h, h: w, rotated: true }
+        { w, h, rotated: false }
       ];
+      if (template?.allowRotation !== false) {
+        orients.push({ w: h, h: w, rotated: true });
+      }
 
       for (const orient of orients) {
         if (isValidPlacement(px, py, orient.w, orient.h, boxL, boxW, margin, gap, placed)) {
@@ -194,7 +198,7 @@ function packSymmetrical(box, products, scale, margin, gap) {
 }
 
 // 3. Maximum Space Utilization: Corner-dense packing
-function packSpaceUtil(box, products, scale, margin, gap) {
+function packSpaceUtil(box, products, scale, margin, gap, template) {
   const boxL = box.length;
   const boxW = box.width;
   const placed = [];
@@ -208,9 +212,11 @@ function packSpaceUtil(box, products, scale, margin, gap) {
 
     for (const pt of candidatePoints) {
       const orients = [
-        { w: p.length * scale, h: p.width * scale, rotated: false },
-        { w: p.width * scale, h: p.length * scale, rotated: true }
+        { w: p.length * scale, h: p.width * scale, rotated: false }
       ];
+      if (template?.allowRotation !== false) {
+        orients.push({ w: p.width * scale, h: p.length * scale, rotated: true });
+      }
 
       for (const orient of orients) {
         const px = pt.x;
@@ -247,7 +253,7 @@ function packSpaceUtil(box, products, scale, margin, gap) {
 }
 
 // 4. Safe Shipping: Middle-fragile, edge-heavy, double safety margins
-function packSafeShipping(box, products, scale, originalMargin, originalGap) {
+function packSafeShipping(box, products, scale, originalMargin, originalGap, template) {
   const boxL = box.length;
   const boxW = box.width;
   const placed = [];
@@ -256,7 +262,7 @@ function packSafeShipping(box, products, scale, originalMargin, originalGap) {
 
   // Use increased margin and gap parameters for extra safety
   const margin = 2.0; 
-  const gap = 1.8;
+  const gap = template?.minSpacing !== undefined ? template.minSpacing : 1.8;
 
   // Sort fragile first (placed near center), then heavy products (shield items)
   const sorted = [...products].sort((a, b) => {
@@ -280,9 +286,11 @@ function packSafeShipping(box, products, scale, originalMargin, originalGap) {
 
     for (const pt of candidatePoints) {
       const orients = [
-        { w: p.length * scale, h: p.width * scale, rotated: false },
-        { w: p.width * scale, h: p.length * scale, rotated: true }
+        { w: p.length * scale, h: p.width * scale, rotated: false }
       ];
+      if (template?.allowRotation !== false) {
+        orients.push({ w: p.width * scale, h: p.length * scale, rotated: true });
+      }
 
       for (const orient of orients) {
         let px = pt.x;
@@ -346,7 +354,7 @@ function packSafeShipping(box, products, scale, originalMargin, originalGap) {
 }
 
 // 5. Corporate Executive: Structured grid of rows and columns
-function packCorporate(box, products, scale, margin, gap) {
+function packCorporate(box, products, scale, margin, gap, template) {
   const boxL = box.length;
   const boxW = box.width;
   const placed = [];
@@ -359,40 +367,58 @@ function packCorporate(box, products, scale, margin, gap) {
   let rowHeight = 0;
 
   for (const p of sorted) {
-    const w = p.length * scale;
-    const h = p.width * scale;
-
-    // Check if fits in current row
-    if (currentX + w > boxL - margin) {
-      // Move to next row
-      currentX = margin;
-      currentY += rowHeight + gap;
-      rowHeight = 0;
+    const orients = [
+      { w: p.length * scale, h: p.width * scale, rotated: false }
+    ];
+    if (template?.allowRotation !== false) {
+      orients.push({ w: p.width * scale, h: p.length * scale, rotated: true });
     }
 
-    // Check row bounds
-    if (currentY + h > boxW - margin) {
-      return null;
-    }
+    let placedOk = false;
+    for (const orient of orients) {
+      let testX = currentX;
+      let testY = currentY;
+      let testRowHeight = rowHeight;
 
-    // Verify overlaps
-    if (!isValidPlacement(currentX, currentY, w, h, boxL, boxW, margin, gap, placed)) {
-      // Try to nudge slightly
-      let nudged = false;
-      for (let nx = currentX; nx <= boxL - margin - w; nx += 0.2) {
-        if (isValidPlacement(nx, currentY, w, h, boxL, boxW, margin, gap, placed)) {
-          placed.push({ product: p, x: nx, y: currentY, w, h, rotated: false });
-          currentX = nx + w + gap;
-          rowHeight = Math.max(rowHeight, h);
-          nudged = true;
-          break;
-        }
+      // Wrap to next row if it exceeds box boundary
+      if (testX + orient.w > boxL - margin) {
+        testX = margin;
+        testY = currentY + rowHeight + gap;
+        testRowHeight = 0;
       }
-      if (!nudged) return null;
-    } else {
-      placed.push({ product: p, x: currentX, y: currentY, w, h, rotated: false });
-      currentX += w + gap;
-      rowHeight = Math.max(rowHeight, h);
+
+      // Check height bounds
+      if (testY + orient.h > boxW - margin) {
+        continue;
+      }
+
+      if (isValidPlacement(testX, testY, orient.w, orient.h, boxL, boxW, margin, gap, placed)) {
+        placed.push({ product: p, x: testX, y: testY, w: orient.w, h: orient.h, rotated: orient.rotated });
+        currentX = testX + orient.w + gap;
+        rowHeight = Math.max(testRowHeight, orient.h);
+        currentY = testY;
+        placedOk = true;
+        break;
+      } else {
+        // Try nudging horizontally
+        let nudged = false;
+        for (let nx = testX; nx <= boxL - margin - orient.w; nx += 0.2) {
+          if (isValidPlacement(nx, testY, orient.w, orient.h, boxL, boxW, margin, gap, placed)) {
+            placed.push({ product: p, x: nx, y: testY, w: orient.w, h: orient.h, rotated: orient.rotated });
+            currentX = nx + orient.w + gap;
+            rowHeight = Math.max(testRowHeight, orient.h);
+            currentY = testY;
+            nudged = true;
+            placedOk = true;
+            break;
+          }
+        }
+        if (nudged) break;
+      }
+    }
+
+    if (!placedOk) {
+      return null; // Reject layout if product cannot fit
     }
   }
 
@@ -400,23 +426,44 @@ function packCorporate(box, products, scale, margin, gap) {
 }
 
 // Main coordinator wrapper that scales products to fit
-function packLayout(box, products, layoutStyle) {
-  const scales = [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3];
+function packLayout(box, products, layoutStyle, template) {
+  // Enforce strict physical fit validation at actual 1:1 scale
+  const scales = [1.0];
   const margin = 1.2;
-  const gap = 0.6;
+  const gap = template?.minSpacing !== undefined ? template.minSpacing : (layoutStyle === "safe_shipping" ? 1.8 : 0.6);
+  const boxCapacity = box.capacity !== undefined ? box.capacity : (box.volume !== undefined ? box.volume : (box.length * box.width * box.height));
+
+  // Validate height constraints
+  for (const p of products) {
+    if (p.height > box.height) {
+      return null; // Reject immediately if a product is taller than the box
+    }
+  }
+
+  // Validate weight capacity limits
+  const totalWeight = products.reduce((sum, p) => sum + (p.weight || 0), 0);
+  if (box.maxWeight && totalWeight > box.maxWeight) {
+    return null; // Reject if total products weight exceeds box capacity
+  }
+
+  // Validate total volume capacity
+  const totalProductVolume = products.reduce((sum, p) => sum + (p.length * p.width * p.height), 0);
+  if (totalProductVolume > boxCapacity) {
+    return null; // Reject if volume of products exceeds box capacity
+  }
 
   for (const scale of scales) {
     let result = null;
     if (layoutStyle === "showcase") {
-      result = packShowcase(box, products, scale, margin, gap);
+      result = packShowcase(box, products, scale, margin, gap, template);
     } else if (layoutStyle === "symmetrical") {
-      result = packSymmetrical(box, products, scale, margin, gap);
+      result = packSymmetrical(box, products, scale, margin, gap, template);
     } else if (layoutStyle === "space_utilization") {
-      result = packSpaceUtil(box, products, scale, margin, gap);
+      result = packSpaceUtil(box, products, scale, margin, gap, template);
     } else if (layoutStyle === "safe_shipping") {
-      result = packSafeShipping(box, products, scale, margin, gap);
+      result = packSafeShipping(box, products, scale, margin, gap, template);
     } else if (layoutStyle === "corporate") {
-      result = packCorporate(box, products, scale, margin, gap);
+      result = packCorporate(box, products, scale, margin, gap, template);
     }
 
     if (result) {
@@ -442,42 +489,18 @@ function packLayout(box, products, layoutStyle) {
     }
   }
 
-  // Robust Fallback (sequential packing with overlap starting from top-left)
-  return products.map((p, i) => {
-    const w = Math.max(3.0, p.length * 0.35);
-    const h = Math.max(3.0, p.width * 0.35);
-    const offset = 1.2 + i * 2.0;
-    const seed = (p.id * 7 + i * 13) % 31;
-    const rotation = seed - 15; // Strictly clamped between -15 and +15 degrees
-    const cx = offset + w / 2;
-    const cy = offset + h / 2;
-    return {
-      product: p,
-      x: offset,
-      y: offset,
-      w,
-      h,
-      rotated: false,
-      rotation,
-      centerX: cx,
-      centerY: cy,
-      pctX: (offset / box.length) * 100,
-      pctY: (offset / box.width) * 100,
-      pctW: (w / box.length) * 100,
-      pctH: (h / box.width) * 100,
-      pctCenterX: (cx / box.length) * 100,
-      pctCenterY: (cy / box.width) * 100
-    };
-  });
+  // Reject layout if actual physical placement is impossible
+  return null;
 }
 
 // Calculate scores for a placed box layout
-function calculateScores(box, products, placedItems, occasion, budget) {
+function calculateScores(box, products, placedItems, occasion, budget, boxTemplates, template) {
   if (!placedItems) return { efficiency: 0, spaceUtil: 0, aesthetic: 0, safety: 0, occasionMatch: 0, costScore: 0, finalScore: 0 };
 
   const margin = 1.2;
   const boxL = box.length;
   const boxW = box.width;
+  const boxCapacity = box.capacity !== undefined ? box.capacity : (box.volume !== undefined ? box.volume : (box.length * box.width * box.height));
 
   // 1. Layout Footprint Efficiency %
   const totalProductArea = products.reduce((s, p) => s + (p.length * p.width), 0);
@@ -486,7 +509,7 @@ function calculateScores(box, products, placedItems, occasion, budget) {
 
   // 2. Space Volume Utilization %
   const totalProductVolume = products.reduce((s, p) => s + (p.length * p.width * p.height), 0);
-  const spaceUtil = Math.min(100, Math.round((totalProductVolume / box.capacity) * 100));
+  const spaceUtil = Math.min(100, Math.round((totalProductVolume / boxCapacity) * 100));
 
   // 3. Aesthetic Score %
   let aesthetic = 80;
@@ -525,7 +548,8 @@ function calculateScores(box, products, placedItems, occasion, budget) {
             const dx = Math.max(0, other.x - (item.x + item.w), item.x - (other.x + other.w));
             const dy = Math.max(0, other.y - (item.y + item.h), item.y - (other.y + other.h));
             const dist = Math.max(dx, dy);
-            if (dist < 1.8) { 
+            const fBuffer = template?.fragileBuffer !== undefined ? template.fragileBuffer : 1.5;
+            if (dist < fBuffer + 0.3) { 
               safety -= 15;
             }
           }
@@ -540,7 +564,8 @@ function calculateScores(box, products, placedItems, occasion, budget) {
 
   // 6. Packaging Cost Score % (cheaper is higher, heavily penalized if exceeds budget)
   const totalProductPrice = products.reduce((s, p) => s + p.price, 0);
-  const maxBoxCost = Math.max(...BOX_TEMPLATES.map(b => b.cost));
+  const boxesForCost = boxTemplates && boxTemplates.length > 0 ? boxTemplates : BOX_TEMPLATES;
+  const maxBoxCost = Math.max(...boxesForCost.map(b => b.cost), 1);
   let costScore = Math.round(100 - (box.cost / maxBoxCost) * 30);
   if (totalProductPrice + box.cost > budget) {
     costScore -= 40;
@@ -602,75 +627,73 @@ function getLayoutExplanation(styleId, boxName, spaceUtil, safety, aesthetic) {
   }
 }
 
-// Helper to select the optimal box for a layout based on preferred starting box, size checks and utilization
-function selectBoxForLayout(products, layoutStyle, preferredBoxId, budget, occasion) {
-  const sortedBoxes = [...BOX_TEMPLATES].sort((a, b) => a.capacity - b.capacity);
-  
-  // Find preferred box
-  let currentBox = BOX_TEMPLATES.find(b => b.id === preferredBoxId) || BOX_TEMPLATES[0];
-  let packedItems = packLayout(currentBox, products, layoutStyle);
-  
-  // If it doesn't fit, upgrade to next larger box
-  if (!packedItems) {
-    const startIndex = sortedBoxes.findIndex(b => b.id === currentBox.id);
-    for (let i = startIndex + 1; i < sortedBoxes.length; i++) {
-      currentBox = sortedBoxes[i];
-      packedItems = packLayout(currentBox, products, layoutStyle);
-      if (packedItems) break;
+// Helper to select the optimal box for a layout based on dimensions, capacity, weight, cost, and layout scores
+function selectBoxForLayout(products, layoutStyle, boxTemplates, budget, occasion, template) {
+  const boxes = (boxTemplates && boxTemplates.length > 0 ? boxTemplates : BOX_TEMPLATES).map(b => ({
+    ...b,
+    capacity: b.capacity !== undefined ? b.capacity : (b.volume !== undefined ? b.volume : (b.length * b.width * b.height))
+  }));
+  const fittingBoxes = [];
+
+  for (const box of boxes) {
+    const packedItems = packLayout(box, products, layoutStyle, template);
+    if (packedItems) {
+      const scores = calculateScores(box, products, packedItems, occasion, budget, boxTemplates, template);
+      fittingBoxes.push({ box, items: packedItems, scores });
     }
   }
-  
-  // Fallback: Pick largest
-  if (!packedItems) {
-    currentBox = sortedBoxes[sortedBoxes.length - 1];
-    packedItems = packLayout(currentBox, products, layoutStyle);
+
+  if (fittingBoxes.length === 0) {
+    return null; // Reject if no box can physically accommodate the products
   }
-  
-  // Now try to optimize: if utilization is below 35%, automatically select a smaller box
-  let scores = calculateScores(currentBox, products, packedItems, occasion, budget);
-  if (scores.spaceUtil < 35) {
-    const currentBoxIndex = sortedBoxes.findIndex(b => b.id === currentBox.id);
-    // Scan smaller boxes from smallest to currentBox
-    for (let i = 0; i < currentBoxIndex; i++) {
-      const smallerBox = sortedBoxes[i];
-      const smallerPacked = packLayout(smallerBox, products, layoutStyle);
-      if (smallerPacked) {
-        const isFallback = smallerPacked.some((item, idx) => idx > 0 && item.x === 1.2 + idx * 2.0);
-        if (!isFallback) {
-          const smallerScores = calculateScores(smallerBox, products, smallerPacked, occasion, budget);
-          if (smallerScores.spaceUtil >= 35 || i === currentBoxIndex - 1) {
-            currentBox = smallerBox;
-            packedItems = smallerPacked;
-            scores = smallerScores;
-            break;
-          }
-        }
-      }
+
+  // Dynamic Box Recommendation Ranking:
+  // 1. Box volume capacity (smallest first to maximize space efficiency)
+  // 2. Space utilization % (highest first)
+  // 3. Packaging cost (lowest first)
+  // 4. Product safety score (highest first)
+  // 5. Aesthetic score (highest first)
+  fittingBoxes.sort((a, b) => {
+    if (a.box.capacity !== b.box.capacity) {
+      return a.box.capacity - b.box.capacity;
     }
-  }
-  
-  return { box: currentBox, items: packedItems, scores };
+    if (a.scores.spaceUtil !== b.scores.spaceUtil) {
+      return b.scores.spaceUtil - a.scores.spaceUtil;
+    }
+    if (a.box.cost !== b.box.cost) {
+      return a.box.cost - b.box.cost;
+    }
+    if (a.scores.safety !== b.scores.safety) {
+      return b.scores.safety - a.scores.safety;
+    }
+    return b.scores.aesthetic - a.scores.aesthetic;
+  });
+
+  return fittingBoxes[0]; // Return the optimal (smallest suitable) box configuration
 }
 
 // Main recommendation export
-export function generateRecommendations({ occasion, occasionTitle, products, budget = 5000, boxSize = "Medium" }) {
+export function generateRecommendations({ occasion, occasionTitle, products, budget = 5000, boxSize = "Medium", boxTemplates, layoutTemplates }) {
+  const boxes = (boxTemplates && boxTemplates.length > 0 ? boxTemplates : BOX_TEMPLATES).map(b => ({
+    ...b,
+    capacity: b.capacity !== undefined ? b.capacity : (b.volume !== undefined ? b.volume : (b.length * b.width * b.height))
+  }));
   const totalProductPrice = products.reduce((s, p) => s + p.price, 0);
-
-  // Preferred box mappings for the 5 layouts
-  const preferredMappings = {
-    showcase: "pink_luxury",
-    symmetrical: "gold_ribbon",
-    space_utilization: "pink_pattern",
-    safe_shipping: "crocodile_premium",
-    corporate: "black_gold"
-  };
 
   const layoutStylesList = ["showcase", "symmetrical", "space_utilization", "safe_shipping", "corporate"];
   const options = layoutStylesList.map(style => {
-    const preferredBoxId = preferredMappings[style];
-    const { box, items, scores } = selectBoxForLayout(products, style, preferredBoxId, budget, occasion);
+    const template = layoutTemplates?.find(t => t.id === style) || {
+      minSpacing: style === "safe_shipping" ? 1.8 : 0.6,
+      fragileBuffer: 1.5,
+      allowRotation: true
+    };
+
+    const match = selectBoxForLayout(products, style, boxes, budget, occasion, template);
+    if (!match) return null;
+
+    const { box, items, scores } = match;
     const filler = getFillerRecommendation(scores.spaceUtil, occasion);
-    const ribbonColor = box.ribbonStyle.split(" ")[0] + " Ribbon";
+    const ribbonColor = box.ribbonStyle ? box.ribbonStyle.split(" ")[0] + " Ribbon" : "Gold Ribbon";
 
     let name = "";
     let description = "";
@@ -698,22 +721,31 @@ export function generateRecommendations({ occasion, occasionTitle, products, bud
       box,
       items,
       scores,
+      template,
       ribbon: {
-        color: box.ribbonStyle,
-        hex: box.ribbonHex
+        color: box.ribbonStyle || "Gold Satin Ribbon",
+        hex: box.ribbonHex || "#D4AF37"
       },
-      packaging: box.style,
+      packaging: box.style || "Classic Gold Foil",
       filler,
       explanation: getLayoutExplanation(style, box.name, scores.spaceUtil, scores.safety, scores.aesthetic),
       instructions: [
-        `Anchor placement inside the ${box.name} (${box.style}).`,
+        `Anchor placement inside the ${box.name} (${box.style || "Classic Gold Foil"}).`,
         `Fill the empty sections using: ${filler}`,
-        `Wrap the exterior with a premium ${box.ribbonStyle} (${ribbonColor}).`,
+        `Wrap the exterior with a premium ${box.ribbonStyle || "Gold Satin Ribbon"}.`,
         "Place the customized greeting card on the front-right overlay layer."
       ],
       matchScore: scores.finalScore
     };
-  });
+  }).filter(Boolean);
+
+  // If no layouts fit, return a failure indicator
+  if (options.length === 0) {
+    return {
+      success: false,
+      error: "Selected products exceed available box capacities. Please reduce items or create a larger box configuration."
+    };
+  }
 
   // Sort layouts to identify the one with the highest match score as recommended
   const sortedOptions = [...options].sort((a, b) => b.matchScore - a.matchScore);
@@ -723,6 +755,7 @@ export function generateRecommendations({ occasion, occasionTitle, products, bud
   const alternatives = options.filter(o => o.id !== recommendedOption.id);
 
   return {
+    success: true,
     recommended: recommendedOption,
     alternatives,
     totalPrice: totalProductPrice,

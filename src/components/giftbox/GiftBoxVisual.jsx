@@ -628,15 +628,15 @@ function getVisualScale(p, box, items) {
   let finalScale = baseScale * boxScaleFactor * spaceBoost;
 
   // Scale booster to make items look bigger and more realistic (not tiny stickers)
-  finalScale = finalScale * 1.35;
+  finalScale = finalScale * 1.75;
 
   // Clip scales strictly based on physical dimensions to prevent unrealistic sizing
   if (p.size === "Small") {
-    finalScale = Math.min(2.8, Math.max(1.5, finalScale));
+    finalScale = Math.min(3.6, Math.max(2.1, finalScale));
   } else if (p.size === "Medium") {
-    finalScale = Math.min(1.9, Math.max(1.2, finalScale));
+    finalScale = Math.min(2.5, Math.max(1.6, finalScale));
   } else {
-    finalScale = Math.min(1.4, Math.max(1.0, finalScale));
+    finalScale = Math.min(1.8, Math.max(1.3, finalScale));
   }
 
   return Number(finalScale.toFixed(2));

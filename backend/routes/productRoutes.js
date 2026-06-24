@@ -16,8 +16,20 @@ router.get("/products", async (req, res) => {
 // Add new product
 router.post("/products", requireAdmin, async (req, res) => {
   try {
-    const { name, category, price, size, image, stock } = req.body;
-    const product = await Product.create({ name, category, price: parseInt(price), size, image, stock: parseInt(stock) });
+    const { name, category, price, size, image, stock, length, width, height, weight, fragile } = req.body;
+    const product = await Product.create({
+      name,
+      category,
+      price: parseInt(price),
+      size,
+      image,
+      stock: parseInt(stock),
+      length: parseFloat(length) || 0,
+      width: parseFloat(width) || 0,
+      height: parseFloat(height) || 0,
+      weight: parseFloat(weight) || 0,
+      fragile: fragile === true || fragile === "true"
+    });
     res.json({ success: true, product });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -28,11 +40,23 @@ router.post("/products", requireAdmin, async (req, res) => {
 router.put("/products/:id", requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, category, price, size, image, stock } = req.body;
+    const { name, category, price, size, image, stock, length, width, height, weight, fragile } = req.body;
     const product = await Product.findByPk(id);
     if (!product) return res.status(404).json({ success: false, message: "Product not found" });
 
-    await product.update({ name, category, price: parseInt(price), size, image, stock: parseInt(stock) });
+    await product.update({
+      name,
+      category,
+      price: parseInt(price),
+      size,
+      image,
+      stock: parseInt(stock),
+      length: parseFloat(length) || 0,
+      width: parseFloat(width) || 0,
+      height: parseFloat(height) || 0,
+      weight: parseFloat(weight) || 0,
+      fragile: fragile === true || fragile === "true"
+    });
     res.json({ success: true, product });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

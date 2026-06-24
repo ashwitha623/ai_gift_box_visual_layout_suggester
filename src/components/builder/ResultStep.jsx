@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Download, FileText, Sparkles, RefreshCw, ShoppingCart, CheckCircle, ShieldCheck, Bookmark, ArrowLeft } from "lucide-react";
+import { Download, FileText, Sparkles, RefreshCw, ShoppingCart, CheckCircle, ShieldCheck, Bookmark, ArrowLeft, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -14,8 +14,8 @@ import { useAuthAction } from "@/components/AuthModalContext";
 import axios from "axios";
 import confetti from "canvas-confetti";
 
-export default function ResultStep({ result, occasion, products, details, onRestart, onBack }) {
-  const [activeLayout, setActiveLayout] = useState(result.recommended);
+export default function ResultStep({ result, occasion, products, details, onRestart, onBack, boxTemplates }) {
+  const [activeLayout, setActiveLayout] = useState(result.recommended || null);
   const reportRef = useRef(null);
   const [exporting, setExporting] = useState(false);
   const [savingLayout, setSavingLayout] = useState(false);
@@ -28,6 +28,28 @@ export default function ResultStep({ result, occasion, products, details, onRest
   const [placingOrder, setPlacingOrder] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [trackingId, setTrackingId] = useState("");
+
+  if (result.success === false || result.error) {
+    return (
+      <div className="max-w-2xl mx-auto text-center py-16 px-4 bg-white border border-rose-100 rounded-3xl shadow-xl shadow-rose-950/5">
+        <div className="w-16 h-16 bg-rose-50 border border-rose-200 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-6">
+          <ShieldAlert className="w-8 h-8" />
+        </div>
+        <h3 className="text-xl font-extrabold font-heading text-primary">Packing Optimization Failed</h3>
+        <p className="text-slate-600 text-sm mt-3 max-w-md mx-auto leading-relaxed">
+          {result.error || "Selected products exceed available box capacities. Please reduce items or create a larger box configuration."}
+        </p>
+        <div className="flex gap-3 justify-center mt-8">
+          <Button onClick={onBack} className="rounded-full border hover:bg-slate-50 text-xs px-6 h-10 font-bold bg-white text-slate-700">
+            Modify Products
+          </Button>
+          <Button onClick={onRestart} className="rounded-full bg-primary hover:bg-primary/95 text-white text-xs px-6 h-10 font-bold shadow-md">
+            Start Over
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const handlePDF = async () => {
     setExporting(true);
@@ -187,7 +209,7 @@ export default function ResultStep({ result, occasion, products, details, onRest
 
       <div ref={reportRef} className="bg-background">
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mb-10">
-          <GiftBoxVisual products={products} ribbonHex={activeLayout.ribbon.hex} layoutId={activeLayout.id} customizations={{ ...details, occasion: occasion.id }} />
+          <GiftBoxVisual products={products} ribbonHex={activeLayout.ribbon.hex} layoutId={activeLayout.id} customizations={{ ...details, occasion: occasion.id }} boxTemplates={boxTemplates} />
         </motion.div>
 
         <ReportCard layout={activeLayout} occasion={occasion} products={products} details={details} totalPrice={result.totalPrice} />
@@ -199,7 +221,7 @@ export default function ResultStep({ result, occasion, products, details, onRest
         active={activeLayout}
         onSelect={setActiveLayout}
         products={products}
-        customizations={{ ...details, occasion: occasion.id }}
+        customizations={{ ...details, occasion: occasion.id, boxTemplates }}
       />
 
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center sm:justify-center gap-3 mt-10 max-w-sm mx-auto sm:max-w-none">

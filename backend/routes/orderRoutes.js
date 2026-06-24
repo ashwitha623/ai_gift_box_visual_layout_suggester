@@ -6,7 +6,7 @@ const { requireAdmin, optionalUser } = require("../middleware/auth");
 // Create Order (Checkout flow)
 router.post("/orders", async (req, res) => {
   try {
-    const { userId, products, totalPrice, ribbonColor, boxSize, recipientName, recipientPhone, message, customText, photoUrl, logoUrl, paymentMethod } = req.body;
+    const { userId, products, totalPrice, ribbonColor, boxSize, recipientName, recipientPhone, message, customText, photoUrl, logoUrl, paymentMethod, spaceUtil, packingEfficiency } = req.body;
     
     // Generate mock tracking ID
     const trackingId = "PP-" + Math.floor(100000 + Math.random() * 900000);
@@ -22,7 +22,9 @@ router.post("/orders", async (req, res) => {
       trackingId,
       paymentStatus: "Pending", // Cash on Delivery is pending initially
       paymentMethod: "COD",
-      invoiceUrl
+      invoiceUrl,
+      spaceUtil: parseFloat(spaceUtil) || 0,
+      packingEfficiency: parseFloat(packingEfficiency) || 0
     });
 
     // Create order items & decrement stock
@@ -173,7 +175,12 @@ router.get("/orders", optionalUser, async (req, res) => {
       where: filter,
       include: [
         { model: Recipient, as: "recipient" },
-        { model: User, as: "user", attributes: ["id", "username", "email"] }
+        { model: User, as: "user", attributes: ["id", "username", "email"] },
+        {
+          model: OrderItem,
+          as: "items",
+          include: [{ model: Product, as: "product" }]
+        }
       ]
     });
     res.json(orders);

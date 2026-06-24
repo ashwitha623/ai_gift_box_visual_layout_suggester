@@ -15,6 +15,9 @@ export default function CreateBox() {
   const [step, setStep] = useState(0);
   const [occasion, setOccasion] = useState(null);
   const [products, setProducts] = useState([]);
+  const [dbProducts, setDbProducts] = useState([]);
+  const [dbBoxes, setDbBoxes] = useState([]);
+  const [dbLayoutTemplates, setDbLayoutTemplates] = useState([]);
   const [details, setDetails] = useState({
     name: "",
     senderName: "",
@@ -30,6 +33,29 @@ export default function CreateBox() {
   });
   const [result, setResult] = useState(null);
   const [generating, setGenerating] = useState(false);
+
+  // Fetch products and boxes from API on mount
+  useEffect(() => {
+    const fetchInventory = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/inventory");
+        if (res.data) {
+          if (res.data.products) {
+            setDbProducts(res.data.products);
+          }
+          if (res.data.boxes) {
+            setDbBoxes(res.data.boxes);
+          }
+          if (res.data.layoutTemplates) {
+            setDbLayoutTemplates(res.data.layoutTemplates);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load inventory from API", e);
+      }
+    };
+    fetchInventory();
+  }, []);
 
   // Restore state from sessionStorage on mount
   useEffect(() => {
@@ -96,6 +122,8 @@ export default function CreateBox() {
         products,
         budget: details.budget,
         boxSize: details.boxSize,
+        boxTemplates: dbBoxes,
+        layoutTemplates: dbLayoutTemplates
       });
 
       setResult(generatedResult);
@@ -147,7 +175,7 @@ export default function CreateBox() {
       <AnimatePresence mode="wait">
         <motion.div key={step} initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.25 }}>
           {step === 0 && <OccasionStep selected={occasion} onSelect={setOccasion} />}
-          {step === 1 && <ProductStep selected={products} onToggle={toggleProduct} />}
+          {step === 1 && <ProductStep selected={products} onToggle={toggleProduct} allProducts={dbProducts} />}
           {step === 2 && <RecipientStep details={details} onChange={setDetails} selectedTotal={selectedTotal} />}
           {step === 3 && (generating || !result ? (
             <div className="text-center py-24">
@@ -162,7 +190,7 @@ export default function CreateBox() {
               <Loader2 className="w-5 h-5 mx-auto mt-5 text-primary animate-spin" />
             </div>
           ) : (
-            <ResultStep result={result} occasion={occasion} products={products} details={details} onRestart={restart} onBack={() => setStep(2)} />
+            <ResultStep result={result} occasion={occasion} products={products} details={details} onRestart={restart} onBack={() => setStep(2)} boxTemplates={dbBoxes} />
           ))}
         </motion.div>
       </AnimatePresence>

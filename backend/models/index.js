@@ -12,6 +12,8 @@ const DesignApproval = require("./DesignApproval");
 const ProductionStage = require("./ProductionStage");
 const CustomerProfile = require("./CustomerProfile");
 const Notification = require("./Notification");
+const PackagingBox = require("./PackagingBox");
+const LayoutTemplate = require("./LayoutTemplate");
 
 // Setup relations
 Order.hasMany(DesignApproval, { foreignKey: "orderId", as: "designApprovals" });
@@ -43,6 +45,21 @@ async function initDb() {
       await sequelize.query("ALTER TABLE products ADD COLUMN minThreshold INTEGER DEFAULT 5");
     } catch (e) {}
     try {
+      await sequelize.query("ALTER TABLE products ADD COLUMN length FLOAT DEFAULT 0");
+    } catch (e) {}
+    try {
+      await sequelize.query("ALTER TABLE products ADD COLUMN width FLOAT DEFAULT 0");
+    } catch (e) {}
+    try {
+      await sequelize.query("ALTER TABLE products ADD COLUMN height FLOAT DEFAULT 0");
+    } catch (e) {}
+    try {
+      await sequelize.query("ALTER TABLE products ADD COLUMN weight FLOAT DEFAULT 0");
+    } catch (e) {}
+    try {
+      await sequelize.query("ALTER TABLE products ADD COLUMN fragile BOOLEAN DEFAULT 0");
+    } catch (e) {}
+    try {
       await sequelize.query("ALTER TABLE crm_contacts ADD COLUMN status VARCHAR(255) DEFAULT 'Scheduled'");
     } catch (e) {}
     try {
@@ -50,6 +67,12 @@ async function initDb() {
     } catch (e) {}
     try {
       await sequelize.query("ALTER TABLE recipients ADD COLUMN phone VARCHAR(255)");
+    } catch (e) {}
+    try {
+      await sequelize.query("ALTER TABLE orders ADD COLUMN spaceUtil FLOAT DEFAULT 0");
+    } catch (e) {}
+    try {
+      await sequelize.query("ALTER TABLE orders ADD COLUMN packingEfficiency FLOAT DEFAULT 0");
     } catch (e) {}
 
     // Sync tables
@@ -92,36 +115,36 @@ async function initDb() {
 
     // Seed products catalog matching frontend giftdata
     const initialProducts = [
-      { name: "Teddy Bear", category: "Soft Toys", price: 899, size: "Large", stock: 15, image: null },
-      { name: "Rabbit Plush", category: "Soft Toys", price: 649, size: "Medium", stock: 20, image: null },
-      { name: "Panda Plush", category: "Soft Toys", price: 749, size: "Medium", stock: 12, image: null },
-      { name: "Bracelet", category: "Jewelry", price: 1499, size: "Small", stock: 25, image: null },
-      { name: "Necklace", category: "Jewelry", price: 2499, size: "Small", stock: 8, image: null },
-      { name: "Ring", category: "Jewelry", price: 1999, size: "Small", stock: 15, image: null },
-      { name: "Earrings", category: "Jewelry", price: 1299, size: "Small", stock: 20, image: null },
-      { name: "Rose Bouquet", category: "Flowers", price: 1199, size: "Large", stock: 30, image: null },
-      { name: "Tulip Bouquet", category: "Flowers", price: 1299, size: "Large", stock: 15, image: null },
-      { name: "Mixed Flowers", category: "Flowers", price: 1499, size: "Large", stock: 20, image: null },
-      { name: "Ferrero Rocher", category: "Chocolates", price: 799, size: "Small", stock: 25, image: null },
-      { name: "Lindt Collection", category: "Chocolates", price: 1299, size: "Medium", stock: 18, image: null },
-      { name: "Chocolate Box", category: "Chocolates", price: 999, size: "Small", stock: 20, image: null },
-      { name: "Premium Dark Choc", category: "Chocolates", price: 599, size: "Small", stock: 30, image: null },
-      { name: "Coffee Mug", category: "Lifestyle Gifts", price: 449, size: "Small", stock: 25, image: null },
-      { name: "Journal", category: "Lifestyle Gifts", price: 599, size: "Small", stock: 35, image: null },
-      { name: "Scented Candle", category: "Lifestyle Gifts", price: 549, size: "Small", stock: 40, image: null },
-      { name: "Photo Frame", category: "Lifestyle Gifts", price: 699, size: "Medium", stock: 15, image: null },
-      { name: "Plant Pot", category: "Lifestyle Gifts", price: 649, size: "Medium", stock: 15, image: null },
-      { name: "Perfume", category: "Premium Gifts", price: 3499, size: "Small", stock: 10, image: null },
-      { name: "Watch", category: "Premium Gifts", price: 5999, size: "Small", stock: 5, image: null },
-      { name: "Leather Wallet", category: "Premium Gifts", price: 2499, size: "Small", stock: 12, image: null },
-      { name: "Luxury Hamper", category: "Premium Gifts", price: 4999, size: "Large", stock: 8, image: null },
-      { name: "Personalized Journal", category: "Personalized Gifts", price: 749, size: "Small", stock: 20, image: null },
-      { name: "Photo Cushion", category: "Personalized Gifts", price: 899, size: "Medium", stock: 15, image: null },
-      { name: "Name Mug", category: "Personalized Gifts", price: 599, size: "Small", stock: 20, image: null },
-      { name: "Engraved Keychain", category: "Personalized Gifts", price: 399, size: "Small", stock: 50, image: null },
-      { name: "Desk Organizer", category: "Corporate Gifts", price: 1299, size: "Medium", stock: 15, image: null },
-      { name: "Notebook Set", category: "Corporate Gifts", price: 699, size: "Small", stock: 25, image: null },
-      { name: "Premium Pen", category: "Corporate Gifts", price: 1899, size: "Small", stock: 20, image: null }
+      { name: "Teddy Bear", category: "Soft Toys", price: 899, size: "Large", stock: 15, image: null, length: 20.0, width: 14.0, height: 12.0, weight: 350, fragile: false },
+      { name: "Rabbit Plush", category: "Soft Toys", price: 649, size: "Medium", stock: 20, image: null, length: 16.0, width: 11.0, height: 9.0, weight: 200, fragile: false },
+      { name: "Panda Plush", category: "Soft Toys", price: 749, size: "Medium", stock: 12, image: null, length: 18.0, width: 12.0, height: 10.0, weight: 250, fragile: false },
+      { name: "Bracelet", category: "Jewelry", price: 1499, size: "Small", stock: 25, image: null, length: 8.0, width: 8.0, height: 3.0, weight: 50, fragile: false },
+      { name: "Necklace", category: "Jewelry", price: 2499, size: "Small", stock: 8, image: null, length: 10.0, width: 10.0, height: 4.0, weight: 80, fragile: false },
+      { name: "Ring", category: "Jewelry", price: 1999, size: "Small", stock: 15, image: null, length: 6.0, width: 6.0, height: 3.0, weight: 30, fragile: false },
+      { name: "Earrings", category: "Jewelry", price: 1299, size: "Small", stock: 20, image: null, length: 7.0, width: 7.0, height: 3.0, weight: 40, fragile: false },
+      { name: "Rose Bouquet", category: "Flowers", price: 1199, size: "Large", stock: 30, image: null, length: 25.0, width: 11.0, height: 9.0, weight: 400, fragile: false },
+      { name: "Tulip Bouquet", category: "Flowers", price: 1299, size: "Large", stock: 15, image: null, length: 24.0, width: 11.0, height: 8.0, weight: 380, fragile: false },
+      { name: "Mixed Flowers", category: "Flowers", price: 1499, size: "Large", stock: 20, image: null, length: 26.0, width: 13.0, height: 11.0, weight: 500, fragile: false },
+      { name: "Ferrero Rocher", category: "Chocolates", price: 799, size: "Small", stock: 25, image: null, length: 14.0, width: 14.0, height: 4.0, weight: 200, fragile: false },
+      { name: "Lindt Collection", category: "Chocolates", price: 1299, size: "Medium", stock: 18, image: null, length: 18.0, width: 12.0, height: 5.0, weight: 250, fragile: false },
+      { name: "Chocolate Box", category: "Chocolates", price: 999, size: "Small", stock: 20, image: null, length: 12.0, width: 12.0, height: 4.0, weight: 150, fragile: false },
+      { name: "Premium Dark Choc", category: "Chocolates", price: 599, size: "Small", stock: 30, image: null, length: 15.0, width: 8.0, height: 2.0, weight: 100, fragile: false },
+      { name: "Coffee Mug", category: "Lifestyle Gifts", price: 449, size: "Small", stock: 25, image: null, length: 10.0, width: 10.0, height: 10.0, weight: 300, fragile: true },
+      { name: "Journal", category: "Lifestyle Gifts", price: 599, size: "Small", stock: 35, image: null, length: 20.0, width: 13.0, height: 2.0, weight: 280, fragile: false },
+      { name: "Scented Candle", category: "Lifestyle Gifts", price: 549, size: "Small", stock: 40, image: null, length: 8.0, width: 8.0, height: 8.0, weight: 250, fragile: true },
+      { name: "Photo Frame", category: "Lifestyle Gifts", price: 699, size: "Medium", stock: 15, image: null, length: 21.0, width: 16.0, height: 2.0, weight: 450, fragile: true },
+      { name: "Plant Pot", category: "Lifestyle Gifts", price: 649, size: "Medium", stock: 15, image: null, length: 11.0, width: 11.0, height: 11.0, weight: 600, fragile: true },
+      { name: "Perfume", category: "Premium Gifts", price: 3499, size: "Small", stock: 10, image: null, length: 11.0, width: 7.0, height: 5.0, weight: 350, fragile: true },
+      { name: "Watch", category: "Premium Gifts", price: 5999, size: "Small", stock: 5, image: null, length: 9.0, width: 9.0, height: 7.0, weight: 200, fragile: true },
+      { name: "Leather Wallet", category: "Premium Gifts", price: 2499, size: "Small", stock: 12, image: null, length: 11.0, width: 9.0, height: 2.0, weight: 120, fragile: false },
+      { name: "Luxury Hamper", category: "Premium Gifts", price: 4999, size: "Large", stock: 8, image: null, length: 26.0, width: 18.0, height: 9.0, weight: 800, fragile: true },
+      { name: "Personalized Journal", category: "Personalized Gifts", price: 749, size: "Small", stock: 20, image: null, length: 20.0, width: 13.0, height: 2.0, weight: 280, fragile: false },
+      { name: "Photo Cushion", category: "Personalized Gifts", price: 899, size: "Medium", stock: 15, image: null, length: 24.0, width: 24.0, height: 9.0, weight: 300, fragile: false },
+      { name: "Name Mug", category: "Personalized Gifts", price: 599, size: "Small", stock: 20, image: null, length: 10.0, width: 10.0, height: 10.0, weight: 300, fragile: true },
+      { name: "Engraved Keychain", category: "Personalized Gifts", price: 399, size: "Small", stock: 50, image: null, length: 6.0, width: 3.0, height: 1.0, weight: 25, fragile: false },
+      { name: "Desk Organizer", category: "Corporate Gifts", price: 1299, size: "Medium", stock: 15, image: null, length: 22.0, width: 14.0, height: 9.0, weight: 700, fragile: false },
+      { name: "Notebook Set", category: "Corporate Gifts", price: 699, size: "Small", stock: 25, image: null, length: 21.0, width: 14.0, height: 3.0, weight: 400, fragile: false },
+      { name: "Premium Pen", category: "Corporate Gifts", price: 1899, size: "Small", stock: 20, image: null, length: 14.0, width: 2.0, height: 2.0, weight: 50, fragile: false }
     ];
 
     for (const p of initialProducts) {
@@ -424,18 +447,152 @@ async function initDb() {
       console.log("CRM contacts pre-seeded in database.");
     }
 
-    // Add SKU details to existing products if empty
+    // Add SKU details and update dimensions for existing products
     const existingProds = await Product.findAll();
     for (let p of existingProds) {
+      const match = initialProducts.find(ip => ip.name === p.name);
+      const updates = {};
       if (!p.sku) {
         const catCode = p.category.substring(0, 3).toUpperCase();
         const nameCode = p.name.substring(0, 4).toUpperCase().replace(/\s+/g, "");
-        await p.update({
-          sku: `PRD-${catCode}-${nameCode}-${p.id}`,
-          reservedQty: 0,
-          minThreshold: 5
-        });
+        updates.sku = `PRD-${catCode}-${nameCode}-${p.id}`;
+        updates.reservedQty = 0;
+        updates.minThreshold = 5;
       }
+      if (match) {
+        updates.length = match.length;
+        updates.width = match.width;
+        updates.height = match.height;
+        updates.weight = match.weight;
+        updates.fragile = match.fragile;
+      }
+      if (Object.keys(updates).length > 0) {
+        await p.update(updates);
+      }
+    }
+
+    // Seed packaging boxes if empty
+    const boxCount = await PackagingBox.count();
+    if (boxCount === 0) {
+      const initialBoxes = [
+        {
+          name: "Small Box",
+          length: 25.0,
+          width: 20.0,
+          height: 8.0,
+          maxWeight: 2000,
+          volume: 25 * 20 * 8, // 4000
+          cost: 300,
+          style: "Classic Gold Foil",
+          ribbonStyle: "Red Satin Bow",
+          ribbonHex: "#C41E3A",
+          packagingTheme: "Royal Gold Red",
+          occasions: "anniversary,wedding,birthday,just_because"
+        },
+        {
+          name: "Medium Box",
+          length: 35.0,
+          width: 25.0,
+          height: 10.0,
+          maxWeight: 4000,
+          volume: 35 * 25 * 10, // 8750
+          cost: 400,
+          style: "Pastel Pink Luxury Rigid",
+          ribbonStyle: "Pink Satin Bow",
+          ribbonHex: "#FFB3C6",
+          packagingTheme: "Blush Luxury",
+          occasions: "farewell,baby_shower,friendship,just_because,birthday"
+        },
+        {
+          name: "Large Box",
+          length: 45.0,
+          width: 35.0,
+          height: 15.0,
+          maxWeight: 7000,
+          volume: 45 * 35 * 15, // 23625
+          cost: 500,
+          style: "Brown Crocodile Leather Embossed",
+          ribbonStyle: "Black Velvet Bow",
+          ribbonHex: "#1A1A1A",
+          packagingTheme: "Luxury Crocodile Leather",
+          occasions: "anniversary,wedding,corporate"
+        },
+        {
+          name: "Luxury Premium Box",
+          length: 50.0,
+          width: 40.0,
+          height: 18.0,
+          maxWeight: 10000,
+          volume: 50 * 40 * 18, // 36000
+          cost: 650,
+          style: "Matte Black Gold Floral",
+          ribbonStyle: "Gold Satin Bow",
+          ribbonHex: "#D4AF37",
+          packagingTheme: "Corporate Gold",
+          occasions: "corporate,farewell,graduation,anniversary,wedding"
+        }
+      ];
+      await PackagingBox.bulkCreate(initialBoxes);
+      console.log("Packaging boxes seeded.");
+    }
+
+    // Seed layout templates if empty
+    const templateCount = await LayoutTemplate.count();
+    if (templateCount === 0) {
+      const initialTemplates = [
+        {
+          id: "showcase",
+          name: "Premium Showcase Layout",
+          minSpacing: 0.6,
+          fragileBuffer: 1.5,
+          allowRotation: true,
+          alignmentPreference: "center",
+          preferredPlacementZone: "radial",
+          description: "Generous visual spacing spotlighting key items."
+        },
+        {
+          id: "symmetrical",
+          name: "Luxury Symmetrical Layout",
+          minSpacing: 0.6,
+          fragileBuffer: 1.5,
+          allowRotation: true,
+          alignmentPreference: "mirror",
+          preferredPlacementZone: "left-right",
+          description: "Balanced bilateral arrangement with equal visual weight."
+        },
+        {
+          id: "space_utilization",
+          name: "Maximum Space Utilization Layout",
+          minSpacing: 0.6,
+          fragileBuffer: 1.5,
+          allowRotation: true,
+          alignmentPreference: "dense",
+          preferredPlacementZone: "corners",
+          description: "Compact packing minimizing shifting and box size."
+        },
+        {
+          id: "safe_shipping",
+          name: "Safe Shipping Layout",
+          minSpacing: 1.8,
+          fragileBuffer: 1.5,
+          allowRotation: true,
+          alignmentPreference: "middle",
+          preferredPlacementZone: "fragile-center",
+          description: "Centering fragile products and adding double safety cushions."
+        },
+        {
+          id: "corporate",
+          name: "Corporate Executive Layout",
+          minSpacing: 0.6,
+          fragileBuffer: 1.5,
+          allowRotation: true,
+          alignmentPreference: "grid",
+          preferredPlacementZone: "rows",
+          description: "Structured rows and columns presenting items with executive neatness."
+        }
+      ];
+      await LayoutTemplate.bulkCreate(initialTemplates);
+      console.log("Layout templates seeded.");
     }
 
     // Seed packaging materials if empty
@@ -572,5 +729,7 @@ module.exports = {
   DesignApproval,
   ProductionStage,
   CustomerProfile,
-  Notification
+  Notification,
+  PackagingBox,
+  LayoutTemplate
 };
