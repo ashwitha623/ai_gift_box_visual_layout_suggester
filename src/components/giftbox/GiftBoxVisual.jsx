@@ -595,7 +595,7 @@ function getVisualScale(p, box, items) {
     baseScale = 1.15;
   } else if (p.name === "Engraved Keychain" || p.name === "Premium Pen") {
     baseScale = 1.15;
-  } else if (p.name === "Perfume" || p.name === "Watch") {
+  } else if (p.name === "Perfume" || p.name === "Clock Ornament") {
     baseScale = 1.05;
   } else if (p.name === "Scented Candle" || p.category === "Chocolates") {
     baseScale = 0.95;

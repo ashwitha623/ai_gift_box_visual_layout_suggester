@@ -115,7 +115,7 @@ async function initDb() {
 
     // Seed products catalog matching frontend giftdata
     const initialProducts = [
-      { name: "Teddy Bear", category: "Soft Toys", price: 899, size: "Large", stock: 15, image: null, length: 20.0, width: 14.0, height: 12.0, weight: 350, fragile: false },
+      { name: "Rocking Horse", category: "Soft Toys", price: 899, size: "Large", stock: 15, image: null, length: 20.0, width: 14.0, height: 12.0, weight: 350, fragile: false },
       { name: "Rabbit Plush", category: "Soft Toys", price: 649, size: "Medium", stock: 20, image: null, length: 16.0, width: 11.0, height: 9.0, weight: 200, fragile: false },
       { name: "Panda Plush", category: "Soft Toys", price: 749, size: "Medium", stock: 12, image: null, length: 18.0, width: 12.0, height: 10.0, weight: 250, fragile: false },
       { name: "Bracelet", category: "Jewelry", price: 1499, size: "Small", stock: 25, image: null, length: 8.0, width: 8.0, height: 3.0, weight: 50, fragile: false },
@@ -127,7 +127,7 @@ async function initDb() {
       { name: "Mixed Flowers", category: "Flowers", price: 1499, size: "Large", stock: 20, image: null, length: 26.0, width: 13.0, height: 11.0, weight: 500, fragile: false },
       { name: "Ferrero Rocher", category: "Chocolates", price: 799, size: "Small", stock: 25, image: null, length: 14.0, width: 14.0, height: 4.0, weight: 200, fragile: false },
       { name: "Lindt Collection", category: "Chocolates", price: 1299, size: "Medium", stock: 18, image: null, length: 18.0, width: 12.0, height: 5.0, weight: 250, fragile: false },
-      { name: "Chocolate Box", category: "Chocolates", price: 999, size: "Small", stock: 20, image: null, length: 12.0, width: 12.0, height: 4.0, weight: 150, fragile: false },
+      { name: "Box of Chocolates", category: "Chocolates", price: 999, size: "Small", stock: 20, image: null, length: 12.0, width: 12.0, height: 4.0, weight: 150, fragile: false },
       { name: "Premium Dark Choc", category: "Chocolates", price: 599, size: "Small", stock: 30, image: null, length: 15.0, width: 8.0, height: 2.0, weight: 100, fragile: false },
       { name: "Coffee Mug", category: "Lifestyle Gifts", price: 449, size: "Small", stock: 25, image: null, length: 10.0, width: 10.0, height: 10.0, weight: 300, fragile: true },
       { name: "Journal", category: "Lifestyle Gifts", price: 599, size: "Small", stock: 35, image: null, length: 20.0, width: 13.0, height: 2.0, weight: 280, fragile: false },
@@ -135,7 +135,7 @@ async function initDb() {
       { name: "Photo Frame", category: "Lifestyle Gifts", price: 699, size: "Medium", stock: 15, image: null, length: 21.0, width: 16.0, height: 2.0, weight: 450, fragile: true },
       { name: "Plant Pot", category: "Lifestyle Gifts", price: 649, size: "Medium", stock: 15, image: null, length: 11.0, width: 11.0, height: 11.0, weight: 600, fragile: true },
       { name: "Perfume", category: "Premium Gifts", price: 3499, size: "Small", stock: 10, image: null, length: 11.0, width: 7.0, height: 5.0, weight: 350, fragile: true },
-      { name: "Watch", category: "Premium Gifts", price: 5999, size: "Small", stock: 5, image: null, length: 9.0, width: 9.0, height: 7.0, weight: 200, fragile: true },
+      { name: "Clock Ornament", category: "Premium Gifts", price: 5999, size: "Small", stock: 5, image: null, length: 9.0, width: 9.0, height: 7.0, weight: 200, fragile: true },
       { name: "Leather Wallet", category: "Premium Gifts", price: 2499, size: "Small", stock: 12, image: null, length: 11.0, width: 9.0, height: 2.0, weight: 120, fragile: false },
       { name: "Luxury Hamper", category: "Premium Gifts", price: 4999, size: "Large", stock: 8, image: null, length: 26.0, width: 18.0, height: 9.0, weight: 800, fragile: true },
       { name: "Personalized Journal", category: "Personalized Gifts", price: 749, size: "Small", stock: 20, image: null, length: 20.0, width: 13.0, height: 2.0, weight: 280, fragile: false },
@@ -157,21 +157,21 @@ async function initDb() {
 
     // Query all products to link orders
     const products = await Product.findAll();
-    const teddyBear = products.find(p => p.name === "Teddy Bear");
+    const rockingHorse = products.find(p => p.name === "Rocking Horse");
     const necklace = products.find(p => p.name === "Necklace");
     const roseBouquet = products.find(p => p.name === "Rose Bouquet");
     const lindt = products.find(p => p.name === "Lindt Collection");
     const scentedCandle = products.find(p => p.name === "Scented Candle");
     const perfume = products.find(p => p.name === "Perfume");
-    const watch = products.find(p => p.name === "Watch");
+    const clockOrnament = products.find(p => p.name === "Clock Ornament");
 
     // Seed orders, recipients, and items if empty
     const orderCount = await Order.count();
-    if (orderCount === 0 && teddyBear && necklace && roseBouquet && lindt && scentedCandle && perfume && watch) {
+    if (orderCount === 0 && rockingHorse && necklace && roseBouquet && lindt && scentedCandle && perfume && clockOrnament) {
       // Order 1 (Delivered, 10 days ago)
       const order1 = await Order.create({
         userId: customerUser.id,
-        totalPrice: watch.price + roseBouquet.price + 350,
+        totalPrice: clockOrnament.price + roseBouquet.price + 350,
         status: "Delivered",
         ribbonColor: "#D4AF37",
         boxSize: "Large",
@@ -189,7 +189,7 @@ async function initDb() {
         logoUrl: null
       });
       await OrderItem.bulkCreate([
-        { orderId: order1.id, productId: watch.id, quantity: 1, price: watch.price },
+        { orderId: order1.id, productId: clockOrnament.id, quantity: 1, price: clockOrnament.price },
         { orderId: order1.id, productId: roseBouquet.id, quantity: 1, price: roseBouquet.price }
       ]);
 
@@ -221,7 +221,7 @@ async function initDb() {
       // Order 3 (Order Placed, 1 day ago)
       const order3 = await Order.create({
         userId: customerUser.id,
-        totalPrice: teddyBear.price + scentedCandle.price + 350,
+        totalPrice: rockingHorse.price + scentedCandle.price + 350,
         status: "Order Placed",
         ribbonColor: "#D4AF37",
         boxSize: "Medium",
@@ -239,7 +239,7 @@ async function initDb() {
         logoUrl: null
       });
       await OrderItem.bulkCreate([
-        { orderId: order3.id, productId: teddyBear.id, quantity: 1, price: teddyBear.price },
+        { orderId: order3.id, productId: rockingHorse.id, quantity: 1, price: rockingHorse.price },
         { orderId: order3.id, productId: scentedCandle.id, quantity: 1, price: scentedCandle.price }
       ]);
 
@@ -348,7 +348,7 @@ async function initDb() {
         await Return.create({
           orderId: order1.id,
           type: "Refund",
-          reason: "Received watch but box has damaged corners, item is fine but wanted to return as it was for a gift.",
+          reason: "Received clock ornament but box has damaged corners, item is fine but wanted to return as it was for a gift.",
           status: "Approved",
           adminNotes: "Refund approved. Return shipping initiated.",
           createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)

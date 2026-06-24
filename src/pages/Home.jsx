@@ -50,19 +50,13 @@ export default function Home() {
 
           {/* Hero visual strip */}
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-            className="mt-16 grid grid-cols-3 sm:grid-cols-6 gap-3 max-w-4xl mx-auto">
+            className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl mx-auto">
             {(() => {
-              const list = PRODUCTS.slice(0, 6);
-              const swapped = [...list];
-              // First swap: index 1 (Rabbit Plush) and index 5 (Ring)
-              let temp = swapped[1];
-              swapped[1] = swapped[5];
-              swapped[5] = temp;
-              // Second swap: index 2 (Panda Plush) and index 3 (Bracelet/Bangle)
-              temp = swapped[2];
-              swapped[2] = swapped[3];
-              swapped[3] = temp;
-              return swapped;
+              const prod1 = PRODUCTS.find(p => p.name === "Rose Bouquet");
+              const prod2 = PRODUCTS.find(p => p.name === "Rocking Horse");
+              const prod3 = PRODUCTS.find(p => p.name === "Clock Ornament");
+              const prod4 = PRODUCTS.find(p => p.name === "Box of Chocolates");
+              return [prod1, prod2, prod3, prod4].filter(Boolean);
             })().map((p, i) => (
               <div key={p.id} className={`rounded-2xl overflow-hidden shadow-lg aspect-square ${i % 2 ? "translate-y-4" : ""}`}>
                 <img src={p.image} alt={p.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
