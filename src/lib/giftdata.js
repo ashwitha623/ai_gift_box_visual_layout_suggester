@@ -40,13 +40,13 @@ import leatherWalletImg from "@/assets/images/leather_wallet.png";
 import luxuryHamperImg from "@/assets/images/luxury_hamper.png";
 
 import personalizedJournalImg from "@/assets/images/personalized_journal.png";
-import photoCushionImg from "@/assets/images/photo_cushion.jpg";
-import nameMugImg from "@/assets/images/name_mug.jpg";
+import photoCushionImg from "@/assets/images/photo_cushion.png";
+import nameMugImg from "@/assets/images/name_mug.png";
 import engravedKeychainImg from "@/assets/images/engraved_keychain.png";
 
-import deskOrganizerImg from "@/assets/images/desk_organizer.jpg";
+import deskOrganizerImg from "@/assets/images/desk_organizer.png";
 import notebookSetImg from "@/assets/images/notebook_set.png";
-import premiumPenImg from "@/assets/images/premium_pen.jpg";
+import premiumPenImg from "@/assets/images/premium_pen.png";
 import corporateHamperImg from "@/assets/images/corporate_hamper.jpg";
 // Category-level fallback images (used when a product image fails to load)
 export const CATEGORY_FALLBACKS = {
