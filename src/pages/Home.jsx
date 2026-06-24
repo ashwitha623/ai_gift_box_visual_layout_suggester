@@ -51,7 +51,14 @@ export default function Home() {
           {/* Hero visual strip */}
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
             className="mt-16 grid grid-cols-3 sm:grid-cols-6 gap-3 max-w-4xl mx-auto">
-            {PRODUCTS.slice(0, 6).map((p, i) => (
+            {(() => {
+              const list = PRODUCTS.slice(0, 6);
+              const swapped = [...list];
+              const temp = swapped[1];
+              swapped[1] = swapped[5];
+              swapped[5] = temp;
+              return swapped;
+            })().map((p, i) => (
               <div key={p.id} className={`rounded-2xl overflow-hidden shadow-lg aspect-square ${i % 2 ? "translate-y-4" : ""}`}>
                 <img src={p.image} alt={p.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
               </div>
