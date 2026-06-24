@@ -19,17 +19,40 @@ router.post("/generate-layout", (req, res) => {
 
 // Save Layout
 router.post("/save-layout", (req, res) => {
-  layouts.push(req.body);
+  const layoutItem = {
+    id: Date.now() + Math.random().toString(36).substring(2, 11),
+    ...req.body,
+    createdAt: new Date()
+  };
+  layouts.push(layoutItem);
 
   res.json({
     success: true,
-    message: "Layout Saved Successfully"
+    message: "Layout Saved Successfully",
+    layout: layoutItem
   });
 });
 
 // Get Layout History
 router.get("/layouts", (req, res) => {
   res.json(layouts);
+});
+
+// Delete Layout
+router.delete("/layouts/:id", (req, res) => {
+  const { id } = req.params;
+  const index = layouts.findIndex(l => l.id === id);
+  if (index !== -1) {
+    layouts.splice(index, 1);
+    return res.json({ success: true, message: "Layout Deleted Successfully" });
+  }
+  // Fallback if id is a numerical index
+  const idx = parseInt(id);
+  if (!isNaN(idx) && idx >= 0 && idx < layouts.length) {
+    layouts.splice(idx, 1);
+    return res.json({ success: true, message: "Layout Deleted Successfully" });
+  }
+  res.status(404).json({ success: false, message: "Layout not found" });
 });
 
 module.exports = router;
