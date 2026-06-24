@@ -14,7 +14,8 @@ import {
   ChevronRight,
   Plus,
   Compass,
-  ArrowLeft
+  ArrowLeft,
+  Edit
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -382,7 +383,7 @@ export default function Layouts() {
                         onClick={() => handleRecreate(item)}
                         className="w-full rounded-full bg-[#09152b] hover:bg-[#1a2d4b] text-white font-bold h-10 text-xs shadow-md shadow-slate-900/5 flex items-center justify-center gap-1.5 border border-[#C5A880]/20"
                       >
-                        <Play className="w-3.5 h-3.5 fill-current" /> Launch Studio
+                        <Edit className="w-3.5 h-3.5" /> Customize Layout
                       </Button>
                     </div>
                   </motion.div>

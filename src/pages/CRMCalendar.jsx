@@ -307,7 +307,7 @@ export default function CRMCalendar() {
                 <Award className="text-primary w-8 h-8 mb-4" />
                 <h3 className="text-lg font-bold font-heading text-primary mb-1">Milestones Reminders</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Paper Plane reminders are triggered automatically 5 days in advance of the milestone, providing links to launch layouts.
+                  Paper Plane reminders are triggered automatically 5 days in advance of the milestone, providing links to customize layouts.
                 </p>
               </div>
             </div>

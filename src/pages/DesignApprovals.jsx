@@ -293,7 +293,7 @@ export default function DesignApprovals() {
               </div>
             ) : (
               <div className="bg-card border rounded-3xl p-16 text-center shadow-sm text-muted-foreground text-xs">
-                Select a design review from the list to launch the studio mockup visualizer.
+                Select a design review from the list to open the studio mockup visualizer.
               </div>
             )}
           </div>
