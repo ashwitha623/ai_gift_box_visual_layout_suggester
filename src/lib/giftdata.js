@@ -15,10 +15,10 @@ import pandaPlushImg from "@/assets/images/panda_plush.png";
 
 import braceletImg from "@/assets/images/bracelet.png";
 import necklaceImg from "@/assets/images/necklace.png";
-import ringImg from "@/assets/images/ring.jpg";
+import ringImg from "@/assets/images/ring.png";
 import earringsImg from "@/assets/images/earrings.png";
 
-import roseBouquetImg from "@/assets/images/rose_bouquet.jpg";
+import roseBouquetImg from "@/assets/images/rose_bouquet.png";
 import lilyBouquetImg from "@/assets/images/lily_bouquet.jpg";
 import tulipBouquetImg from "@/assets/images/tulip_bouquet.png";
 import mixedFlowersImg from "@/assets/images/mixed_flowers.png";
