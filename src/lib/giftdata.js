@@ -26,11 +26,11 @@ import mixedFlowersImg from "@/assets/images/mixed_flowers.png";
 import ferreroRocherImg from "@/assets/images/ferrero_rocher.png";
 import lindtCollectionImg from "@/assets/images/lindt_collection.jpg";
 import chocolateBoxImg from "@/assets/images/chocolate_box.png";
-import premiumDarkChocImg from "@/assets/images/premium_dark_choc.jpg";
+import premiumDarkChocImg from "@/assets/images/premium_dark_choc.png";
 
 import coffeeMugImg from "@/assets/images/coffee_mug.png";
 import journalImg from "@/assets/images/journal.png";
-import scentedCandleImg from "@/assets/images/scented_candle.jpg";
+import scentedCandleImg from "@/assets/images/scented_candle.png";
 import photoFrameImg from "@/assets/images/photo_frame.png";
 import plantPotImg from "@/assets/images/plant_pot.jpg";
 
