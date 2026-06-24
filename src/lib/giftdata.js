@@ -32,14 +32,14 @@ import coffeeMugImg from "@/assets/images/coffee_mug.png";
 import journalImg from "@/assets/images/journal.png";
 import scentedCandleImg from "@/assets/images/scented_candle.png";
 import photoFrameImg from "@/assets/images/photo_frame.png";
-import plantPotImg from "@/assets/images/plant_pot.jpg";
+import plantPotImg from "@/assets/images/plant_pot.png";
 
 import perfumeImg from "@/assets/images/perfume.png";
 import watchImg from "@/assets/images/watch.png";
 import leatherWalletImg from "@/assets/images/leather_wallet.png";
 import luxuryHamperImg from "@/assets/images/luxury_hamper.png";
 
-import personalizedJournalImg from "@/assets/images/personalized_journal.jpg";
+import personalizedJournalImg from "@/assets/images/personalized_journal.png";
 import photoCushionImg from "@/assets/images/photo_cushion.jpg";
 import nameMugImg from "@/assets/images/name_mug.jpg";
 import engravedKeychainImg from "@/assets/images/engraved_keychain.png";
