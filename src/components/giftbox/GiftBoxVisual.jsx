@@ -1486,12 +1486,12 @@ export default function GiftBoxVisual({
 
   const leftStyle = {
     position: "absolute",
-    width: `${pxW}px`,
-    height: `${pxH}px`,
+    width: `${pxH}px`,
+    height: `${pxW}px`,
     left: "50%",
     top: "50%",
-    marginLeft: `-${pxW / 2}px`,
-    marginTop: `-${pxH / 2}px`,
+    marginLeft: `-${pxH / 2}px`,
+    marginTop: `-${pxW / 2}px`,
     background: boxBgStyle.background,
     border: `2px solid ${boxBgStyle.innerRim}`,
     transform: `rotateY(90deg) translateZ(-${pxL / 2}px)`,
@@ -1500,12 +1500,12 @@ export default function GiftBoxVisual({
 
   const rightStyle = {
     position: "absolute",
-    width: `${pxW}px`,
-    height: `${pxH}px`,
+    width: `${pxH}px`,
+    height: `${pxW}px`,
     left: "50%",
     top: "50%",
-    marginLeft: `-${pxW / 2}px`,
-    marginTop: `-${pxH / 2}px`,
+    marginLeft: `-${pxH / 2}px`,
+    marginTop: `-${pxW / 2}px`,
     background: boxBgStyle.background,
     border: `2px solid ${boxBgStyle.innerRim}`,
     transform: `rotateY(90deg) translateZ(${pxL / 2}px)`,
