@@ -836,6 +836,20 @@ function ProductTile({ p, slot, index, box, items, isMobileView, viewMode, onDra
   );
 }
 
+// Helper to check classification of base products (flat, wide, non-fragile)
+function isEligibleBase(product) {
+  const area = product.length * product.width;
+  const isFlat = product.height <= 6.0;
+  const isWide = area >= 140;
+  return isFlat && isWide && !product.fragile;
+}
+
+// Helper to check classification of stackable products (light, small)
+function isStackable(product) {
+  const area = product.length * product.width;
+  return area <= 100 && (product.weight || 0) <= 350;
+}
+
 export default function GiftBoxVisual({
   products,
   ribbonHex = "#D4AF37",
@@ -843,6 +857,7 @@ export default function GiftBoxVisual({
   size = "lg",
   customizations = {}
 }) {
+  const [lidOpen, setLidOpen] = useState(true);
   const occasionId = customizations.occasion || "just_because";
   const isMobile = useIsMobile();
   const isMobileView = isMobile || size === "sm";
@@ -939,17 +954,72 @@ export default function GiftBoxVisual({
       return;
     }
 
-    // 2. Check Overlap Collisions
+    // Check if we are dropping on top of an eligible base item
+    let targetBase = null;
+    if (isStackable(draggedSlot.product)) {
+      for (const other of arrangedItems) {
+        if (other.product.id === draggedSlot.product.id) continue;
+        if (isEligibleBase(other.product)) {
+          // Check if base is already stacked on by another product
+          const occupied = arrangedItems.some(x => x.product.id !== draggedSlot.product.id && x.stackedOn === other.product.id);
+          if (occupied) continue;
+
+          // Check height constraint
+          if (other.product.height + draggedSlot.product.height > box.height) continue;
+
+          const otherX = (other.pctX / 100) * boxL;
+          const otherY = (other.pctY / 100) * boxW;
+          const otherW = other.w;
+          const otherH = other.h;
+
+          // Snap position (centered on base)
+          const px = otherX + (otherW - dragW) / 2;
+          const py = otherY + (otherH - dragH) / 2;
+
+          if (px >= otherX - 0.05 && py >= otherY - 0.05 && (px + dragW) <= (otherX + otherW) + 0.05) {
+            // Check if center of drag falls inside base item bounds
+            const dragCX = dragX + dragW / 2;
+            const dragCY = dragY + dragH / 2;
+            if (dragCX >= otherX && dragCX <= otherX + otherW && dragCY >= otherY && dragCY <= otherY + otherH) {
+              targetBase = {
+                product: other.product,
+                snapX: px,
+                snapY: py,
+                pctSnapX: (px / boxL) * 100,
+                pctSnapY: (py / boxW) * 100
+              };
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    const isStacked = !!targetBase;
+    const stackedOnId = targetBase ? targetBase.product.id : null;
+
+    // 2. Check Overlap Collisions (layer-aware)
     for (const other of arrangedItems) {
       if (other.product.id === draggedSlot.product.id) continue;
+
+      const otherLayer = other.stackedOn || null;
+      const thisLayer = stackedOnId;
+
+      if (otherLayer !== thisLayer) {
+        // Different layers -> no collision
+        continue;
+      }
 
       const otherX = (other.pctX / 100) * boxL;
       const otherY = (other.pctY / 100) * boxW;
       const otherW = other.w;
       const otherH = other.h;
 
-      const dx = Math.max(0, otherX - (dragX + dragW), dragX - (otherX + otherW));
-      const dy = Math.max(0, otherY - (dragY + dragH), dragY - (otherY + otherH));
+      const checkX = targetBase ? targetBase.snapX : dragX;
+      const checkY = targetBase ? targetBase.snapY : dragY;
+
+      const dx = Math.max(0, otherX - (checkX + dragW), checkX - (otherX + otherW));
+      const dy = Math.max(0, otherY - (checkY + dragH), checkY - (otherY + otherH));
       const dist = Math.max(dx, dy);
 
       if (dist < gap - 0.05) {
@@ -963,16 +1033,23 @@ export default function GiftBoxVisual({
     setValidationError(null);
     setArrangedItems(prev => prev.map(item => {
       if (item.product.id === draggedSlot.product.id) {
+        const finalX = targetBase ? targetBase.snapX : dragX;
+        const finalY = targetBase ? targetBase.snapY : dragY;
+        const finalPctX = targetBase ? targetBase.pctSnapX : newPctX;
+        const finalPctY = targetBase ? targetBase.pctSnapY : newPctY;
         return {
           ...item,
-          pctX: newPctX,
-          pctY: newPctY,
-          x: dragX,
-          y: dragY,
-          centerX: dragX + dragW / 2,
-          centerY: dragY + dragH / 2,
-          pctCenterX: ((dragX + dragW / 2) / boxL) * 100,
-          pctCenterY: ((dragY + dragH / 2) / boxW) * 100
+          pctX: finalPctX,
+          pctY: finalPctY,
+          x: finalX,
+          y: finalY,
+          centerX: finalX + dragW / 2,
+          centerY: finalY + dragH / 2,
+          pctCenterX: ((finalX + dragW / 2) / boxL) * 100,
+          pctCenterY: ((finalY + dragH / 2) / boxW) * 100,
+          stacked: isStacked,
+          stackedOn: stackedOnId,
+          zOffset: targetBase ? targetBase.product.height : 0
         };
       }
       return item;
@@ -994,23 +1071,61 @@ export default function GiftBoxVisual({
     const dragX = (rotatedSlot.pctX / 100) * boxL;
     const dragY = (rotatedSlot.pctY / 100) * boxW;
 
+    // If currently stacked, find the base item to align new centered rotated coordinates
+    const baseItem = rotatedSlot.stacked ? arrangedItems.find(x => x.product.id === rotatedSlot.stackedOn) : null;
+    let finalDragX = dragX;
+    let finalDragY = dragY;
+    let finalPctX = rotatedSlot.pctX;
+    let finalPctY = rotatedSlot.pctY;
+
+    if (baseItem) {
+      const baseL = (baseItem.pctX / 100) * boxL;
+      const baseT = (baseItem.pctY / 100) * boxW;
+      const baseW = baseItem.w;
+      const baseH = baseItem.h;
+      // Snapped to center of base with new dimensions
+      finalDragX = baseL + (baseW - newW) / 2;
+      finalDragY = baseT + (baseH - newH) / 2;
+      finalPctX = (finalDragX / boxL) * 100;
+      finalPctY = (finalDragY / boxW) * 100;
+    }
+
     // 1. Check if rotated box fits boundary
-    if (dragX + newW > boxL - margin + 0.05 || dragY + newH > boxW - margin + 0.05) {
+    if (finalDragX < margin - 0.05 || finalDragY < margin - 0.05 || 
+        finalDragX + newW > boxL - margin + 0.05 || 
+        finalDragY + newH > boxW - margin + 0.05) {
       showValidationError(`Rotation Blocked: Not enough room against box walls to rotate ${rotatedSlot.product.name}!`);
       return;
     }
 
-    // 2. Check if rotated box overlaps others
+    // If stacked, verify it still fits inside the base item's physical borders
+    if (baseItem) {
+      const baseL = (baseItem.pctX / 100) * boxL;
+      const baseT = (baseItem.pctY / 100) * boxW;
+      const baseW = baseItem.w;
+      const baseH = baseItem.h;
+      if (finalDragX < baseL - 0.05 || finalDragY < baseT - 0.05 ||
+          finalDragX + newW > baseL + baseW + 0.05 || finalDragY + newH > baseT + baseH + 0.05) {
+        showValidationError(`Rotation Blocked: Rotated dimensions exceed base item borders!`);
+        return;
+      }
+    }
+
+    // 2. Check if rotated box overlaps others (layer-aware)
     for (const other of arrangedItems) {
       if (other.product.id === rotatedSlot.product.id) continue;
+
+      const otherLayer = other.stackedOn || null;
+      const thisLayer = rotatedSlot.stackedOn || null;
+      if (otherLayer !== thisLayer) continue;
 
       const otherX = (other.pctX / 100) * boxL;
       const otherY = (other.pctY / 100) * boxW;
       const otherW = other.w;
       const otherH = other.h;
 
-      const dx = Math.max(0, otherX - (dragX + newW), dragX - (otherX + otherW));
-      const dy = Math.max(0, otherY - (dragY + newH), dragY - (otherY + otherH));
+      const dx = Math.max(0, otherX - (finalDragX + newW), finalDragX - (otherX + otherW));
+      const dy = Math.max(0, otherY - (finalDragY + newH), finalDragY - (otherY + otherH));
       const dist = Math.max(dx, dy);
 
       if (dist < gap - 0.05) {
@@ -1027,14 +1142,18 @@ export default function GiftBoxVisual({
           ...item,
           w: newW,
           h: newH,
-          rotated: rotatedVal,
-          rotation: newRotation,
           pctW: (newW / boxL) * 100,
           pctH: (newH / boxW) * 100,
-          centerX: dragX + newW / 2,
-          centerY: dragY + newH / 2,
-          pctCenterX: ((dragX + newW / 2) / boxL) * 100,
-          pctCenterY: ((dragY + newH / 2) / boxW) * 100
+          pctX: finalPctX,
+          pctY: finalPctY,
+          x: finalDragX,
+          y: finalDragY,
+          rotated: rotatedVal,
+          rotation: newRotation,
+          centerX: finalDragX + newW / 2,
+          centerY: finalDragY + newH / 2,
+          pctCenterX: ((finalDragX + newW / 2) / boxL) * 100,
+          pctCenterY: ((finalDragY + newH / 2) / boxW) * 100
         };
       }
       return item;
@@ -1521,9 +1640,12 @@ export default function GiftBoxVisual({
     marginTop: `-${pxW / 2}px`,
     background: boxBgStyle.background,
     border: `4px solid ${boxBgStyle.innerRim}`,
-    boxShadow: "0 15px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(255,255,255,0.15)",
+    boxShadow: lidOpen ? "0 15px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(255,255,255,0.15)" : "0 5px 15px rgba(0,0,0,0.6), inset 0 0 20px rgba(255,255,255,0.15)",
     transformOrigin: "bottom center",
-    transform: `translateZ(${pxH / 2}px) translateY(-${pxW}px) rotateX(-50deg)`,
+    transform: lidOpen
+      ? `translateZ(${pxH / 2}px) translateY(-${pxW}px) rotateX(-50deg)`
+      : `translateZ(${pxH / 2}px) translateY(0px) rotateX(0deg)`,
+    transition: "transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.8s ease",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
@@ -1596,6 +1718,19 @@ export default function GiftBoxVisual({
         >
           <div className="absolute top-4 left-4 text-[10px] sm:text-xs font-semibold text-slate-500 bg-white/80 backdrop-blur px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1.5 pointer-events-none select-none z-50 border border-slate-200">
             <span>🖱️ Click & drag to rotate box in 3D</span>
+          </div>
+
+          <div className="absolute top-4 right-4 z-50">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setLidOpen(!lidOpen);
+              }}
+              className="bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold px-3 py-1.5 rounded-full shadow-md border border-slate-200 transition-all flex items-center gap-1.5 pointer-events-auto cursor-pointer"
+            >
+              {lidOpen ? "🔒 Close Box Lid" : "🔓 Open Box Lid"}
+            </button>
           </div>
 
           <div
@@ -1763,9 +1898,11 @@ export default function GiftBoxVisual({
                         top: `${pctY}%`,
                         width: `${pctW}%`,
                         height: `${pctH}%`,
-                        transform: `translate3d(0, 0, 16px) rotate(${item.rotation || 0}deg)`,
+                        transform: `translate3d(0, 0, ${16 + (item.zOffset || 0) * multiplier3D}px) rotate(${item.rotation || 0}deg)`,
                         transformStyle: "preserve-3d",
-                        filter: "drop-shadow(0 15px 25px rgba(0,0,0,0.55))",
+                        filter: item.stacked
+                          ? "drop-shadow(0 28px 35px rgba(10, 5, 2, 0.48))"
+                          : "drop-shadow(0 15px 25px rgba(0,0,0,0.55))",
                         zIndex: 25 + idx
                       }}
                     >

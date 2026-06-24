@@ -117,9 +117,10 @@ function PackingBlueprint({ layout, products }) {
                   height={ih}
                   rx="3"
                   ry="3"
-                  fill={isFragile ? "rgba(239, 68, 68, 0.12)" : "rgba(14, 165, 233, 0.08)"}
-                  stroke={isFragile ? "#ef4444" : "#0ea5e9"}
+                  fill={isFragile ? "rgba(239, 68, 68, 0.12)" : (item.stacked ? "rgba(245, 158, 11, 0.12)" : "rgba(14, 165, 233, 0.08)")}
+                  stroke={isFragile ? "#ef4444" : (item.stacked ? "#f59e0b" : "#0ea5e9")}
                   strokeWidth="1.5"
+                  strokeDasharray={item.stacked ? "4 3" : undefined}
                 />
 
                 {/* Inner Cross lines for Fragile item visualization */}
@@ -149,7 +150,7 @@ function PackingBlueprint({ layout, products }) {
                   x={ix + iw / 2}
                   y={iy + ih / 2 + 3.5}
                   textAnchor="middle"
-                  fill={isFragile ? "#fca5a5" : "#7dd3fc"}
+                  fill={isFragile ? "#fca5a5" : (item.stacked ? "#fde047" : "#7dd3fc")}
                   className="font-mono select-none"
                   style={{ fontSize: "5px" }}
                 >
@@ -180,6 +181,19 @@ function PackingBlueprint({ layout, products }) {
                     ⚠️ FRAGILE
                   </text>
                 )}
+
+                {/* Stacked Banner Overlay */}
+                {item.stacked && (
+                  <text
+                    x={ix + iw - 28}
+                    y={iy + 8}
+                    fill="#f59e0b"
+                    className="font-sans font-black select-none"
+                    style={{ fontSize: "4.5px" }}
+                  >
+                    🥞 STACKED
+                  </text>
+                )}
               </g>
             );
           })}
@@ -187,7 +201,7 @@ function PackingBlueprint({ layout, products }) {
       </div>
 
       {/* Blueprint Legend Map */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5 text-[10px] text-slate-400 border-t border-slate-900 pt-4 font-medium">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mt-5 text-[10px] text-slate-400 border-t border-slate-900 pt-4 font-medium">
         <div className="flex items-center gap-2">
           <div className="w-4 h-3 rounded border border-sky-500 bg-sky-500/10 flex-shrink-0" />
           <span>Regular Product Footprint</span>
@@ -197,6 +211,10 @@ function PackingBlueprint({ layout, products }) {
             <div className="absolute inset-0 bg-[linear-gradient(45deg,#ef4444_10%,transparent_10%)] bg-[size:4px_4px]" />
           </div>
           <span>Fragile Product (Alert)</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-3 rounded border border-dashed border-amber-500 bg-amber-500/10 flex-shrink-0" />
+          <span>🥞 Stacked Product</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-3 border border-dashed border-amber-500/50 bg-amber-500/5 flex-shrink-0" />

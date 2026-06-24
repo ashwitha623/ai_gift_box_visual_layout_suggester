@@ -1,11 +1,38 @@
 import { BOX_TEMPLATES } from "./giftdata.js";
 
-// Helper to check boundaries and overlaps
-function isValidPlacement(x, y, w, h, boxL, boxW, margin, gap, placed) {
+// Helper to check classification of base products (flat, wide, non-fragile)
+function isEligibleBase(product) {
+  const area = product.length * product.width;
+  const isFlat = product.height <= 6.0;
+  const isWide = area >= 140;
+  return isFlat && isWide && !product.fragile;
+}
+
+// Helper to check classification of stackable products (light, small)
+function isStackable(product) {
+  const area = product.length * product.width;
+  return area <= 100 && (product.weight || 0) <= 350;
+}
+
+// Helper to check boundaries and overlaps (layer-aware)
+function isValidPlacement(x, y, w, h, boxL, boxW, margin, gap, placed, isStacked = false, stackedOnId = null) {
   if (x < margin - 0.05 || y < margin - 0.05 || x + w > boxL - margin + 0.05 || y + h > boxW - margin + 0.05) {
     return false;
   }
   for (const other of placed) {
+    // If this is a stacked item and we are checking against its base item, ignore the overlap
+    if (isStacked && other.product.id === stackedOnId) {
+      continue;
+    }
+
+    const otherLayer = other.stackedOn || null;
+    const thisLayer = stackedOnId || null;
+
+    if (otherLayer !== thisLayer) {
+      // Different vertical layers -> no 2D collision
+      continue;
+    }
+
     const dx = Math.max(0, other.x - (x + w), x - (other.x + other.w));
     const dy = Math.max(0, other.y - (y + h), y - (other.y + other.h));
     const dist = Math.max(dx, dy);
@@ -15,6 +42,63 @@ function isValidPlacement(x, y, w, h, boxL, boxW, margin, gap, placed) {
   }
   return true;
 }
+
+// Helper to attempt vertical stacking of a product onto a placed base item
+function tryStackProduct(product, scale, box, margin, gap, placed) {
+  if (!isStackable(product)) return null;
+
+  for (const baseItem of placed) {
+    if (baseItem.stacked) continue; // cannot stack on an already stacked item
+
+    if (isEligibleBase(baseItem.product)) {
+      // Check height constraint
+      if (baseItem.product.height + product.height > box.height) continue;
+
+      const w = product.length * scale;
+      const h = product.width * scale;
+
+      // Try normal orientation (centered on base)
+      let px = baseItem.x + (baseItem.w - w) / 2;
+      let py = baseItem.y + (baseItem.h - h) / 2;
+      if (w <= baseItem.w && h <= baseItem.h &&
+          isValidPlacement(px, py, w, h, box.length, box.width, margin, gap, placed, true, baseItem.product.id)) {
+        return {
+          product,
+          x: px,
+          y: py,
+          w,
+          h,
+          rotated: false,
+          stacked: true,
+          stackedOn: baseItem.product.id,
+          zOffset: baseItem.product.height
+        };
+      }
+
+      // Try rotated orientation
+      const rotW = h;
+      const rotH = w;
+      px = baseItem.x + (baseItem.w - rotW) / 2;
+      py = baseItem.y + (baseItem.h - rotH) / 2;
+      if (rotW <= baseItem.w && rotH <= baseItem.h &&
+          isValidPlacement(px, py, rotW, rotH, box.length, box.width, margin, gap, placed, true, baseItem.product.id)) {
+        return {
+          product,
+          x: px,
+          y: py,
+          w: rotW,
+          h: rotH,
+          rotated: true,
+          stacked: true,
+          stackedOn: baseItem.product.id,
+          zOffset: baseItem.product.height
+        };
+      }
+    }
+  }
+  return null;
+}
+
 
 // 1. Premium Showcase: Center largest item, place others radially
 function packShowcase(box, products, scale, margin, gap, template) {
@@ -90,10 +174,21 @@ function packShowcase(box, products, scale, margin, gap, template) {
     }
 
     if (!placedOk) {
+      // Try to stack as a fallback
+      const stackedItem = tryStackProduct(p, scale, box, margin, gap, placed);
+      if (stackedItem) {
+        placed.push(stackedItem);
+        placedOk = true;
+      }
+    }
+
+    if (!placedOk) {
       return null; // Failed to pack
     }
 
-    placed.push({ product: p, x: bestX, y: bestY, w: bestW, h: bestH, rotated: bestRotated });
+    if (placed[placed.length - 1].product.id !== p.id) {
+      placed.push({ product: p, x: bestX, y: bestY, w: bestW, h: bestH, rotated: bestRotated });
+    }
   }
 
   return placed;
@@ -186,6 +281,15 @@ function packSymmetrical(box, products, scale, margin, gap, template) {
         if (orientationOk) break;
       }
 
+      if (!orientationOk) {
+        const stackedItem = tryStackProduct(p, scale, box, margin, gap, placed);
+        if (stackedItem) {
+          placed.push(stackedItem);
+          currentY += gap;
+          orientationOk = true;
+        }
+      }
+
       if (!orientationOk) return false;
     }
     return true;
@@ -238,15 +342,20 @@ function packSpaceUtil(box, products, scale, margin, gap, template) {
     }
 
     if (bestX === null) {
-      return null;
+      const stackedItem = tryStackProduct(p, scale, box, margin, gap, placed);
+      if (stackedItem) {
+        placed.push(stackedItem);
+      } else {
+        return null;
+      }
+    } else {
+      const item = { product: p, x: bestX, y: bestY, w: bestW, h: bestH, rotated: bestRotated };
+      placed.push(item);
+
+      // Add candidate points
+      candidatePoints.push({ x: item.x + item.w + gap, y: item.y });
+      candidatePoints.push({ x: item.x, y: item.y + item.h + gap });
     }
-
-    const item = { product: p, x: bestX, y: bestY, w: bestW, h: bestH, rotated: bestRotated };
-    placed.push(item);
-
-    // Add candidate points
-    candidatePoints.push({ x: item.x + item.w + gap, y: item.y });
-    candidatePoints.push({ x: item.x, y: item.y + item.h + gap });
   }
 
   return placed;
@@ -339,15 +448,22 @@ function packSafeShipping(box, products, scale, originalMargin, originalGap, tem
         if (foundFallback) break;
       }
 
-      if (!foundFallback) return null;
+      if (!foundFallback) {
+        const stackedItem = tryStackProduct(p, scale, box, margin, gap, placed);
+        if (stackedItem) {
+          placed.push(stackedItem);
+        } else {
+          return null;
+        }
+      } else {
+        const item = { product: p, x: bestX, y: bestY, w: bestW, h: bestH, rotated: bestRotated };
+        placed.push(item);
+
+        // Expand candidate points
+        candidatePoints.push({ x: item.x + item.w + gap, y: item.y, origin: "edge" });
+        candidatePoints.push({ x: item.x, y: item.y + item.h + gap, origin: "edge" });
+      }
     }
-
-    const item = { product: p, x: bestX, y: bestY, w: bestW, h: bestH, rotated: bestRotated };
-    placed.push(item);
-
-    // Expand candidate points
-    candidatePoints.push({ x: item.x + item.w + gap, y: item.y, origin: "edge" });
-    candidatePoints.push({ x: item.x, y: item.y + item.h + gap, origin: "edge" });
   }
 
   return placed;
@@ -418,6 +534,14 @@ function packCorporate(box, products, scale, margin, gap, template) {
     }
 
     if (!placedOk) {
+      const stackedItem = tryStackProduct(p, scale, box, margin, gap, placed);
+      if (stackedItem) {
+        placed.push(stackedItem);
+        placedOk = true;
+      }
+    }
+
+    if (!placedOk) {
       return null; // Reject layout if product cannot fit
     }
   }
@@ -483,7 +607,10 @@ function packLayout(box, products, layoutStyle, template) {
           pctW: (item.w / box.length) * 100,
           pctH: (item.h / box.width) * 100,
           pctCenterX: (cx / box.length) * 100,
-          pctCenterY: (cy / box.width) * 100
+          pctCenterY: (cy / box.width) * 100,
+          stacked: item.stacked || false,
+          stackedOn: item.stackedOn || null,
+          zOffset: item.zOffset || 0
         };
       });
     }
@@ -545,6 +672,11 @@ function calculateScores(box, products, placedItems, occasion, budget, boxTempla
         // distance to other products
         for (const other of placedItems) {
           if (other.product.id !== item.product.id) {
+            const otherLayer = other.stackedOn || null;
+            const thisLayer = item.stackedOn || null;
+            if (otherLayer !== thisLayer) {
+              continue; // Different layers -> skip proximity safety penalty
+            }
             const dx = Math.max(0, other.x - (item.x + item.w), item.x - (other.x + other.w));
             const dy = Math.max(0, other.y - (item.y + item.h), item.y - (other.y + other.h));
             const dist = Math.max(dx, dy);
