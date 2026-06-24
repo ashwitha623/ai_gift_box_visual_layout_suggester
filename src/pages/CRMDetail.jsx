@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { User, Phone, MapPin, Mail, Heart, Calendar, Gift, ShoppingBag, Save, Sparkles, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,9 +11,12 @@ import { useToast } from "@/components/ui/use-toast";
 
 export default function CRMDetail() {
   const { id } = useParams(); // Selected customer ID
+  const navigate = useNavigate();
   const [customer, setCustomer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [allCustomers, setAllCustomers] = useState([]);
   
   // Form edit states
   const [phone, setPhone] = useState("");
@@ -23,6 +26,26 @@ export default function CRMDetail() {
   const [packStyle, setPackStyle] = useState("Luxury");
 
   const { toast } = useToast();
+
+  useEffect(() => {
+    const userStr = localStorage.getItem("currentUser");
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      setCurrentUser(user);
+      if (user.role === "admin") {
+        fetchAllCustomers();
+      }
+    }
+  }, []);
+
+  const fetchAllCustomers = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/crm/customers");
+      setAllCustomers(res.data);
+    } catch (err) {
+      console.error("Failed to load customer list:", err);
+    }
+  };
 
   useEffect(() => {
     loadCustomerProfile();
@@ -111,6 +134,25 @@ export default function CRMDetail() {
               </div>
               <h1 className="text-3xl font-extrabold font-heading text-white">{customer.username}</h1>
               <p className="text-slate-300 text-xs mt-1">Gifting Member Since: <strong>{new Date().toLocaleDateString()}</strong></p>
+              
+              {/* Customer Switcher Dropdown (Admin only) */}
+              {currentUser?.role === "admin" && allCustomers.length > 0 && (
+                <div className="flex items-center gap-2 mt-4 bg-white/5 border border-white/15 rounded-xl px-3 py-1.5 w-fit">
+                  <span className="text-[10px] text-slate-300 font-bold uppercase tracking-wider">Select Customer:</span>
+                  <select
+                    value={customer.id}
+                    onChange={(e) => navigate(`/crm/customer/${e.target.value}`)}
+                    className="bg-transparent text-white font-bold text-xs cursor-pointer outline-none border-none pr-6 focus:ring-0"
+                    style={{ colorScheme: "dark" }}
+                  >
+                    {allCustomers.map((cust) => (
+                      <option key={cust.id} value={cust.id} className="text-[#09152b] bg-white font-semibold">
+                        {cust.username} ({cust.email})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
             
             <div className="flex gap-4 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/5">
