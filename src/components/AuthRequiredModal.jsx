@@ -15,17 +15,6 @@ export default function AuthRequiredModal({ isOpen, onClose, redirectTarget }) {
     window.location.href = `/auth?redirect=${redirectUrl}&signup=true`;
   };
 
-  const benefits = [
-    "Place Orders",
-    "Track Orders",
-    "Save AI Layouts",
-    "Download Optimization Reports",
-    "View Order History",
-    "Access AI Assistant",
-    "Receive Notifications",
-    "Faster Checkout Experience"
-  ];
-
   return (
     <AnimatePresence>
       {isOpen && (
@@ -74,24 +63,8 @@ export default function AuthRequiredModal({ isOpen, onClose, redirectTarget }) {
                 Sign in to access advanced gifting tools and personalized services.
               </p>
 
-              {/* Benefits Checklist */}
-              <div className="w-full bg-slate-50/50 rounded-2xl p-5 border border-slate-100/50 my-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {benefits.map((b) => (
-                    <div key={b} className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded-full bg-[#C5A880]/15 flex items-center justify-center flex-shrink-0">
-                        <Check className="w-3.5 h-3.5 text-[#C5A880] stroke-[3]" />
-                      </div>
-                      <span className="text-[11px] font-bold text-[#09152b]">
-                        {b}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
               {/* Buttons */}
-              <div className="w-full space-y-3">
+              <div className="w-full space-y-3 mt-6">
                 <Button
                   onClick={handleSignIn}
                   className="w-full rounded-full bg-[#09152b] hover:bg-[#09152b]/90 text-white font-semibold h-11 shadow-md shadow-[#09152b]/10 border border-[#C5A880]/20 flex items-center justify-center gap-2 text-xs"
