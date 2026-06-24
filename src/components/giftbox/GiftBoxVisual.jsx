@@ -590,31 +590,29 @@ function getVisualScale(p, box, items) {
 
   // 1. Proportional Sizing by product type
   if (p.name === "Ring" || p.name === "Earrings") {
-    baseScale = 2.0; // Jewelries are tiny physically, need large scaling boost
+    baseScale = 1.35; // Jewelries are tiny physically, need slight scaling boost
   } else if (p.category === "Jewelry" || p.name === "Bracelet" || p.name === "Necklace") {
-    baseScale = 1.6;
-  } else if (p.name === "Engraved Keychain" || p.name === "Premium Pen") {
-    baseScale = 1.55;
-  } else if (p.name === "Perfume" || p.name === "Watch") {
-    baseScale = 1.35;
-  } else if (p.name === "Scented Candle" || p.category === "Chocolates") {
-    baseScale = 1.2;
-  } else if (p.category === "Soft Toys" || p.category === "Flowers") {
-    baseScale = 0.95; // large items maintain their size to fit box nicely
-  } else {
     baseScale = 1.15;
+  } else if (p.name === "Engraved Keychain" || p.name === "Premium Pen") {
+    baseScale = 1.15;
+  } else if (p.name === "Perfume" || p.name === "Watch") {
+    baseScale = 1.05;
+  } else if (p.name === "Scented Candle" || p.category === "Chocolates") {
+    baseScale = 0.95;
+  } else if (p.category === "Soft Toys" || p.category === "Flowers") {
+    baseScale = 0.8; // large items maintain their size to fit box nicely
+  } else {
+    baseScale = 0.95;
   }
 
   if (!box || !items) return baseScale;
 
   // 2. Box Size scaling adjustment:
   // Standard box size is ~600 cm² (e.g. 30x20).
-  // Larger boxes scale small products more to fill empty zones.
   const boxArea = box.length * box.width;
-  const boxScaleFactor = Math.min(1.25, Math.max(0.8, boxArea / 600));
+  const boxScaleFactor = Math.min(1.15, Math.max(0.85, boxArea / 600));
 
   // 3. Surrounding Free Space density adjustment:
-  // Calculate total area occupied by other items (in physical sq cm)
   const otherItemsArea = items
     .filter(item => item.product.id !== p.id)
     .reduce((sum, item) => sum + (item.w * item.h), 0);
@@ -624,21 +622,21 @@ function getVisualScale(p, box, items) {
   const freeSpace = Math.max(0, usableArea - otherItemsArea);
   const freeSpaceRatio = usableArea > 0 ? freeSpace / usableArea : 0.5;
 
-  // More free space => scale booster (+25% max). Low free space => shrink slightly.
-  const spaceBoost = 0.8 + freeSpaceRatio * 0.45; // range: 0.8 to 1.25
+  // More free space => scale booster (+10% max). Low free space => shrink slightly.
+  const spaceBoost = 0.9 + freeSpaceRatio * 0.2; // range: 0.9 to 1.1
 
   let finalScale = baseScale * boxScaleFactor * spaceBoost;
 
-  // Scale booster to make items look bigger and more realistic (not tiny stickers)
-  finalScale = finalScale * 1.75;
+  // Moderate scale booster to keep items tidy and inside boundaries
+  finalScale = finalScale * 1.05;
 
-  // Clip scales strictly based on physical dimensions to prevent unrealistic sizing
+  // Clip scales strictly to prevent overflowing
   if (p.size === "Small") {
-    finalScale = Math.min(3.6, Math.max(2.1, finalScale));
+    finalScale = Math.min(1.4, Math.max(0.9, finalScale));
   } else if (p.size === "Medium") {
-    finalScale = Math.min(2.5, Math.max(1.6, finalScale));
+    finalScale = Math.min(1.15, Math.max(0.85, finalScale));
   } else {
-    finalScale = Math.min(1.8, Math.max(1.3, finalScale));
+    finalScale = Math.min(0.95, Math.max(0.75, finalScale));
   }
 
   return Number(finalScale.toFixed(2));
