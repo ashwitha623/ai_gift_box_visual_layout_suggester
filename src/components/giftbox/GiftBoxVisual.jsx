@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { CATEGORY_FALLBACKS } from "@/lib/giftdata";
+import { CATEGORY_FALLBACKS, getProductImage } from "@/lib/giftdata";
 import { generateRecommendations } from "@/lib/layoutEngine";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/components/ui/use-toast";
@@ -648,11 +648,11 @@ function ProductTile({ p, slot, index, box, items, isMobileView, viewMode, onDra
     CATEGORY_FALLBACKS[p.category] ||
     CATEGORY_FALLBACKS["Lifestyle Gifts"];
 
-  const [imgSrc, setImgSrc] = useState(p.image || fallbackSrc);
+  const [imgSrc, setImgSrc] = useState(getProductImage(p));
   const [processed, setProcessed] = useState(false);
 
   useEffect(() => {
-    const srcToProcess = p.image || fallbackSrc;
+    const srcToProcess = getProductImage(p);
     if (!srcToProcess) return;
 
     const img = new Image();
@@ -818,7 +818,7 @@ function ProductTile({ p, slot, index, box, items, isMobileView, viewMode, onDra
       title={isDraggable ? "Drag to move • Double-click to rotate" : ""}
     >
       <img
-        src={processed ? imgSrc : (p.image || fallbackSrc)}
+        src={processed ? imgSrc : getProductImage(p)}
         alt={p.name}
         className="max-w-full max-h-full object-contain select-none pointer-events-none transform transition-transform duration-300 group-hover:scale-[1.03]"
         onError={(e) => {
@@ -1905,7 +1905,7 @@ export default function GiftBoxVisual({
                       }}
                     >
                       <img
-                        src={item.product.image || fallbackSrc}
+                        src={getProductImage(item.product)}
                         alt={item.product.name}
                         className="w-full h-full object-contain select-none pointer-events-none"
                       />

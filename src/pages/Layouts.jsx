@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { OCCASIONS, PRODUCTS } from "@/lib/giftdata";
+import { OCCASIONS, PRODUCTS, getProductImage } from "@/lib/giftdata";
 import { generateRecommendations } from "@/lib/layoutEngine";
 
 export default function Layouts() {
@@ -360,7 +360,7 @@ export default function Layouts() {
                                 className="relative flex-shrink-0 w-11 h-11 rounded-xl border border-slate-100 overflow-hidden bg-slate-50 flex items-center justify-center"
                                 title={p.name}
                               >
-                                <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                                <img src={getProductImage(p)} alt={p.name} className="w-full h-full object-cover" />
                               </div>
                             ))}
                           </div>

@@ -1,5 +1,6 @@
 import { Ribbon, Package, ListOrdered, Brain, Gift, ShieldAlert, Cpu, Maximize2, Compass } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { getProductImage } from "@/lib/giftdata";
 
 function PackingBlueprint({ layout, products }) {
   const box = layout.box;
@@ -355,7 +356,7 @@ export default function ReportCard({ layout, occasion, products, details, totalP
                 {products.map((p) => (
                   <div key={p.id} className="flex items-center justify-between bg-secondary/35 rounded-xl px-3 py-2 border border-border/50 text-xs">
                     <div className="flex items-center gap-2">
-                      <img src={p.image} alt={p.name} className="w-6 h-6 rounded-full object-cover border" />
+                      <img src={getProductImage(p)} alt={p.name} className="w-6 h-6 rounded-full object-cover border" />
                       <span className="font-bold text-primary">{p.name}</span>
                       {p.fragile ? (
                         <Badge className="bg-rose-50 border border-rose-200 text-rose-600 text-[8px] px-1 py-0 hover:bg-rose-50 font-black">

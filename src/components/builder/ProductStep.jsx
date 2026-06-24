@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Check, ShoppingBag, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { PRODUCTS, CATEGORIES, CATEGORY_FALLBACKS, formatINR } from "@/lib/giftdata";
+import { PRODUCTS, CATEGORIES, CATEGORY_FALLBACKS, formatINR, getProductImage } from "@/lib/giftdata";
 
 const SIZE_COLOR = {
   Small:  "bg-sky-50 text-sky-700 border-sky-200",
@@ -71,7 +71,7 @@ export default function ProductStep({ selected, onToggle, allProducts }) {
               {/* Product image */}
               <div className="relative aspect-square overflow-hidden bg-muted">
                 <img
-                  src={p.image}
+                  src={getProductImage(p)}
                   alt={p.name}
                   loading="lazy"
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-108"
