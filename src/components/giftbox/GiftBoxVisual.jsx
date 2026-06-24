@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import { CATEGORY_FALLBACKS } from "@/lib/giftdata";
 import { generateRecommendations } from "@/lib/layoutEngine";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useToast } from "@/components/ui/use-toast";
+
 
 // Helper to generate wavy paths for decorative crinkle elements
 const generateWavyPath = (w, h, isHoriz) => {
@@ -643,7 +645,7 @@ function getVisualScale(p, box, items) {
 }
 
 // Product component containing sizing, shadows, and hover states
-function ProductTile({ p, slot, index, box, items, isMobileView }) {
+function ProductTile({ p, slot, index, box, items, isMobileView, viewMode, onDragEnd, onRotate, boxWellRef, dragSession }) {
   const fallbackSrc =
     CATEGORY_FALLBACKS[p.category] ||
     CATEGORY_FALLBACKS["Lifestyle Gifts"];
@@ -780,17 +782,25 @@ function ProductTile({ p, slot, index, box, items, isMobileView }) {
     pctY = compressedCenterY - pctH / 2;
   }
 
+  const isDraggable = viewMode === "2D";
+
   return (
     <motion.div
+      key={`${p.id}-${dragSession}`}
       initial={{ opacity: 0, y: -20, rotate: (slot.rotation || 0) - 10, scale: 0.6 }}
       animate={{ opacity: 1, y: 0, rotate: slot.rotation || 0, scale: 1 }}
       transition={{
-        delay: index * 0.08,
         type: "spring",
         stiffness: 150,
         damping: 15
       }}
-      className="absolute group flex items-center justify-center pointer-events-auto"
+      drag={isDraggable}
+      dragConstraints={boxWellRef}
+      dragMomentum={false}
+      dragElastic={0}
+      onDragEnd={(event, info) => onDragEnd && onDragEnd(slot, info)}
+      onDoubleClick={() => isDraggable && onRotate && onRotate(slot)}
+      className={`absolute group flex items-center justify-center ${isDraggable ? "cursor-grab active:cursor-grabbing pointer-events-auto" : "pointer-events-none"}`}
       style={{
         left: `${pctX}%`,
         top: `${pctY}%`,
@@ -801,12 +811,13 @@ function ProductTile({ p, slot, index, box, items, isMobileView }) {
         filter: "drop-shadow(0 14px 22px rgba(10, 5, 2, 0.48)) drop-shadow(0 4px 8px rgba(10, 5, 2, 0.22))",
         transition: "filter 0.3s ease, transform 0.3s ease"
       }}
-      whileHover={{
+      whileHover={isDraggable ? {
         scale: 1.05,
         y: -6,
         filter: "drop-shadow(0 25px 30px rgba(10, 5, 2, 0.6)) drop-shadow(0 10px 16px rgba(10, 5, 2, 0.4))",
         zIndex: 150
-      }}
+      } : {}}
+      title={isDraggable ? "Drag to move • Double-click to rotate" : ""}
     >
       <img
         src={processed ? imgSrc : (p.image || fallbackSrc)}
@@ -816,6 +827,11 @@ function ProductTile({ p, slot, index, box, items, isMobileView }) {
           e.currentTarget.src = fallbackSrc;
         }}
       />
+      {isDraggable && (
+        <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 text-[9px] font-bold text-yellow-100 rounded-full px-2 py-0.5 pointer-events-none select-none -bottom-5 border border-amber-300/30 whitespace-nowrap z-50">
+          🔄 Dbl-Click to Rotate
+        </div>
+      )}
     </motion.div>
   );
 }
@@ -854,7 +870,221 @@ export default function GiftBoxVisual({
 
   if (!layoutData) return null;
 
-  const { box, items } = layoutData;
+  const { box } = layoutData;
+
+  const { toast } = useToast();
+  const [viewMode, setViewMode] = useState("2D");
+  const [arrangedItems, setArrangedItems] = useState(() => layoutData?.items || []);
+  const [dragSession, setDragSession] = useState(0);
+  const [rotX, setRotX] = useState(-25);
+  const [rotY, setRotY] = useState(35);
+  const isDragging3D = useRef(false);
+  const dragStart = useRef({ x: 0, y: 0 });
+  const boxWellRef = useRef(null);
+
+  useEffect(() => {
+    if (layoutData?.items) {
+      setArrangedItems(layoutData.items);
+    }
+  }, [layoutData]);
+
+  // Propagate custom item arrangements to parent step for checkout/PDF summary
+  useEffect(() => {
+    if (arrangedItems.length > 0 && customizations.onItemsChange) {
+      customizations.onItemsChange(arrangedItems);
+    }
+  }, [arrangedItems]);
+
+  const handleDragEnd = (draggedSlot, info) => {
+    if (!boxWellRef.current) return;
+
+    const rect = boxWellRef.current.getBoundingClientRect();
+    const deltaX = (info.offset.x / rect.width) * 100;
+    const deltaY = (info.offset.y / rect.height) * 100;
+
+    const newPctX = Math.round(draggedSlot.pctX + deltaX);
+    const newPctY = Math.round(draggedSlot.pctY + deltaY);
+
+    // Collision Check parameters
+    const boxL = box.length;
+    const boxW = box.width;
+    const margin = 1.2;
+    const gap = layoutData.template?.minSpacing !== undefined ? layoutData.template.minSpacing : 0.6;
+
+    const dragW = draggedSlot.w;
+    const dragH = draggedSlot.h;
+    const dragX = (newPctX / 100) * boxL;
+    const dragY = (newPctY / 100) * boxW;
+
+    // 1. Check Boundary Wall Bounds
+    if (dragX < margin - 0.05 || dragY < margin - 0.05 || 
+        dragX + dragW > boxL - margin + 0.05 || 
+        dragY + dragH > boxW - margin + 0.05) {
+      toast({
+        title: "Boundary Error",
+        description: `Cannot place ${draggedSlot.product.name} outside box limits!`,
+        variant: "destructive"
+      });
+      // Increment dragSession to force the element to snap back to previous state coordinates
+      setDragSession(prev => prev + 1);
+      return;
+    }
+
+    // 2. Check Overlap Collisions
+    for (const other of arrangedItems) {
+      if (other.product.id === draggedSlot.product.id) continue;
+
+      const otherX = (other.pctX / 100) * boxL;
+      const otherY = (other.pctY / 100) * boxW;
+      const otherW = other.w;
+      const otherH = other.h;
+
+      const dx = Math.max(0, otherX - (dragX + dragW), dragX - (otherX + otherW));
+      const dy = Math.max(0, otherY - (dragY + dragH), dragY - (otherY + otherH));
+      const dist = Math.max(dx, dy);
+
+      if (dist < gap - 0.05) {
+        toast({
+          title: "Overlap Detected",
+          description: `${draggedSlot.product.name} collides with ${other.product.name}!`,
+          variant: "destructive"
+        });
+        setDragSession(prev => prev + 1);
+        return;
+      }
+    }
+
+    // Valid placement -> update coordinates!
+    setArrangedItems(prev => prev.map(item => {
+      if (item.product.id === draggedSlot.product.id) {
+        return {
+          ...item,
+          pctX: newPctX,
+          pctY: newPctY,
+          x: dragX,
+          y: dragY,
+          centerX: dragX + dragW / 2,
+          centerY: dragY + dragH / 2,
+          pctCenterX: ((dragX + dragW / 2) / boxL) * 100,
+          pctCenterY: ((dragY + dragH / 2) / boxW) * 100
+        };
+      }
+      return item;
+    }));
+  };
+
+  const handleRotate = (rotatedSlot) => {
+    const boxL = box.length;
+    const boxW = box.width;
+    const margin = 1.2;
+    const gap = layoutData.template?.minSpacing !== undefined ? layoutData.template.minSpacing : 0.6;
+
+    // Toggled dimensions
+    const newW = rotatedSlot.h;
+    const newH = rotatedSlot.w;
+    const rotatedVal = !rotatedSlot.rotated;
+    const newRotation = (rotatedSlot.rotation + 90) % 360;
+
+    const dragX = (rotatedSlot.pctX / 100) * boxL;
+    const dragY = (rotatedSlot.pctY / 100) * boxW;
+
+    // 1. Check if rotated box fits boundary
+    if (dragX + newW > boxL - margin + 0.05 || dragY + newH > boxW - margin + 0.05) {
+      toast({
+        title: "Rotation Blocked",
+        description: "Not enough room against box walls to rotate here!",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // 2. Check if rotated box overlaps others
+    for (const other of arrangedItems) {
+      if (other.product.id === rotatedSlot.product.id) continue;
+
+      const otherX = (other.pctX / 100) * boxL;
+      const otherY = (other.pctY / 100) * boxW;
+      const otherW = other.w;
+      const otherH = other.h;
+
+      const dx = Math.max(0, otherX - (dragX + newW), dragX - (otherX + otherW));
+      const dy = Math.max(0, otherY - (dragY + newH), dragY - (otherY + otherH));
+      const dist = Math.max(dx, dy);
+
+      if (dist < gap - 0.05) {
+        toast({
+          title: "Rotation Blocked",
+          description: `Cannot rotate ${rotatedSlot.product.name} due to overlap with ${other.product.name}!`,
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+    // Valid rotation -> apply changes!
+    setArrangedItems(prev => prev.map(item => {
+      if (item.product.id === rotatedSlot.product.id) {
+        return {
+          ...item,
+          w: newW,
+          h: newH,
+          rotated: rotatedVal,
+          rotation: newRotation,
+          pctW: (newW / boxL) * 100,
+          pctH: (newH / boxW) * 100,
+          centerX: dragX + newW / 2,
+          centerY: dragY + newH / 2,
+          pctCenterX: ((dragX + newW / 2) / boxL) * 100,
+          pctCenterY: ((dragY + newH / 2) / boxW) * 100
+        };
+      }
+      return item;
+    }));
+
+    toast({
+      title: "Rotated Product 🔄",
+      description: `${rotatedSlot.product.name} rotated 90 degrees.`
+    });
+  };
+
+  const handleMouseDown = (e) => {
+    isDragging3D.current = true;
+    dragStart.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging3D.current) return;
+    const deltaX = e.clientX - dragStart.current.x;
+    const deltaY = e.clientY - dragStart.current.y;
+    dragStart.current = { x: e.clientX, y: e.clientY };
+
+    setRotY((prev) => prev + deltaX * 0.45);
+    setRotX((prev) => Math.max(-65, Math.min(5, prev - deltaY * 0.45)));
+  };
+
+  const handleMouseUp = () => {
+    isDragging3D.current = false;
+  };
+
+  const handleTouchStart = (e) => {
+    if (e.touches.length === 1) {
+      isDragging3D.current = true;
+      dragStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isDragging3D.current || e.touches.length !== 1) return;
+    const deltaX = e.touches[0].clientX - dragStart.current.x;
+    const deltaY = e.touches[0].clientY - dragStart.current.y;
+    dragStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+
+    setRotY((prev) => prev + deltaX * 0.45);
+    setRotX((prev) => Math.max(-65, Math.min(5, prev - deltaY * 0.45)));
+  };
+
+  const items = arrangedItems;
+
 
   // Retrieve custom occasion styling configurations
   const styling = useMemo(() => {
@@ -1205,8 +1435,123 @@ export default function GiftBoxVisual({
     return sorted[0];
   }, [items]);
 
+  // 3D scale multiplier (pixels per cm) and rotation styles
+  const multiplier3D = isMobileView ? 9 : 13;
+  const pxL = box.length * multiplier3D;
+  const pxW = box.width * multiplier3D;
+  const pxH = box.height * multiplier3D;
+
+  const bottomStyle = {
+    position: "absolute",
+    width: `${pxL}px`,
+    height: `${pxW}px`,
+    left: "50%",
+    top: "50%",
+    marginLeft: `-${pxL / 2}px`,
+    marginTop: `-${pxW / 2}px`,
+    background: boxBgStyle.background,
+    border: `${isMobileView ? 6 : 10}px solid ${boxBgStyle.innerRim}`,
+    boxShadow: "inset 0 0 45px rgba(0,0,0,0.65)",
+    transform: `translateZ(-${pxH / 2}px)`,
+    transformStyle: "preserve-3d"
+  };
+
+  const backStyle = {
+    position: "absolute",
+    width: `${pxL}px`,
+    height: `${pxH}px`,
+    left: "50%",
+    top: "50%",
+    marginLeft: `-${pxL / 2}px`,
+    marginTop: `-${pxH / 2}px`,
+    background: boxBgStyle.background,
+    border: `2px solid ${boxBgStyle.innerRim}`,
+    transform: `rotateX(90deg) translateZ(-${pxW / 2}px)`,
+    boxShadow: "inset 0 -15px 30px rgba(0,0,0,0.4)"
+  };
+
+  const frontStyle = {
+    position: "absolute",
+    width: `${pxL}px`,
+    height: `${pxH}px`,
+    left: "50%",
+    top: "50%",
+    marginLeft: `-${pxL / 2}px`,
+    marginTop: `-${pxH / 2}px`,
+    background: boxBgStyle.background,
+    border: `2px solid ${boxBgStyle.innerRim}`,
+    transform: `rotateX(90deg) translateZ(${pxW / 2}px)`,
+    boxShadow: "inset 0 15px 30px rgba(0,0,0,0.4)"
+  };
+
+  const leftStyle = {
+    position: "absolute",
+    width: `${pxW}px`,
+    height: `${pxH}px`,
+    left: "50%",
+    top: "50%",
+    marginLeft: `-${pxW / 2}px`,
+    marginTop: `-${pxH / 2}px`,
+    background: boxBgStyle.background,
+    border: `2px solid ${boxBgStyle.innerRim}`,
+    transform: `rotateY(90deg) translateZ(-${pxL / 2}px)`,
+    boxShadow: "inset 15px 0 30px rgba(0,0,0,0.4)"
+  };
+
+  const rightStyle = {
+    position: "absolute",
+    width: `${pxW}px`,
+    height: `${pxH}px`,
+    left: "50%",
+    top: "50%",
+    marginLeft: `-${pxW / 2}px`,
+    marginTop: `-${pxH / 2}px`,
+    background: boxBgStyle.background,
+    border: `2px solid ${boxBgStyle.innerRim}`,
+    transform: `rotateY(90deg) translateZ(${pxL / 2}px)`,
+    boxShadow: "inset -15px 0 30px rgba(0,0,0,0.4)"
+  };
+
+  const lidStyle = {
+    position: "absolute",
+    width: `${pxL}px`,
+    height: `${pxW}px`,
+    left: "50%",
+    top: "50%",
+    marginLeft: `-${pxL / 2}px`,
+    marginTop: `-${pxW / 2}px`,
+    background: boxBgStyle.background,
+    border: `4px solid ${boxBgStyle.innerRim}`,
+    boxShadow: "0 15px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(255,255,255,0.15)",
+    transformOrigin: "bottom center",
+    transform: `translateZ(${pxH / 2}px) translateY(-${pxW}px) rotateX(-50deg)`,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    transformStyle: "preserve-3d"
+  };
+
   return (
     <div className={`relative mx-auto w-full ${maxW}`}>
+      {/* 2D / 3D Toggle Controls */}
+      <div className="flex justify-end gap-2 mb-4 relative z-50">
+        <button
+          type="button"
+          onClick={() => setViewMode("2D")}
+          className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm ${viewMode === "2D" ? "bg-primary text-white" : "bg-white text-slate-700 hover:bg-slate-50 border border-slate-200"}`}
+        >
+          📊 2D Customizer
+        </button>
+        <button
+          type="button"
+          onClick={() => setViewMode("3D")}
+          className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm ${viewMode === "3D" ? "bg-primary text-white" : "bg-white text-slate-700 hover:bg-slate-50 border border-slate-200"}`}
+        >
+          📦 3D View (Orbit)
+        </button>
+      </div>
+
       {/* SVG Definitions for Gradients and lighting masks */}
       <svg className="absolute w-0 h-0 pointer-events-none">
         <defs>
@@ -1234,7 +1579,233 @@ export default function GiftBoxVisual({
         </defs>
       </svg>
 
-      {/* Ambient Ground Shadow */}
+      {viewMode === "3D" ? (
+        <div
+          className="w-full flex items-center justify-center bg-slate-950/5 rounded-3xl relative overflow-hidden select-none border border-slate-200/40"
+          style={{
+            height: isMobileView ? "380px" : "550px",
+            perspective: "1200px",
+            touchAction: "none"
+          }}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleMouseUp}
+        >
+          <div className="absolute top-4 left-4 text-[10px] sm:text-xs font-semibold text-slate-500 bg-white/80 backdrop-blur px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1.5 pointer-events-none select-none z-50 border border-slate-200">
+            <span>🖱️ Click & drag to rotate box in 3D</span>
+          </div>
+
+          <div
+            className="relative"
+            style={{
+              width: `${pxL}px`,
+              height: `${pxW}px`,
+              transformStyle: "preserve-3d",
+              transform: `rotateX(${rotX}deg) rotateY(${rotY}deg)`,
+              transition: isDragging3D.current ? "none" : "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)"
+            }}
+          >
+            {/* Box Bottom Face */}
+            <div style={bottomStyle}>
+              {/* Box Compartment Floor */}
+              <div
+                className="absolute inset-0"
+                style={{
+                  background: "#D7B48E",
+                  boxShadow: "inset 0 0 25px rgba(0,0,0,0.55)",
+                  transformStyle: "preserve-3d"
+                }}
+              >
+                {/* Liners (tissue, velvet, etc) */}
+                {styling.lining === "satin_pink" && (
+                  <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 1, overflow: "hidden", transform: "translateZ(1px)" }}>
+                    <div className="absolute inset-0 bg-[#FFF0F2] opacity-[0.9]" />
+                    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                      <path d="M -10 20 Q 30 40 50 110 L -10 110 Z" fill="url(#satinGradPink)" opacity="0.9" />
+                      <path d="M 40 -10 Q 70 30 110 10 L 110 -10 Z" fill="url(#satinGradPink)" opacity="0.95" />
+                    </svg>
+                  </div>
+                )}
+                {styling.lining === "satin_black" && (
+                  <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 1, overflow: "hidden", transform: "translateZ(1px)" }}>
+                    <div className="absolute inset-0 bg-[#121212] opacity-[0.95]" />
+                    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                      <path d="M -10 15 Q 35 30 45 110 L -10 110 Z" fill="url(#satinGradBlack)" opacity="0.95" />
+                      <path d="M 35 -10 Q 75 25 110 15 L 110 -10 Z" fill="url(#satinGradBlack)" opacity="0.9" />
+                    </svg>
+                  </div>
+                )}
+                {styling.lining === "velvet_brown" && (
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      zIndex: 1,
+                      backgroundColor: "#2C1A12",
+                      boxShadow: "inset 0 0 25px rgba(0, 0, 0, 0.85)",
+                      transform: "translateZ(1px)"
+                    }}
+                  />
+                )}
+                {styling.lining === "velvet_red" && (
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      zIndex: 1,
+                      backgroundColor: "#4A0404",
+                      boxShadow: "inset 0 0 25px rgba(0, 0, 0, 0.8)",
+                      transform: "translateZ(1px)"
+                    }}
+                  />
+                )}
+                {styling.lining.startsWith("tissue_") && (
+                  <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 1, transform: "translateZ(1px)" }}>
+                    <div className="absolute inset-0 bg-[#FCFAF0] opacity-[0.85]" />
+                  </div>
+                )}
+
+                {/* Crinkle shreds */}
+                <div style={{ transform: "translateZ(2px)" }} className="absolute inset-0 pointer-events-none">
+                  <CrinklePaperCanvas fillerConfig={styling.filler} />
+                </div>
+
+                {/* 3D Scattered Accents */}
+                {accentsList.map((acc, index) => {
+                  const colors = styling.accents === "pearls"
+                    ? ["#FCF9F2", "#FFFBF6", "#E8DCC4"]
+                    : ["#FFD3DD", "#E0F2FE", "#FFFBEB", "#F1F5F9"];
+                  const color = colors[index % colors.length];
+                  if (styling.accents === "pearls" || styling.accents === "confetti-pearls") {
+                    return (
+                      <div
+                        key={`3d-${acc.id}`}
+                        style={{
+                          position: "absolute",
+                          left: `${acc.x}%`,
+                          top: `${acc.y}%`,
+                          width: `${4.5 * acc.scale}px`,
+                          height: `${4.5 * acc.scale}px`,
+                          backgroundColor: color,
+                          borderRadius: "50%",
+                          border: "0.5px solid rgba(255,255,255,0.7)",
+                          boxShadow: "1px 2px 3px rgba(0,0,0,0.22)",
+                          transform: "translate3d(-50%, -50%, 6px)",
+                          zIndex: 22
+                        }}
+                      />
+                    );
+                  }
+                  return null;
+                })}
+
+                {/* 3D Scattered Magic Sparkles */}
+                {sparklesList.slice(0, 20).map((sp) => (
+                  <div
+                    key={`3d-${sp.id}`}
+                    className="absolute pointer-events-none"
+                    style={{
+                      left: `${sp.x}%`,
+                      top: `${sp.y}%`,
+                      width: `${12 * sp.scale}px`,
+                      height: `${12 * sp.scale}px`,
+                      transform: `translate3d(-50%, -50%, 8px) rotate(${sp.rotate}deg)`,
+                      zIndex: 23,
+                      opacity: 0.8
+                    }}
+                  >
+                    <svg viewBox="0 0 24 24" className="w-full h-full filter drop-shadow-[0_0_3px_#FDE047]">
+                      <path d="M12,2 L14,10 L22,12 L14,14 L12,22 L10,14 L2,12 L10,10 Z" fill="#FEF08A" />
+                    </svg>
+                  </div>
+                ))}
+
+                {/* 3D Flowers & Foliage */}
+                {floristArrangement.flowers.slice(0, 10).map((fl) => {
+                  const colors = styling.flowerColors || { pri: "#EF4444", sec: "#C94F6D", inn: "#FFF0F2" };
+                  return (
+                    <div
+                      key={`3d-${fl.id}`}
+                      style={{
+                        position: "absolute",
+                        left: `${fl.cx}%`,
+                        top: `${fl.cy}%`,
+                        transform: `translate3d(-50%, -50%, 12px) scale(${fl.scale * 0.85}) rotate(${fl.rotate}deg)`,
+                        transformStyle: "preserve-3d",
+                        zIndex: 32
+                      }}
+                    >
+                      {fl.type === "daisy" ? (
+                        <DaisyFlower x={0} y={0} scale={1} />
+                      ) : (
+                        <RoseFlower x={0} y={0} scale={1} primaryColor={colors.pri} secondaryColor={colors.sec} innerColor={colors.inn} />
+                      )}
+                    </div>
+                  );
+                })}
+
+                {/* 3D Arranged Products */}
+                {items.map((item, idx) => {
+                  const visualScale = getVisualScale(item.product, box, items);
+                  let pctW = item.pctW * visualScale;
+                  let pctH = item.pctH * visualScale;
+                  let pctX = item.pctX - (pctW - item.pctW) / 2;
+                  let pctY = item.pctY - (pctH - item.pctH) / 2;
+                  const fallbackSrc = CATEGORY_FALLBACKS[item.product.category] || CATEGORY_FALLBACKS["Lifestyle Gifts"];
+
+                  return (
+                    <div
+                      key={`3d-prod-${item.product.id}`}
+                      style={{
+                        position: "absolute",
+                        left: `${pctX}%`,
+                        top: `${pctY}%`,
+                        width: `${pctW}%`,
+                        height: `${pctH}%`,
+                        transform: `translate3d(0, 0, 16px) rotate(${item.rotation || 0}deg)`,
+                        transformStyle: "preserve-3d",
+                        filter: "drop-shadow(0 15px 25px rgba(0,0,0,0.55))",
+                        zIndex: 25 + idx
+                      }}
+                    >
+                      <img
+                        src={item.product.image || fallbackSrc}
+                        alt={item.product.name}
+                        className="w-full h-full object-contain select-none pointer-events-none"
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Back Wall */}
+            <div style={backStyle} />
+
+            {/* Front Wall */}
+            <div style={frontStyle} />
+
+            {/* Left Wall */}
+            <div style={leftStyle} />
+
+            {/* Right Wall */}
+            <div style={rightStyle} />
+
+            {/* Open Lid tilted backward */}
+            <div style={lidStyle}>
+              <div className="absolute inset-2 rounded border border-white/20 flex flex-col items-center justify-center p-4" style={{ background: "rgba(255,255,255,0.03)" }}>
+                <span className="text-[10px] font-serif uppercase tracking-widest text-[#D4AF37] font-semibold mb-1 opacity-80">Paper Plane</span>
+                <div className="h-[0.5px] w-8 bg-[#D4AF37]/50 mb-2" />
+                <span className="text-[8px] font-sans tracking-wide text-slate-400 uppercase opacity-60">Handcrafted Luxury Box</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Ambient Ground Shadow */}
       <div
         className="absolute left-[3%] right-[3%] -bottom-6 h-8 pointer-events-none"
         style={{
@@ -1264,6 +1835,7 @@ export default function GiftBoxVisual({
 
         {/* Box Inner Compartment Well */}
         <div
+          ref={boxWellRef}
           className="relative w-full h-full rounded-lg CompartmentWell"
           style={{
             background: "#D7B48E",
@@ -1789,6 +2361,11 @@ export default function GiftBoxVisual({
                 box={box}
                 items={items}
                 isMobileView={isMobileView}
+                viewMode={viewMode}
+                onDragEnd={handleDragEnd}
+                onRotate={handleRotate}
+                boxWellRef={boxWellRef}
+                dragSession={dragSession}
               />
             ))}
           </div>
@@ -2068,6 +2645,8 @@ export default function GiftBoxVisual({
           />
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 }

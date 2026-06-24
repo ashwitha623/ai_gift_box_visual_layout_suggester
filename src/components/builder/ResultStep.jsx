@@ -29,6 +29,35 @@ export default function ResultStep({ result, occasion, products, details, onRest
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [trackingId, setTrackingId] = useState("");
 
+  const handleItemsChange = (newItems) => {
+    setActiveLayout((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        items: newItems
+      };
+    });
+  };
+
+  // Volumetric Shipping Calculations
+  const boxTemplate = activeLayout?.box;
+  const boxLength = boxTemplate?.length || 30;
+  const boxWidth = boxTemplate?.width || 20;
+  const boxHeight = boxTemplate?.height || 12;
+
+  const volumetricWeight = Math.round((boxLength * boxWidth * boxHeight) / 5);
+  const productsWeight = products.reduce((sum, p) => sum + (p.weight || 150), 0);
+  const actualWeight = productsWeight + 250; // tare weight of luxury box
+  const chargeableWeight = Math.max(actualWeight, volumetricWeight);
+
+  let shippingCost = 150;
+  if (chargeableWeight > 500) {
+    shippingCost += Math.ceil((chargeableWeight - 500) / 500) * 80;
+  }
+
+  const boxTotal = result.totalPrice + (activeLayout?.box?.cost || 300);
+  const grandTotal = boxTotal + shippingCost;
+
   if (result.success === false || result.error) {
     return (
       <div className="max-w-2xl mx-auto text-center py-16 px-4 bg-white border border-rose-100 rounded-3xl shadow-xl shadow-rose-950/5">
@@ -132,7 +161,7 @@ export default function ResultStep({ result, occasion, products, details, onRest
       const res = await axios.post("http://localhost:5000/api/orders", {
         userId,
         products: products,
-        totalPrice: result.totalPrice + activeLayout.box.cost, // Product total plus selected box cost
+        totalPrice: grandTotal, // Volumetric shipping inclusive price
         ribbonColor: activeLayout.ribbon.color,
         boxSize: activeLayout.box.name,
         recipientName: details.name,
@@ -141,7 +170,9 @@ export default function ResultStep({ result, occasion, products, details, onRest
         customText: details.customText,
         photoUrl: details.photoUrl,
         logoUrl: details.logoUrl,
-        paymentMethod
+        paymentMethod,
+        spaceUtil: activeLayout.scores.spaceUtil,
+        packingEfficiency: activeLayout.scores.efficiency
       });
 
       if (res.data.success) {
@@ -209,7 +240,7 @@ export default function ResultStep({ result, occasion, products, details, onRest
 
       <div ref={reportRef} className="bg-background">
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mb-10">
-          <GiftBoxVisual products={products} ribbonHex={activeLayout.ribbon.hex} layoutId={activeLayout.id} customizations={{ ...details, occasion: occasion.id }} boxTemplates={boxTemplates} />
+          <GiftBoxVisual products={products} ribbonHex={activeLayout.ribbon.hex} layoutId={activeLayout.id} customizations={{ ...details, occasion: occasion.id, onItemsChange: handleItemsChange }} boxTemplates={boxTemplates} />
         </motion.div>
 
         <ReportCard layout={activeLayout} occasion={occasion} products={products} details={details} totalPrice={result.totalPrice} />
@@ -283,9 +314,40 @@ export default function ResultStep({ result, occasion, products, details, onRest
           ) : (
             <div className="space-y-6 pt-4">
               {/* Order price summary */}
-              <div className="bg-secondary rounded-2xl p-4 border flex justify-between items-center text-sm font-semibold">
-                <span className="text-slate-500">Box Total (with wrapping):</span>
-                <span className="text-primary text-base">₹{(result.totalPrice + activeLayout.box.cost).toLocaleString("en-IN")}</span>
+              <div className="bg-secondary rounded-2xl p-5 border border-slate-200/60 space-y-4">
+                <div className="flex justify-between items-center text-xs font-semibold text-slate-500">
+                  <span>Gift Box & Products:</span>
+                  <span className="text-slate-800">₹{boxTotal.toLocaleString("en-IN")}</span>
+                </div>
+                
+                <div className="border-t border-dashed border-slate-200 pt-3 space-y-2">
+                  <div className="flex justify-between items-center text-[11px] text-slate-400">
+                    <span>Package Dimensions:</span>
+                    <span className="font-mono">{boxLength}x{boxWidth}x{boxHeight} cm</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[11px] text-slate-400">
+                    <span>Actual Package Weight:</span>
+                    <span>{actualWeight} g</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[11px] text-slate-400">
+                    <span>Volumetric Weight (V = L×W×H/5):</span>
+                    <span>{volumetricWeight} g</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[11px] font-bold text-slate-500">
+                    <span>Chargeable Weight:</span>
+                    <span className="text-primary">{chargeableWeight} g</span>
+                  </div>
+                </div>
+
+                <div className="border-t border-slate-200 pt-3 flex justify-between items-center text-xs font-semibold text-slate-500">
+                  <span>Volumetric Shipping Fee:</span>
+                  <span className="text-emerald-600 font-bold">₹{shippingCost}</span>
+                </div>
+
+                <div className="border-t border-slate-300 pt-3 flex justify-between items-center text-sm font-bold text-primary">
+                  <span>Grand Total (All Inclusive):</span>
+                  <span className="text-lg">₹{grandTotal.toLocaleString("en-IN")}</span>
+                </div>
               </div>
 
               {/* Payment selector */}
