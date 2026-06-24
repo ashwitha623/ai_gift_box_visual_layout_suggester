@@ -74,6 +74,14 @@ export default function CreateBox() {
     /^\d{10}$/.test(details.phone.trim())
   );
 
+  const isStepAccessible = (targetStep) => {
+    if (targetStep === 0) return true;
+    if (targetStep === 1) return !!occasion;
+    if (targetStep === 2) return products.length >= 2;
+    if (targetStep === 3) return isDetailsValid;
+    return false;
+  };
+
   const canNext = step === 0 ? !!occasion : step === 1 ? products.length >= 2 : isDetailsValid;
   const selectedTotal = products.reduce((s, p) => s + p.price, 0);
 
@@ -117,17 +125,23 @@ export default function CreateBox() {
     <div className="max-w-7xl mx-auto px-6 py-10">
       {/* Stepper */}
       <div className="flex items-center justify-center gap-2 sm:gap-4 mb-12">
-        {STEPS.map((label, i) => (
-          <div key={label} className="flex items-center gap-2 sm:gap-4">
-            <div className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
-                i < step ? "bg-primary text-white" : i === step ? "bg-gradient-to-r from-primary to-rosegold text-white shadow-md shadow-primary/30 scale-110" : "bg-muted text-muted-foreground"
-              }`}>{i + 1}</div>
-              <span className={`hidden sm:block text-sm font-medium ${i === step ? "text-foreground" : "text-muted-foreground"}`}>{label}</span>
+        {STEPS.map((label, i) => {
+          const accessible = isStepAccessible(i) && !generating;
+          return (
+            <div key={label} className="flex items-center gap-2 sm:gap-4">
+              <div 
+                onClick={() => accessible && setStep(i)}
+                className={`flex items-center gap-2 transition-all ${accessible ? "cursor-pointer hover:opacity-80" : ""}`}
+              >
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
+                  i < step ? "bg-primary text-white" : i === step ? "bg-gradient-to-r from-primary to-rosegold text-white shadow-md shadow-primary/30 scale-110" : "bg-muted text-muted-foreground"
+                }`}>{i + 1}</div>
+                <span className={`hidden sm:block text-sm font-medium ${i === step ? "text-foreground" : "text-muted-foreground"}`}>{label}</span>
+              </div>
+              {i < STEPS.length - 1 && <div className={`w-6 sm:w-12 h-0.5 rounded ${i < step ? "bg-primary" : "bg-border"}`} />}
             </div>
-            {i < STEPS.length - 1 && <div className={`w-6 sm:w-12 h-0.5 rounded ${i < step ? "bg-primary" : "bg-border"}`} />}
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <AnimatePresence mode="wait">
@@ -148,7 +162,7 @@ export default function CreateBox() {
               <Loader2 className="w-5 h-5 mx-auto mt-5 text-primary animate-spin" />
             </div>
           ) : (
-            <ResultStep result={result} occasion={occasion} products={products} details={details} onRestart={restart} />
+            <ResultStep result={result} occasion={occasion} products={products} details={details} onRestart={restart} onBack={() => setStep(2)} />
           ))}
         </motion.div>
       </AnimatePresence>

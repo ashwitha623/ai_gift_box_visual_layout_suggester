@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Download, FileText, Sparkles, RefreshCw, ShoppingCart, CheckCircle, ShieldCheck, Bookmark } from "lucide-react";
+import { Download, FileText, Sparkles, RefreshCw, ShoppingCart, CheckCircle, ShieldCheck, Bookmark, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -14,7 +14,7 @@ import { useAuthAction } from "@/components/AuthModalContext";
 import axios from "axios";
 import confetti from "canvas-confetti";
 
-export default function ResultStep({ result, occasion, products, details, onRestart }) {
+export default function ResultStep({ result, occasion, products, details, onRestart, onBack }) {
   const [activeLayout, setActiveLayout] = useState(result.recommended);
   const reportRef = useRef(null);
   const [exporting, setExporting] = useState(false);
@@ -214,6 +214,9 @@ export default function ResultStep({ result, occasion, products, details, onRest
         </Button>
         <Button variant="ghost" onClick={onSummaryClick} className="rounded-full px-6 text-muted-foreground w-full sm:w-auto">
           <Download className="w-4 h-4 mr-2" /> Download Summary
+        </Button>
+        <Button variant="ghost" onClick={onBack} className="rounded-full px-6 text-muted-foreground w-full sm:w-auto">
+          <ArrowLeft className="w-4 h-4 mr-2" /> Back to Details
         </Button>
         <Button variant="ghost" onClick={onRestart} className="rounded-full px-6 text-muted-foreground w-full sm:w-auto">
           <RefreshCw className="w-4 h-4 mr-2" /> Start Over
