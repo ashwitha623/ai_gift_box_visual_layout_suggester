@@ -873,6 +873,19 @@ export default function GiftBoxVisual({
   const { box } = layoutData;
 
   const { toast } = useToast();
+  const [validationError, setValidationError] = useState(null);
+  const errorTimeoutRef = useRef(null);
+
+  const showValidationError = (msg) => {
+    setValidationError(msg);
+    if (errorTimeoutRef.current) {
+      clearTimeout(errorTimeoutRef.current);
+    }
+    errorTimeoutRef.current = setTimeout(() => {
+      setValidationError(null);
+    }, 4000);
+  };
+
   const [viewMode, setViewMode] = useState("2D");
   const [arrangedItems, setArrangedItems] = useState(() => layoutData?.items || []);
   const [dragSession, setDragSession] = useState(0);
@@ -920,11 +933,7 @@ export default function GiftBoxVisual({
     if (dragX < margin - 0.05 || dragY < margin - 0.05 || 
         dragX + dragW > boxL - margin + 0.05 || 
         dragY + dragH > boxW - margin + 0.05) {
-      toast({
-        title: "Boundary Error",
-        description: `Cannot place ${draggedSlot.product.name} outside box limits!`,
-        variant: "destructive"
-      });
+      showValidationError(`Boundary Error: Cannot place ${draggedSlot.product.name} outside box limits!`);
       // Increment dragSession to force the element to snap back to previous state coordinates
       setDragSession(prev => prev + 1);
       return;
@@ -944,17 +953,14 @@ export default function GiftBoxVisual({
       const dist = Math.max(dx, dy);
 
       if (dist < gap - 0.05) {
-        toast({
-          title: "Overlap Detected",
-          description: `${draggedSlot.product.name} collides with ${other.product.name}!`,
-          variant: "destructive"
-        });
+        showValidationError(`Overlap Detected: ${draggedSlot.product.name} collides with ${other.product.name}!`);
         setDragSession(prev => prev + 1);
         return;
       }
     }
 
     // Valid placement -> update coordinates!
+    setValidationError(null);
     setArrangedItems(prev => prev.map(item => {
       if (item.product.id === draggedSlot.product.id) {
         return {
@@ -990,11 +996,7 @@ export default function GiftBoxVisual({
 
     // 1. Check if rotated box fits boundary
     if (dragX + newW > boxL - margin + 0.05 || dragY + newH > boxW - margin + 0.05) {
-      toast({
-        title: "Rotation Blocked",
-        description: "Not enough room against box walls to rotate here!",
-        variant: "destructive"
-      });
+      showValidationError(`Rotation Blocked: Not enough room against box walls to rotate ${rotatedSlot.product.name}!`);
       return;
     }
 
@@ -1012,16 +1014,13 @@ export default function GiftBoxVisual({
       const dist = Math.max(dx, dy);
 
       if (dist < gap - 0.05) {
-        toast({
-          title: "Rotation Blocked",
-          description: `Cannot rotate ${rotatedSlot.product.name} due to overlap with ${other.product.name}!`,
-          variant: "destructive"
-        });
+        showValidationError(`Rotation Blocked: Cannot rotate ${rotatedSlot.product.name} due to overlap with ${other.product.name}!`);
         return;
       }
     }
 
     // Valid rotation -> apply changes!
+    setValidationError(null);
     setArrangedItems(prev => prev.map(item => {
       if (item.product.id === rotatedSlot.product.id) {
         return {
@@ -2646,6 +2645,12 @@ export default function GiftBoxVisual({
         </div>
       </div>
       </>
+      )}
+      {validationError && (
+        <div className="mt-4 text-center text-sm font-semibold text-red-500 animate-pulse flex items-center justify-center gap-1.5 py-1">
+          <span className="text-base">⚠️</span>
+          <span>{validationError}</span>
+        </div>
       )}
     </div>
   );
