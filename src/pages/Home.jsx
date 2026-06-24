@@ -2,8 +2,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Sparkles, Brain, Eye, FileText, ArrowRight, Gift, Ribbon, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { OCCASIONS, PRODUCTS } from "@/lib/giftdata";
+import { OCCASIONS } from "@/lib/giftdata";
 import { ProtectedAction } from "@/components/AuthModalContext";
+import roseBouquetImg from "@/assets/images/rose_bouquet.jpg";
+import rockingHorseImg from "@/assets/images/rocking_horse.jpg";
+import clockOrnamentImg from "@/assets/images/clock_ornament.png";
+import chocolateBoxImg from "@/assets/images/chocolate_box.jpg";
+import sweetHomeImg from "@/assets/images/sweet_home.jpg";
+import pinkHeartImg from "@/assets/images/pink_heart.png";
 
 const FEATURES = [
   { icon: Brain, title: "Intelligent Layout Engine", desc: "Analyzes occasion, product sizes, budget and box size to recommend the perfect arrangement style." },
@@ -50,14 +56,15 @@ export default function Home() {
 
           {/* Hero visual strip */}
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-            className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl mx-auto">
-            {(() => {
-              const prod1 = PRODUCTS.find(p => p.name === "Rose Bouquet");
-              const prod2 = PRODUCTS.find(p => p.name === "Rocking Horse");
-              const prod3 = PRODUCTS.find(p => p.name === "Clock Ornament");
-              const prod4 = PRODUCTS.find(p => p.name === "Box of Chocolates");
-              return [prod1, prod2, prod3, prod4].filter(Boolean);
-            })().map((p, i) => (
+            className="mt-16 grid grid-cols-3 sm:grid-cols-6 gap-3 max-w-4xl mx-auto">
+            {[
+              { id: "h1", image: roseBouquetImg, name: "Rose Bouquet" },
+              { id: "h2", image: rockingHorseImg, name: "Rocking Horse" },
+              { id: "h3", image: clockOrnamentImg, name: "Clock Ornament" },
+              { id: "h4", image: chocolateBoxImg, name: "Box of Chocolates" },
+              { id: "h5", image: sweetHomeImg, name: "Sweet Home" },
+              { id: "h6", image: pinkHeartImg, name: "Pink Heart" },
+            ].map((p, i) => (
               <div key={p.id} className={`rounded-2xl overflow-hidden shadow-lg aspect-square ${i % 2 ? "translate-y-4" : ""}`}>
                 <img src={p.image} alt={p.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
               </div>

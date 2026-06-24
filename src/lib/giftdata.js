@@ -9,7 +9,7 @@ import farewellImg from "@/assets/images/farewell.jpg";
 import corporateImg from "@/assets/images/corporate.jpg";
 import justBecauseImg from "@/assets/images/just_because.jpg";
 
-import rockingHorseImg from "@/assets/images/rocking_horse.jpg";
+import teddyBearImg from "@/assets/images/teddy_bear.png";
 import rabbitPlushImg from "@/assets/images/rabbit_plush.png";
 import pandaPlushImg from "@/assets/images/panda_plush.png";
 
@@ -18,13 +18,13 @@ import necklaceImg from "@/assets/images/necklace.png";
 import ringImg from "@/assets/images/ring.png";
 import earringsImg from "@/assets/images/earrings.png";
 
-import roseBouquetImg from "@/assets/images/rose_bouquet.jpg";
+import roseBouquetImg from "@/assets/images/rose_bouquet.png";
 import tulipBouquetImg from "@/assets/images/tulip_bouquet.png";
 import mixedFlowersImg from "@/assets/images/mixed_flowers.png";
 
 import ferreroRocherImg from "@/assets/images/ferrero_rocher.png";
 import lindtCollectionImg from "@/assets/images/lindt_collection.jpg";
-import chocolateBoxImg from "@/assets/images/chocolate_box.jpg";
+import chocolateBoxImg from "@/assets/images/chocolate_box.png";
 import premiumDarkChocImg from "@/assets/images/premium_dark_choc.png";
 
 import coffeeMugImg from "@/assets/images/coffee_mug.png";
@@ -34,7 +34,7 @@ import photoFrameImg from "@/assets/images/photo_frame.png";
 import plantPotImg from "@/assets/images/plant_pot.png";
 
 import perfumeImg from "@/assets/images/perfume.png";
-import clockOrnamentImg from "@/assets/images/clock_ornament.png";
+import watchImg from "@/assets/images/watch.png";
 import leatherWalletImg from "@/assets/images/leather_wallet.png";
 import luxuryHamperImg from "@/assets/images/luxury_hamper.png";
 
@@ -48,7 +48,7 @@ import notebookSetImg from "@/assets/images/notebook_set.png";
 import premiumPenImg from "@/assets/images/premium_pen.png";
 // Category-level fallback images (used when a product image fails to load)
 export const CATEGORY_FALLBACKS = {
-  "Soft Toys":          rockingHorseImg,
+  "Soft Toys":          teddyBearImg,
   "Jewelry":            braceletImg,
   "Flowers":            roseBouquetImg,
   "Chocolates":         ferreroRocherImg,
@@ -140,7 +140,7 @@ export const BOX_TEMPLATES = [
 ];
 
 export const PRODUCTS = [
-  { id: 1,  name: "Rocking Horse",        category: "Soft Toys",          price: 899,  size: "Large",  image: rockingHorseImg, length: 20.0, width: 14.0, height: 12.0, weight: 350, fragile: false },
+  { id: 1,  name: "Teddy Bear",           category: "Soft Toys",          price: 899,  size: "Large",  image: teddyBearImg, length: 20.0, width: 14.0, height: 12.0, weight: 350, fragile: false },
   { id: 2,  name: "Rabbit Plush",         category: "Soft Toys",          price: 649,  size: "Medium", image: rabbitPlushImg, length: 16.0, width: 11.0, height: 9.0, weight: 200, fragile: false },
   { id: 3,  name: "Panda Plush",          category: "Soft Toys",          price: 749,  size: "Medium", image: pandaPlushImg, length: 18.0, width: 12.0, height: 10.0, weight: 250, fragile: false },
 
@@ -155,7 +155,7 @@ export const PRODUCTS = [
 
   { id: 12, name: "Ferrero Rocher",       category: "Chocolates",         price: 799,  size: "Small",  image: ferreroRocherImg, length: 14.0, width: 14.0, height: 4.0, weight: 200, fragile: false },
   { id: 13, name: "Lindt Collection",     category: "Chocolates",         price: 1299, size: "Medium", image: lindtCollectionImg, length: 18.0, width: 12.0, height: 5.0, weight: 250, fragile: false },
-  { id: 14, name: "Box of Chocolates",    category: "Chocolates",         price: 999,  size: "Small",  image: chocolateBoxImg, length: 12.0, width: 12.0, height: 4.0, weight: 150, fragile: false },
+  { id: 14, name: "Chocolate Box",        category: "Chocolates",         price: 999,  size: "Small",  image: chocolateBoxImg, length: 12.0, width: 12.0, height: 4.0, weight: 150, fragile: false },
   { id: 15, name: "Premium Dark Choc",    category: "Chocolates",         price: 599,  size: "Small",  image: premiumDarkChocImg, length: 15.0, width: 8.0, height: 2.0, weight: 100, fragile: false },
 
   { id: 16, name: "Coffee Mug",           category: "Lifestyle Gifts",    price: 449,  size: "Small",  image: coffeeMugImg, length: 10.0, width: 10.0, height: 10.0, weight: 300, fragile: true },
@@ -165,7 +165,7 @@ export const PRODUCTS = [
   { id: 20, name: "Plant Pot",            category: "Lifestyle Gifts",    price: 649,  size: "Medium", image: plantPotImg, length: 11.0, width: 11.0, height: 11.0, weight: 600, fragile: true },
 
   { id: 21, name: "Perfume",              category: "Premium Gifts",      price: 3499, size: "Small",  image: perfumeImg, length: 11.0, width: 7.0, height: 5.0, weight: 350, fragile: true },
-  { id: 22, name: "Clock Ornament",       category: "Premium Gifts",      price: 5999, size: "Small",  image: clockOrnamentImg, length: 9.0, width: 9.0, height: 7.0, weight: 200, fragile: true },
+  { id: 22, name: "Watch",                category: "Premium Gifts",      price: 5999, size: "Small",  image: watchImg, length: 9.0, width: 9.0, height: 7.0, weight: 200, fragile: true },
   { id: 23, name: "Leather Wallet",       category: "Premium Gifts",      price: 2499, size: "Small",  image: leatherWalletImg, length: 11.0, width: 9.0, height: 2.0, weight: 120, fragile: false },
   { id: 24, name: "Luxury Hamper",        category: "Premium Gifts",      price: 4999, size: "Large",  image: luxuryHamperImg, length: 26.0, width: 18.0, height: 9.0, weight: 800, fragile: true },
 
