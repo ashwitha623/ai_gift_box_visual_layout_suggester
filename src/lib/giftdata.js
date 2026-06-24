@@ -11,10 +11,10 @@ import justBecauseImg from "@/assets/images/just_because.jpg";
 
 import teddyBearImg from "@/assets/images/teddy_bear.png";
 import rabbitPlushImg from "@/assets/images/rabbit_plush.png";
-import pandaPlushImg from "@/assets/images/panda_plush.jpg";
+import pandaPlushImg from "@/assets/images/panda_plush.png";
 
 import braceletImg from "@/assets/images/bracelet.png";
-import necklaceImg from "@/assets/images/necklace.jpg";
+import necklaceImg from "@/assets/images/necklace.png";
 import ringImg from "@/assets/images/ring.jpg";
 import earringsImg from "@/assets/images/earrings.png";
 
