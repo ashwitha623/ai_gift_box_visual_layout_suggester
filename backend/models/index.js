@@ -100,7 +100,6 @@ async function initDb() {
       { name: "Ring", category: "Jewelry", price: 1999, size: "Small", stock: 15, image: null },
       { name: "Earrings", category: "Jewelry", price: 1299, size: "Small", stock: 20, image: null },
       { name: "Rose Bouquet", category: "Flowers", price: 1199, size: "Large", stock: 30, image: null },
-      { name: "Lily Bouquet", category: "Flowers", price: 1399, size: "Large", stock: 15, image: null },
       { name: "Tulip Bouquet", category: "Flowers", price: 1299, size: "Large", stock: 15, image: null },
       { name: "Mixed Flowers", category: "Flowers", price: 1499, size: "Large", stock: 20, image: null },
       { name: "Ferrero Rocher", category: "Chocolates", price: 799, size: "Small", stock: 25, image: null },
@@ -122,8 +121,7 @@ async function initDb() {
       { name: "Engraved Keychain", category: "Personalized Gifts", price: 399, size: "Small", stock: 50, image: null },
       { name: "Desk Organizer", category: "Corporate Gifts", price: 1299, size: "Medium", stock: 15, image: null },
       { name: "Notebook Set", category: "Corporate Gifts", price: 699, size: "Small", stock: 25, image: null },
-      { name: "Premium Pen", category: "Corporate Gifts", price: 1899, size: "Small", stock: 20, image: null },
-      { name: "Corporate Hamper", category: "Corporate Gifts", price: 2999, size: "Large", stock: 10, image: null }
+      { name: "Premium Pen", category: "Corporate Gifts", price: 1899, size: "Small", stock: 20, image: null }
     ];
 
     for (const p of initialProducts) {

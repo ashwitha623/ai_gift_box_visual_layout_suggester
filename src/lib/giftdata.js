@@ -19,7 +19,6 @@ import ringImg from "@/assets/images/ring.png";
 import earringsImg from "@/assets/images/earrings.png";
 
 import roseBouquetImg from "@/assets/images/rose_bouquet.png";
-import lilyBouquetImg from "@/assets/images/lily_bouquet.jpg";
 import tulipBouquetImg from "@/assets/images/tulip_bouquet.png";
 import mixedFlowersImg from "@/assets/images/mixed_flowers.png";
 
@@ -47,7 +46,6 @@ import engravedKeychainImg from "@/assets/images/engraved_keychain.png";
 import deskOrganizerImg from "@/assets/images/desk_organizer.png";
 import notebookSetImg from "@/assets/images/notebook_set.png";
 import premiumPenImg from "@/assets/images/premium_pen.png";
-import corporateHamperImg from "@/assets/images/corporate_hamper.jpg";
 // Category-level fallback images (used when a product image fails to load)
 export const CATEGORY_FALLBACKS = {
   "Soft Toys":          teddyBearImg,
@@ -162,7 +160,6 @@ export const PRODUCTS = [
   { id: 7,  name: "Earrings",             category: "Jewelry",            price: 1299, size: "Small",  image: earringsImg, length: 7.0, width: 7.0, height: 3.0, weight: 40, fragile: false },
 
   { id: 8,  name: "Rose Bouquet",         category: "Flowers",            price: 1199, size: "Large",  image: roseBouquetImg, length: 25.0, width: 11.0, height: 9.0, weight: 400, fragile: false },
-  { id: 9,  name: "Lily Bouquet",         category: "Flowers",            price: 1399, size: "Large",  image: lilyBouquetImg, length: 26.0, width: 12.0, height: 10.0, weight: 450, fragile: false },
   { id: 10, name: "Tulip Bouquet",        category: "Flowers",            price: 1299, size: "Large",  image: tulipBouquetImg, length: 24.0, width: 11.0, height: 8.0, weight: 380, fragile: false },
   { id: 11, name: "Mixed Flowers",        category: "Flowers",            price: 1499, size: "Large",  image: mixedFlowersImg, length: 26.0, width: 13.0, height: 11.0, weight: 500, fragile: false },
 
@@ -190,7 +187,6 @@ export const PRODUCTS = [
   { id: 29, name: "Desk Organizer",       category: "Corporate Gifts",    price: 1299, size: "Medium", image: deskOrganizerImg, length: 22.0, width: 14.0, height: 9.0, weight: 700, fragile: false },
   { id: 30, name: "Notebook Set",         category: "Corporate Gifts",    price: 699,  size: "Small",  image: notebookSetImg, length: 21.0, width: 14.0, height: 3.0, weight: 400, fragile: false },
   { id: 31, name: "Premium Pen",          category: "Corporate Gifts",    price: 1899, size: "Small",  image: premiumPenImg, length: 14.0, width: 2.0, height: 2.0, weight: 50, fragile: false },
-  { id: 32, name: "Corporate Hamper",     category: "Corporate Gifts",    price: 2999, size: "Large",  image: corporateHamperImg, length: 26.0, width: 20.0, height: 9.0, weight: 900, fragile: true },
 ];
 
 export const BOX_SIZES = ["Small", "Medium", "Large"];
