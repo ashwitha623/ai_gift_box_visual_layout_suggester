@@ -819,6 +819,21 @@ export function generateRecommendations({ occasion, occasionTitle, products, bud
   }));
   const totalProductPrice = products.reduce((s, p) => s + p.price, 0);
 
+  // Filter boxes by boxSize if specified
+  let filteredBoxes = boxes;
+  if (boxSize) {
+    const sizeLower = boxSize.toLowerCase();
+    const matches = boxes.filter(b => 
+      b.name.toLowerCase() === sizeLower ||
+      b.id.toLowerCase() === sizeLower ||
+      b.name.toLowerCase().includes(sizeLower) ||
+      sizeLower.includes(b.name.toLowerCase())
+    );
+    if (matches.length > 0) {
+      filteredBoxes = matches;
+    }
+  }
+
   const layoutStylesList = ["showcase", "symmetrical", "space_utilization", "safe_shipping", "corporate"];
   const options = layoutStylesList.map(style => {
     const template = layoutTemplates?.find(t => t.id === style) || {
@@ -827,7 +842,7 @@ export function generateRecommendations({ occasion, occasionTitle, products, bud
       allowRotation: true
     };
 
-    const match = selectBoxForLayout(products, style, boxes, budget, occasion, template);
+    const match = selectBoxForLayout(products, style, filteredBoxes, budget, occasion, template);
     if (!match) return null;
 
     const { box, items, scores } = match;

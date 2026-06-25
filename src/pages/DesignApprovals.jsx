@@ -8,11 +8,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import GiftBoxVisual from "@/components/giftbox/GiftBoxVisual";
 import { Label } from "@/components/ui/label";
-import { PRODUCTS } from "@/lib/giftdata";
+import { PRODUCTS, BOX_TEMPLATES } from "@/lib/giftdata";
+import { parseMessageMetadata } from "@/lib/utils";
 
 function inferOccasion(order) {
   if (!order) return "just_because";
-  const msg = (order.recipient?.message || "").toLowerCase();
+  const rawMsg = order.recipient?.message || "";
+  const parsed = parseMessageMetadata(rawMsg);
+  if (parsed.occasion) return parsed.occasion;
+
+  const msg = rawMsg.toLowerCase();
   const txt = (order.recipient?.customText || "").toLowerCase();
   
   if (msg.includes("anniversary") || txt.includes("forever")) return "anniversary";
@@ -207,24 +212,43 @@ export default function DesignApprovals() {
                 {/* 3D/Visualizer Preview Box */}
                 <div className="bg-secondary/20 rounded-2xl p-4 border border-border/60">
                   <div className="text-center font-bold text-[10px] text-slate-400 mb-3 tracking-widest uppercase">Top-Down STUDIO Hamper Mockup</div>
-                  <GiftBoxVisual
-                    products={(selectedApproval.order?.items || []).map(i => {
-                      const dbProd = i.product;
-                      if (!dbProd) return null;
-                      const catalogProd = PRODUCTS.find(p => p.name.toLowerCase() === dbProd.name.toLowerCase());
-                      return catalogProd ? { ...dbProd, ...catalogProd, id: dbProd.id } : dbProd;
-                    }).filter(Boolean)}
-                    ribbonHex={selectedApproval.order?.ribbonColor || "#D4AF37"}
-                    customizations={{
-                      name: selectedApproval.order?.recipient?.name,
-                      message: selectedApproval.order?.recipient?.message,
-                      photoUrl: selectedApproval.order?.recipient?.photoUrl,
-                      logoUrl: selectedApproval.order?.recipient?.logoUrl,
-                      customText: selectedApproval.order?.recipient?.customText,
-                      occasion: inferOccasion(selectedApproval.order)
-                    }}
-                    size="lg"
-                  />
+                  {(() => {
+                    const rawMessage = selectedApproval.order?.recipient?.message || "";
+                    const parsed = parseMessageMetadata(rawMessage);
+                    
+                    const dbRibbonColor = selectedApproval.order?.ribbonColor;
+                    const ribbonTemplate = BOX_TEMPLATES.find(
+                      b => b.ribbonStyle === dbRibbonColor || b.ribbonHex === dbRibbonColor
+                    );
+                    const resolvedRibbonHex = ribbonTemplate ? ribbonTemplate.ribbonHex : (dbRibbonColor || "#D4AF37");
+                    
+                    const inferredOccasion = parsed.occasion || inferOccasion(selectedApproval.order);
+                    const inferredLayoutId = parsed.layoutId || "recommended";
+                    
+                    return (
+                      <GiftBoxVisual
+                        products={(selectedApproval.order?.items || []).map(i => {
+                          const dbProd = i.product;
+                          if (!dbProd) return null;
+                          const catalogProd = PRODUCTS.find(p => p.name.toLowerCase() === dbProd.name.toLowerCase());
+                          return catalogProd ? { ...dbProd, ...catalogProd, id: dbProd.id } : dbProd;
+                        }).filter(Boolean)}
+                        ribbonHex={resolvedRibbonHex}
+                        layoutId={inferredLayoutId}
+                        boxTemplates={BOX_TEMPLATES}
+                        customizations={{
+                          name: selectedApproval.order?.recipient?.name,
+                          message: parsed.message,
+                          photoUrl: selectedApproval.order?.recipient?.photoUrl,
+                          logoUrl: selectedApproval.order?.recipient?.logoUrl,
+                          customText: selectedApproval.order?.recipient?.customText,
+                          occasion: inferredOccasion,
+                          boxSize: selectedApproval.order?.boxSize
+                        }}
+                        size="lg"
+                      />
+                    );
+                  })()}
                 </div>
 
                 {/* Decision Action forms */}

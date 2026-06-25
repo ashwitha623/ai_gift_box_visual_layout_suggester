@@ -166,7 +166,7 @@ export default function ResultStep({ result, occasion, products, details, onRest
         boxSize: activeLayout.box.name,
         recipientName: details.name,
         recipientPhone: details.phone,
-        message: details.message,
+        message: `${details.message || ""} ||occasion:${occasion.id} ||layout:${activeLayout.id}`.trim(),
         customText: details.customText,
         photoUrl: details.photoUrl,
         logoUrl: details.logoUrl,

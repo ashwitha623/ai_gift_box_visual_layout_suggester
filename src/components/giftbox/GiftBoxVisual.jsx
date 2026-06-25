@@ -4,6 +4,7 @@ import { CATEGORY_FALLBACKS, getProductImage } from "@/lib/giftdata";
 import { generateRecommendations } from "@/lib/layoutEngine";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/components/ui/use-toast";
+import { parseMessageMetadata } from "@/lib/utils";
 
 
 // Helper to generate wavy paths for decorative crinkle elements
@@ -2568,38 +2569,41 @@ export default function GiftBoxVisual({
           )}
 
           {/* Greeting Card - Framed elegantly per occasion */}
-          {(customizations.message || customizations.name) && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8, rotate: 6 }}
-              animate={{ opacity: 1, scale: 1, rotate: 4 }}
-              className={`absolute text-slate-800 p-1.5 sm:p-2.5 rounded shadow-xl border flex flex-col justify-between`}
-              style={{
-                bottom: isMobileView ? "12%" : "8%",
-                right: isMobileView ? "10%" : "6%",
-                width: isMobileView ? "28%" : "26%",
-                height: isMobileView ? "24%" : "24%",
-                backgroundColor: styling.card.bg,
-                borderColor: `${styling.card.border}35`,
-                zIndex: 15,
-                boxShadow: "5px 10px 22px rgba(3, 10, 25, 0.25)"
-              }}
-            >
-              <div className="absolute inset-1.5 border border-dashed rounded pointer-events-none" style={{ borderColor: `${styling.card.border}30` }} />
-              <div className="relative z-10 flex flex-col h-full justify-between text-center">
-                <div className="border-b pb-0.5 mb-0.5" style={{ borderColor: `${styling.card.border}20` }}>
-                  <span className={`text-[7px] font-extrabold uppercase tracking-widest block ${styling.card.textColor}`}>
-                    {styling.card.title}
-                  </span>
+          {(customizations.message || customizations.name) && (() => {
+            const { message: cleanMessage } = parseMessageMetadata(customizations.message);
+            return (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8, rotate: 6 }}
+                animate={{ opacity: 1, scale: 1, rotate: 4 }}
+                className={`absolute text-slate-800 p-1.5 sm:p-2.5 rounded shadow-xl border flex flex-col justify-between`}
+                style={{
+                  bottom: isMobileView ? "12%" : "8%",
+                  right: isMobileView ? "10%" : "6%",
+                  width: isMobileView ? "28%" : "26%",
+                  height: isMobileView ? "24%" : "24%",
+                  backgroundColor: styling.card.bg,
+                  borderColor: `${styling.card.border}35`,
+                  zIndex: 15,
+                  boxShadow: "5px 10px 22px rgba(3, 10, 25, 0.25)"
+                }}
+              >
+                <div className="absolute inset-1.5 border border-dashed rounded pointer-events-none" style={{ borderColor: `${styling.card.border}30` }} />
+                <div className="relative z-10 flex flex-col h-full justify-between text-center">
+                  <div className="border-b pb-0.5 mb-0.5" style={{ borderColor: `${styling.card.border}20` }}>
+                    <span className={`text-[7px] font-extrabold uppercase tracking-widest block ${styling.card.textColor}`}>
+                      {styling.card.title}
+                    </span>
+                  </div>
+                  <p className={`italic ${styling.card.bodyColor} leading-relaxed ${styling.card.font} text-[7px] line-clamp-2 my-auto px-0.5`}>
+                    "{cleanMessage || "Wishing you warmth and joy."}"
+                  </p>
+                  <div className={`text-[6px] ${styling.card.textColor} tracking-widest uppercase font-bold`}>
+                    ❤️ {customizations.name || "Recipient"}
+                  </div>
                 </div>
-                <p className={`italic ${styling.card.bodyColor} leading-relaxed ${styling.card.font} text-[7px] line-clamp-2 my-auto px-0.5`}>
-                  "{customizations.message || "Wishing you warmth and joy."}"
-                </p>
-                <div className={`text-[6px] ${styling.card.textColor} tracking-widest uppercase font-bold`}>
-                  ❤️ {customizations.name || "Recipient"}
-                </div>
-              </div>
-            </motion.div>
-          )}
+              </motion.div>
+            );
+          })()}
 
           {/* Corporate Logo Plate */}
           {customizations.logoUrl && (

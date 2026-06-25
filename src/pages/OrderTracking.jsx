@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { parseMessageMetadata } from "@/lib/utils";
 
 const TRACKING_STAGES = [
   "Order Placed",
@@ -146,7 +147,12 @@ export default function OrderTracking() {
                   <div className="text-xs space-y-2 text-slate-600">
                     <p>Recipient: <strong>{trackedOrder.recipient?.name}</strong></p>
                     {trackedOrder.recipient?.phone && <p>Phone: <strong>{trackedOrder.recipient.phone}</strong></p>}
-                    {trackedOrder.recipient?.message && <p className="italic bg-white p-3 rounded-xl border">"{trackedOrder.recipient.message}"</p>}
+                    {trackedOrder.recipient?.message && (() => {
+                      const { message: cleanMessage } = parseMessageMetadata(trackedOrder.recipient.message);
+                      return cleanMessage ? (
+                        <p className="italic bg-white p-3 rounded-xl border">"{cleanMessage}"</p>
+                      ) : null;
+                    })()}
                     {trackedOrder.recipient?.customText && <p>Box Lid Text: <strong>{trackedOrder.recipient.customText}</strong></p>}
                   </div>
                   <div className="mt-4 pt-4 border-t border-dashed flex justify-between">
