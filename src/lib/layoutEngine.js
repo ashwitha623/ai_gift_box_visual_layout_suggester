@@ -811,8 +811,22 @@ function selectBoxForLayout(products, layoutStyle, boxTemplates, budget, occasio
   return fittingBoxes[0]; // Return the optimal (smallest suitable) box configuration
 }
 
+const recommendationsCache = new Map();
+
+export function clearRecommendationsCache() {
+  recommendationsCache.clear();
+}
+
 // Main recommendation export
 export function generateRecommendations({ occasion, occasionTitle, products, budget = 5000, boxSize = "Medium", boxTemplates, layoutTemplates }) {
+  // Generate a key representing the current products and settings configuration
+  const productsKey = products.map(p => `${p.id || p.name}-${p.price}`).sort().join(",");
+  const cacheKey = `${occasion}_${productsKey}_${boxSize}_${budget}`;
+
+  if (recommendationsCache.has(cacheKey)) {
+    return recommendationsCache.get(cacheKey);
+  }
+
   const boxes = (boxTemplates && boxTemplates.length > 0 ? boxTemplates : BOX_TEMPLATES).map(b => ({
     ...b,
     capacity: b.capacity !== undefined ? b.capacity : (b.volume !== undefined ? b.volume : (b.length * b.width * b.height))
@@ -895,10 +909,12 @@ export function generateRecommendations({ occasion, occasionTitle, products, bud
 
   // If no layouts fit, return a failure indicator
   if (options.length === 0) {
-    return {
+    const failureResult = {
       success: false,
       error: "Selected products exceed available box capacities. Please reduce items or create a larger box configuration."
     };
+    recommendationsCache.set(cacheKey, failureResult);
+    return failureResult;
   }
 
   // Sort layouts to identify the one with the highest match score as recommended
@@ -908,13 +924,16 @@ export function generateRecommendations({ occasion, occasionTitle, products, bud
   // The rest are alternatives
   const alternatives = options.filter(o => o.id !== recommendedOption.id);
 
-  return {
+  const successResult = {
     success: true,
     recommended: recommendedOption,
     alternatives,
     totalPrice: totalProductPrice,
     withinBudget: (totalProductPrice + recommendedOption.box.cost) <= budget
   };
+
+  recommendationsCache.set(cacheKey, successResult);
+  return successResult;
 }
 
 export const LAYOUT_STYLES = [
