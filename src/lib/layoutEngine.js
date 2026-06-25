@@ -463,6 +463,13 @@ function packSafeShipping(box, products, scale, originalMargin, originalGap, tem
         candidatePoints.push({ x: item.x + item.w + gap, y: item.y, origin: "edge" });
         candidatePoints.push({ x: item.x, y: item.y + item.h + gap, origin: "edge" });
       }
+    } else {
+      const item = { product: p, x: bestX, y: bestY, w: bestW, h: bestH, rotated: bestRotated };
+      placed.push(item);
+
+      // Expand candidate points
+      candidatePoints.push({ x: item.x + item.w + gap, y: item.y, origin: "edge" });
+      candidatePoints.push({ x: item.x, y: item.y + item.h + gap, origin: "edge" });
     }
   }
 

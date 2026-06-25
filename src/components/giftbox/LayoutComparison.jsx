@@ -124,6 +124,7 @@ export default function LayoutComparison({ recommended, alternatives, active, on
                         size="sm"
                         customizations={customizations}
                         boxTemplates={customizations.boxTemplates}
+                        layoutTemplates={customizations.layoutTemplates}
                       />
                     </div>
                     

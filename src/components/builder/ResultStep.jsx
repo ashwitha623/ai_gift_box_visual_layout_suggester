@@ -252,7 +252,7 @@ export default function ResultStep({ result, occasion, products, details, onRest
         active={activeLayout}
         onSelect={setActiveLayout}
         products={products}
-        customizations={{ ...details, occasion: occasion.id, boxTemplates }}
+        customizations={{ ...details, occasion: occasion.id, boxTemplates, layoutTemplates }}
       />
 
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center sm:justify-center gap-3 mt-10 max-w-sm mx-auto sm:max-w-none">
