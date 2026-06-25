@@ -558,8 +558,8 @@ function packCorporate(box, products, scale, margin, gap, template) {
 
 // Main coordinator wrapper that scales products to fit
 function packLayout(box, products, layoutStyle, template) {
-  // Enforce strict physical fit validation at actual 1:1 scale
-  const scales = [1.0];
+  // Try packing using different scale factors from 1.0 down to 0.4 to ensure fit
+  const scales = [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4];
   const margin = 1.2;
   const gap = template?.minSpacing !== undefined ? template.minSpacing : (layoutStyle === "safe_shipping" ? 1.8 : 0.6);
   const boxCapacity = box.capacity !== undefined ? box.capacity : (box.volume !== undefined ? box.volume : (box.length * box.width * box.height));
