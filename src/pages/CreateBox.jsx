@@ -190,7 +190,7 @@ export default function CreateBox() {
               <Loader2 className="w-5 h-5 mx-auto mt-5 text-primary animate-spin" />
             </div>
           ) : (
-            <ResultStep result={result} occasion={occasion} products={products} details={details} onRestart={restart} onBack={() => setStep(2)} boxTemplates={dbBoxes} />
+            <ResultStep result={result} occasion={occasion} products={products} details={details} onRestart={restart} onBack={() => setStep(2)} boxTemplates={dbBoxes} layoutTemplates={dbLayoutTemplates} />
           ))}
         </motion.div>
       </AnimatePresence>

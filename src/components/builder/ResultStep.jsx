@@ -14,7 +14,7 @@ import { useAuthAction } from "@/components/AuthModalContext";
 import axios from "axios";
 import confetti from "canvas-confetti";
 
-export default function ResultStep({ result, occasion, products, details, onRestart, onBack, boxTemplates }) {
+export default function ResultStep({ result, occasion, products, details, onRestart, onBack, boxTemplates, layoutTemplates }) {
   const [activeLayout, setActiveLayout] = useState(result.recommended || null);
   const reportRef = useRef(null);
   const [exporting, setExporting] = useState(false);
@@ -240,7 +240,7 @@ export default function ResultStep({ result, occasion, products, details, onRest
 
       <div ref={reportRef} className="bg-background">
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mb-10">
-          <GiftBoxVisual products={products} ribbonHex={activeLayout.ribbon.hex} layoutId={activeLayout.id} customizations={{ ...details, occasion: occasion.id, onItemsChange: handleItemsChange }} boxTemplates={boxTemplates} />
+          <GiftBoxVisual products={products} ribbonHex={activeLayout.ribbon.hex} layoutId={activeLayout.id} customizations={{ ...details, occasion: occasion.id, onItemsChange: handleItemsChange }} boxTemplates={boxTemplates} layoutTemplates={layoutTemplates} />
         </motion.div>
 
         <ReportCard layout={activeLayout} occasion={occasion} products={products} details={details} totalPrice={result.totalPrice} />

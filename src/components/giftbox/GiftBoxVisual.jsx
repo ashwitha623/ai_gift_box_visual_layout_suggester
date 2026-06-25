@@ -853,7 +853,9 @@ export default function GiftBoxVisual({
   ribbonHex = "#D4AF37",
   layoutId = "recommended",
   size = "lg",
-  customizations = {}
+  customizations = {},
+  boxTemplates,
+  layoutTemplates
 }) {
   const [lidOpen, setLidOpen] = useState(true);
   const occasionId = customizations.occasion || "just_because";
@@ -868,7 +870,9 @@ export default function GiftBoxVisual({
       occasionTitle: occasionId.charAt(0).toUpperCase() + occasionId.slice(1),
       products,
       budget: customizations.budget || 100000,
-      boxSize: customizations.boxSize || "Medium"
+      boxSize: customizations.boxSize || "Medium",
+      boxTemplates,
+      layoutTemplates
     });
 
     const activeLayoutId = layoutId || "recommended";
@@ -877,7 +881,7 @@ export default function GiftBoxVisual({
     }
     const found = recs.alternatives.find(a => a.id === activeLayoutId);
     return found || recs.recommended;
-  }, [products, layoutId, occasionId, customizations.budget, customizations.boxSize]);
+  }, [products, layoutId, occasionId, customizations.budget, customizations.boxSize, boxTemplates, layoutTemplates]);
 
   const maxW = size === "lg" ? "max-w-3xl" : "max-w-xs";
 

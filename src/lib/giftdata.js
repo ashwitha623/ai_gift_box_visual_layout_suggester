@@ -186,7 +186,7 @@ export const formatINR = (n) => `₹${n.toLocaleString("en-IN")}`;
 export const getProductImage = (p) => {
   if (!p) return null;
   if (p.image) return p.image;
-  const staticProduct = PRODUCTS.find(sp => sp.id === p.id || sp.name.toLowerCase() === p.name.toLowerCase());
+  const staticProduct = PRODUCTS.find(sp => sp.name.toLowerCase() === p.name.toLowerCase()) || PRODUCTS.find(sp => sp.id === p.id);
   if (staticProduct && staticProduct.image) return staticProduct.image;
   return CATEGORY_FALLBACKS[p.category] || CATEGORY_FALLBACKS["Lifestyle Gifts"];
 };

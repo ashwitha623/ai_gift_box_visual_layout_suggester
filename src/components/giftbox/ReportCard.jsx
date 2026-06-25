@@ -375,68 +375,6 @@ export default function ReportCard({ layout, occasion, products, details, totalP
                 ))}
               </div>
             </div>
-
-            {/* Ribbon & theme matches */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-secondary/40 rounded-2xl p-4 border border-border/70">
-                <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                  <Ribbon className="w-3.5 h-3.5 text-accent" /> Ribbon Accent
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-4 h-4 rounded-full border border-white shadow-sm flex-shrink-0" style={{ background: layout.ribbon.hex }} />
-                  <span className="font-bold text-primary text-xs">{layout.ribbon.color}</span>
-                </div>
-              </div>
-              <div className="bg-secondary/40 rounded-2xl p-4 border border-border/70">
-                <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                  <Package className="w-3.5 h-3.5 text-accent" /> Packaging Theme
-                </div>
-                <span className="font-bold text-primary text-xs">{box.packagingTheme}</span>
-              </div>
-            </div>
-
-            {/* Gifting Personalization Details */}
-            {details && (
-              <div className="bg-secondary/40 rounded-2xl p-4 border border-border/70 text-xs space-y-2.5 mt-4">
-                <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                  <Gift className="w-3.5 h-3.5 text-accent" /> Gifting Details
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <span className="font-semibold text-muted-foreground block text-[10px]">Recipient:</span>
-                    <span className="font-bold text-primary">{details.name || "—"}</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-muted-foreground block text-[10px]">Phone:</span>
-                    <span className="font-bold text-primary">{details.phone || "—"}</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-muted-foreground block text-[10px]">Sender Name:</span>
-                    <span className="font-medium text-slate-700">{details.senderName || "—"}</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-muted-foreground block text-[10px]">Preferred Date:</span>
-                    <span className="font-medium text-slate-700">{details.deliveryDate || "—"}</span>
-                  </div>
-                </div>
-                <div>
-                  <span className="font-semibold text-muted-foreground block text-[10px]">Delivery Address:</span>
-                  <span className="font-medium text-slate-700">{details.deliveryAddress || "—"}</span>
-                </div>
-                {details.message && (
-                  <div>
-                    <span className="font-semibold text-muted-foreground block text-[10px]">Message Card:</span>
-                    <span className="italic text-slate-600 block bg-white p-2 rounded-lg border mt-1">"{details.message}"</span>
-                  </div>
-                )}
-                {details.customText && (
-                  <div>
-                    <span className="font-semibold text-muted-foreground block text-[10px]">Custom Lid Engraving:</span>
-                    <span className="font-bold text-slate-700 uppercase">{details.customText}</span>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
 
           {/* Column 2: Arrangement Instructions and Explanation */}
@@ -465,6 +403,68 @@ export default function ReportCard({ layout, occasion, products, details, totalP
                 </h4>
                 <p className="text-xs text-muted-foreground leading-relaxed">{layout.explanation}</p>
               </div>
+
+              {/* Ribbon & theme matches */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-secondary/40 rounded-2xl p-4 border border-border/70">
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                    <Ribbon className="w-3.5 h-3.5 text-accent" /> Ribbon Accent
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-4 h-4 rounded-full border border-white shadow-sm flex-shrink-0" style={{ background: layout.ribbon.hex }} />
+                    <span className="font-bold text-primary text-xs">{layout.ribbon.color}</span>
+                  </div>
+                </div>
+                <div className="bg-secondary/40 rounded-2xl p-4 border border-border/70">
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                    <Package className="w-3.5 h-3.5 text-accent" /> Packaging Theme
+                  </div>
+                  <span className="font-bold text-primary text-xs">{box.packagingTheme}</span>
+                </div>
+              </div>
+
+              {/* Gifting Personalization Details */}
+              {details && (
+                <div className="bg-secondary/40 rounded-2xl p-4 border border-border/70 text-xs space-y-2.5">
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                    <Gift className="w-3.5 h-3.5 text-accent" /> Gifting Details
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <span className="font-semibold text-muted-foreground block text-[10px]">Recipient:</span>
+                      <span className="font-bold text-primary">{details.name || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="font-semibold text-muted-foreground block text-[10px]">Phone:</span>
+                      <span className="font-bold text-primary">{details.phone || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="font-semibold text-muted-foreground block text-[10px]">Sender Name:</span>
+                      <span className="font-medium text-slate-700">{details.senderName || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="font-semibold text-muted-foreground block text-[10px]">Preferred Date:</span>
+                      <span className="font-medium text-slate-700">{details.deliveryDate || "—"}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-muted-foreground block text-[10px]">Delivery Address:</span>
+                    <span className="font-medium text-slate-700">{details.deliveryAddress || "—"}</span>
+                  </div>
+                  {details.message && (
+                    <div>
+                      <span className="font-semibold text-muted-foreground block text-[10px]">Message Card:</span>
+                      <span className="italic text-slate-600 block bg-white p-2 rounded-lg border mt-1">"{details.message}"</span>
+                    </div>
+                  )}
+                  {details.customText && (
+                    <div>
+                      <span className="font-semibold text-muted-foreground block text-[10px]">Custom Lid Engraving:</span>
+                      <span className="font-bold text-slate-700 uppercase">{details.customText}</span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Safety alert notice if fragile items exist */}

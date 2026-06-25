@@ -3,7 +3,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Package, Upload, Briefcase, Calendar } from "lucide-react";
-import { BOX_SIZES, formatINR } from "@/lib/giftdata";
+import { BOX_SIZES, BOX_TEMPLATES, formatINR } from "@/lib/giftdata";
 
 export default function RecipientStep({ details, onChange, selectedTotal }) {
   
@@ -179,23 +179,26 @@ export default function RecipientStep({ details, onChange, selectedTotal }) {
         <div className="space-y-3">
           <Label className="font-semibold text-sm text-primary">Box Size</Label>
           <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))" }}>
-            {BOX_SIZES.map((size) => (
-              <button
-                key={size}
-                onClick={() => onChange({ ...details, boxSize: size })}
-                className={`flex flex-col items-center gap-1.5 rounded-xl border-2 py-3.5 transition-all ${
-                  details.boxSize === size
-                    ? "border-primary bg-secondary shadow-md shadow-primary/10"
-                    : "border-border bg-white hover:border-primary/40"
-                }`}
-              >
-                <Package className={`${size === "Small" ? "w-5 h-5" : size === "Medium" ? "w-7 h-7" : "w-9 h-9"} text-primary`} />
-                <span className="text-xs font-bold text-primary">{size}</span>
-                <span className="text-[10px] font-medium text-slate-400">
-                  {size === "Small" ? "26 x 18 x 11 cm" : size === "Medium" ? "30 x 22 x 12 cm" : "34 x 26 x 14 cm"}
-                </span>
-              </button>
-            ))}
+            {BOX_SIZES.map((size) => {
+              const template = BOX_TEMPLATES.find(t => t.name.toLowerCase().startsWith(size.toLowerCase()));
+              return (
+                <button
+                  key={size}
+                  onClick={() => onChange({ ...details, boxSize: size })}
+                  className={`flex flex-col items-center gap-1.5 rounded-xl border-2 py-3.5 transition-all ${
+                    details.boxSize === size
+                      ? "border-primary bg-secondary shadow-md shadow-primary/10"
+                      : "border-border bg-white hover:border-primary/40"
+                  }`}
+                >
+                  <Package className={`${size === "Small" ? "w-5 h-5" : size === "Medium" ? "w-7 h-7" : "w-9 h-9"} text-primary`} />
+                  <span className="text-xs font-bold text-primary">{size}</span>
+                  <span className="text-[10px] font-medium text-slate-400">
+                    {template ? `${template.length} x ${template.width} x ${template.height} cm` : ""}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
