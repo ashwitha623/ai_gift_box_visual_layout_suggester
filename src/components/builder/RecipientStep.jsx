@@ -2,10 +2,24 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Package, Upload, Briefcase, Calendar } from "lucide-react";
+import { Package, Upload, Briefcase, Calendar, AlertTriangle } from "lucide-react";
 import { BOX_SIZES, BOX_TEMPLATES, formatINR } from "@/lib/giftdata";
+import { generateRecommendations } from "@/lib/layoutEngine";
 
-export default function RecipientStep({ details, onChange, selectedTotal }) {
+export default function RecipientStep({ details, onChange, selectedTotal, products, occasion, dbBoxes, dbLayoutTemplates }) {
+  const sizeFits = (size) => {
+    if (!occasion || !products || products.length === 0) return true;
+    const testResult = generateRecommendations({
+      occasion: occasion.id,
+      occasionTitle: occasion.title,
+      products,
+      budget: details.budget,
+      boxSize: size,
+      boxTemplates: dbBoxes,
+      layoutTemplates: dbLayoutTemplates
+    });
+    return testResult.success;
+  };
   
   const getMinDeliveryDate = () => {
     const today = new Date();
@@ -181,25 +195,45 @@ export default function RecipientStep({ details, onChange, selectedTotal }) {
           <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))" }}>
             {BOX_SIZES.map((size) => {
               const template = BOX_TEMPLATES.find(t => t.name.toLowerCase().startsWith(size.toLowerCase()));
+              const fits = sizeFits(size);
+              const isSelected = details.boxSize === size;
+
               return (
                 <button
                   key={size}
+                  type="button"
                   onClick={() => onChange({ ...details, boxSize: size })}
                   className={`flex flex-col items-center gap-1.5 rounded-xl border-2 py-3.5 transition-all ${
-                    details.boxSize === size
-                      ? "border-primary bg-secondary shadow-md shadow-primary/10"
-                      : "border-border bg-white hover:border-primary/40"
+                    isSelected
+                      ? fits
+                        ? "border-primary bg-secondary shadow-md shadow-primary/10"
+                        : "border-rose-500 bg-rose-50/20 shadow-md shadow-rose-500/5"
+                      : fits
+                        ? "border-border bg-white hover:border-primary/40"
+                        : "border-rose-100 bg-rose-50/10 hover:border-rose-300"
                   }`}
                 >
-                  <Package className={`${size === "Small" ? "w-5 h-5" : size === "Medium" ? "w-7 h-7" : "w-9 h-9"} text-primary`} />
-                  <span className="text-xs font-bold text-primary">{size}</span>
-                  <span className="text-[10px] font-medium text-slate-400">
-                    {template ? `${template.length} x ${template.width} x ${template.height} cm` : ""}
+                  <Package className={`${size === "Small" ? "w-5 h-5" : size === "Medium" ? "w-7 h-7" : "w-9 h-9"} ${fits ? "text-primary" : "text-rose-500"}`} />
+                  <span className={`text-xs font-bold ${fits ? "text-primary" : "text-rose-600"}`}>{size}</span>
+                  <span className={`text-[9px] font-semibold ${fits ? "text-slate-400" : "text-rose-500"}`}>
+                    {fits ? (template ? `${template.length} x ${template.width} x ${template.height} cm` : "") : "Insufficient Space"}
                   </span>
                 </button>
               );
             })}
           </div>
+
+          {!sizeFits(details.boxSize) && (
+            <div className="mt-3 p-3 bg-rose-50/40 border border-rose-100 rounded-xl flex items-start gap-2.5 text-rose-700 animate-pulse">
+              <AlertTriangle className="w-4.5 h-4.5 text-rose-500 shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                <p className="text-[11px] font-bold tracking-tight">Box Size Too Small</p>
+                <p className="text-[10px] text-rose-600 font-medium leading-relaxed">
+                  Your selected items exceed the physical capacity of the {details.boxSize} box. Please select a larger box size or reduce items.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, Sparkles, Loader2 } from "lucide-react";
@@ -104,16 +104,31 @@ export default function CreateBox() {
     /^\d{10}$/.test(details.phone.trim())
   );
 
+  const selectedTotal = products.reduce((s, p) => s + p.price, 0);
+
+  const selectedBoxFits = useMemo(() => {
+    if (!occasion || products.length === 0) return true;
+    const testResult = generateRecommendations({
+      occasion: occasion.id,
+      occasionTitle: occasion.title,
+      products,
+      budget: details.budget,
+      boxSize: details.boxSize,
+      boxTemplates: dbBoxes,
+      layoutTemplates: dbLayoutTemplates
+    });
+    return testResult.success;
+  }, [occasion, products, details.boxSize, details.budget, dbBoxes, dbLayoutTemplates]);
+
   const isStepAccessible = (targetStep) => {
     if (targetStep === 0) return true;
     if (targetStep === 1) return !!occasion;
     if (targetStep === 2) return products.length >= 2;
-    if (targetStep === 3) return isDetailsValid;
+    if (targetStep === 3) return isDetailsValid && selectedBoxFits;
     return false;
   };
 
-  const canNext = step === 0 ? !!occasion : step === 1 ? products.length >= 2 : isDetailsValid;
-  const selectedTotal = products.reduce((s, p) => s + p.price, 0);
+  const canNext = step === 0 ? !!occasion : step === 1 ? products.length >= 2 : (isDetailsValid && selectedBoxFits);
 
   const handleGenerate = async () => {
     setGenerating(true);
@@ -180,7 +195,17 @@ export default function CreateBox() {
         <motion.div key={step} initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.25 }}>
           {step === 0 && <OccasionStep selected={occasion} onSelect={setOccasion} />}
           {step === 1 && <ProductStep selected={products} onToggle={toggleProduct} allProducts={dbProducts} loading={catalogLoading} />}
-          {step === 2 && <RecipientStep details={details} onChange={setDetails} selectedTotal={selectedTotal} />}
+          {step === 2 && (
+            <RecipientStep
+              details={details}
+              onChange={setDetails}
+              selectedTotal={selectedTotal}
+              products={products}
+              occasion={occasion}
+              dbBoxes={dbBoxes}
+              dbLayoutTemplates={dbLayoutTemplates}
+            />
+          )}
           {step === 3 && (generating || !result ? (
             <div className="max-w-4xl mx-auto grid md:grid-cols-12 gap-8 py-12 px-4 items-center">
               {/* Spinner & Message */}
