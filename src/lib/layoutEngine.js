@@ -839,7 +839,7 @@ export function generateRecommendations({ occasion, occasionTitle, products, bud
     const sizeLower = boxSize.toLowerCase();
     const matches = boxes.filter(b => 
       b.name.toLowerCase() === sizeLower ||
-      b.id.toLowerCase() === sizeLower ||
+      String(b.id).toLowerCase() === sizeLower ||
       b.name.toLowerCase().includes(sizeLower) ||
       sizeLower.includes(b.name.toLowerCase())
     );
