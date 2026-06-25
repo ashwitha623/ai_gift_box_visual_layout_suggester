@@ -132,7 +132,7 @@ export default function CreateBox() {
 
       setResult(generatedResult);
       setGenerating(false);
-    }, 2200);
+    }, 500);
   };
 
   const restart = () => {
