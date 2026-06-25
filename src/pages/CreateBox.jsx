@@ -16,6 +16,7 @@ export default function CreateBox() {
   const [occasion, setOccasion] = useState(null);
   const [products, setProducts] = useState([]);
   const [dbProducts, setDbProducts] = useState([]);
+  const [catalogLoading, setCatalogLoading] = useState(true);
   const [dbBoxes, setDbBoxes] = useState([]);
   const [dbLayoutTemplates, setDbLayoutTemplates] = useState([]);
   const [details, setDetails] = useState({
@@ -38,6 +39,7 @@ export default function CreateBox() {
   useEffect(() => {
     const fetchInventory = async () => {
       try {
+        setCatalogLoading(true);
         const res = await axios.get("http://localhost:5000/api/inventory");
         if (res.data) {
           if (res.data.products) {
@@ -52,6 +54,8 @@ export default function CreateBox() {
         }
       } catch (e) {
         console.error("Failed to load inventory from API", e);
+      } finally {
+        setCatalogLoading(false);
       }
     };
     fetchInventory();
@@ -175,19 +179,57 @@ export default function CreateBox() {
       <AnimatePresence mode="wait">
         <motion.div key={step} initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.25 }}>
           {step === 0 && <OccasionStep selected={occasion} onSelect={setOccasion} />}
-          {step === 1 && <ProductStep selected={products} onToggle={toggleProduct} allProducts={dbProducts} />}
+          {step === 1 && <ProductStep selected={products} onToggle={toggleProduct} allProducts={dbProducts} loading={catalogLoading} />}
           {step === 2 && <RecipientStep details={details} onChange={setDetails} selectedTotal={selectedTotal} />}
           {step === 3 && (generating || !result ? (
-            <div className="text-center py-24">
-              <div className="relative w-20 h-20 mx-auto mb-6">
-                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-rosegold opacity-20 animate-ping" />
-                <div className="relative w-20 h-20 rounded-full bg-gradient-to-r from-primary to-rosegold flex items-center justify-center shadow-lg shadow-primary/30">
-                  <Sparkles className="w-8 h-8 text-white animate-pulse" />
+            <div className="max-w-4xl mx-auto grid md:grid-cols-12 gap-8 py-12 px-4 items-center">
+              {/* Spinner & Message */}
+              <div className="md:col-span-5 text-center md:text-left space-y-6">
+                <div className="relative w-20 h-20 mx-auto md:mx-0">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-accent opacity-20 animate-ping" />
+                  <div className="relative w-20 h-20 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/30">
+                    <Sparkles className="w-8 h-8 text-white animate-pulse" />
+                  </div>
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold font-heading text-primary">Analyzing your gift box...</h2>
+                  <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
+                    Our packing optimization engine is evaluating box sizing constraints, product fragile buffers, and nesting aesthetic arrangements.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-xs font-bold text-accent justify-center md:justify-start">
+                  <span className="w-2.5 h-2.5 rounded-full bg-accent animate-bounce" />
+                  <span>PACKING OPTIMIZER IN PROGRESS...</span>
                 </div>
               </div>
-              <h2 className="text-xl font-bold font-heading text-foreground">Analyzing your gift box...</h2>
-              <p className="text-muted-foreground mt-2 text-sm">Evaluating layout styles, product sizes, occasion mood and budget fit.</p>
-              <Loader2 className="w-5 h-5 mx-auto mt-5 text-primary animate-spin" />
+
+              {/* Layout Pre-render Skeleton Preview */}
+              <div className="md:col-span-7 bg-white border border-slate-200/60 rounded-3xl p-6 shadow-md space-y-6 animate-pulse">
+                {/* Visualizer box skeleton */}
+                <div className="aspect-[4/3] w-full bg-slate-100/70 rounded-2xl border border-dashed border-slate-200/60 flex items-center justify-center relative p-8">
+                  {/* Outer Ribbon line skeleton */}
+                  <div className="absolute inset-y-0 left-1/4 w-4 bg-slate-200/40" />
+                  <div className="absolute inset-x-0 top-1/3 h-4 bg-slate-200/40" />
+                  
+                  {/* Silhouettes of products inside box */}
+                  <div className="grid grid-cols-2 gap-4 w-full h-full relative z-10 p-4">
+                    <div className="bg-slate-200/50 rounded-xl flex items-center justify-center text-slate-400/80">🎁</div>
+                    <div className="bg-slate-200/50 rounded-xl flex items-center justify-center text-slate-400/80">🎁</div>
+                    <div className="bg-slate-200/50 rounded-xl flex items-center justify-center text-slate-400/80">🎁</div>
+                    <div className="bg-slate-200/50 rounded-xl flex items-center justify-center text-slate-400/80">🎁</div>
+                  </div>
+                </div>
+
+                {/* Score bar skeletons */}
+                <div className="space-y-3">
+                  <div className="h-4 w-1/4 bg-slate-200/60 rounded-md" />
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="h-10 bg-slate-100/50 rounded-xl border border-dashed border-slate-200/40" />
+                    <div className="h-10 bg-slate-100/50 rounded-xl border border-dashed border-slate-200/40" />
+                    <div className="h-10 bg-slate-100/50 rounded-xl border border-dashed border-slate-200/40" />
+                  </div>
+                </div>
+              </div>
             </div>
           ) : (
             <ResultStep result={result} occasion={occasion} products={products} details={details} onRestart={restart} onBack={() => setStep(2)} boxTemplates={dbBoxes} layoutTemplates={dbLayoutTemplates} />

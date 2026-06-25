@@ -10,8 +10,44 @@ const SIZE_COLOR = {
   Large:  "bg-rose-50 text-rose-700 border-rose-200",
 };
 
-export default function ProductStep({ selected, onToggle, allProducts }) {
+export default function ProductStep({ selected, onToggle, allProducts, loading }) {
   const [category, setCategory] = useState("All");
+
+  if (loading) {
+    return (
+      <div>
+        <div className="flex flex-wrap items-end justify-between gap-4 mb-4">
+          <div className="space-y-2">
+            <div className="h-8 w-64 skeleton" />
+            <div className="h-4 w-96 skeleton" />
+          </div>
+          <div className="h-10 w-40 rounded-full skeleton" />
+        </div>
+        
+        {/* Category skeleton */}
+        <div className="flex gap-2 py-3 mb-5">
+          {[1, 2, 3, 4, 5].map(i => (
+            <div key={i} className="h-9 w-24 rounded-full skeleton flex-shrink-0" />
+          ))}
+        </div>
+
+        {/* Product Grid Skeleton */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+            <div key={i} className="bg-card border rounded-2xl overflow-hidden shadow-sm space-y-3 p-0 pb-4">
+              <div className="aspect-square w-full skeleton rounded-t-2xl rounded-b-none" />
+              <div className="p-4 space-y-2">
+                <div className="h-4 w-3/4 skeleton" />
+                <div className="h-3 w-1/2 skeleton" />
+                <div className="h-5 w-1/3 skeleton mt-3" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   const productsToUse = allProducts && allProducts.length > 0 ? allProducts : PRODUCTS;
   const filtered = category === "All" ? productsToUse : productsToUse.filter((p) => p.category === category);
   const total = selected.reduce((s, p) => s + p.price, 0);
@@ -69,12 +105,12 @@ export default function ProductStep({ selected, onToggle, allProducts }) {
               }`}
             >
               {/* Product image */}
-              <div className="relative aspect-square overflow-hidden bg-muted">
+              <div className="premium-product-img-container rounded-t-2xl rounded-b-none border-b border-slate-100 bg-slate-50/40">
                 <img
                   src={getProductImage(p)}
                   alt={p.name}
                   loading="lazy"
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-108"
+                  className="premium-product-img"
                   onError={(e) => { e.currentTarget.src = CATEGORY_FALLBACKS[p.category] || CATEGORY_FALLBACKS["Lifestyle Gifts"]; }}
                 />
 

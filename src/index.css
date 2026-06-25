@@ -93,3 +93,17 @@
     @apply bg-background text-foreground font-body;
   }
 }
+
+@layer components {
+  .premium-product-img-container {
+    @apply relative aspect-square overflow-hidden bg-slate-50/70 border border-slate-200/40 rounded-2xl flex items-center justify-center p-3 shadow-sm transition-all duration-300;
+  }
+  
+  .premium-product-img {
+    @apply max-w-full max-h-full object-contain transition-transform duration-500 group-hover:scale-105;
+  }
+
+  .skeleton {
+    @apply animate-pulse bg-slate-200/70 rounded-xl;
+  }
+}

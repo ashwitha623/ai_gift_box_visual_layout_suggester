@@ -179,6 +179,16 @@ export default function ReportsExports() {
     toast({ title: "PDF Generated", description: "Styled PDF output created successfully." });
   };
 
+  const isReportEmpty = () => {
+    if (!reportData) return true;
+    if (reportType === "orders") return !reportData.orders || reportData.orders.length === 0;
+    if (reportType === "inventory") return (!reportData.products || reportData.products.length === 0) && (!reportData.packaging || reportData.packaging.length === 0);
+    if (reportType === "production") return !reportData.stages || reportData.stages.length === 0;
+    if (reportType === "crm") return !reportData.customers || reportData.customers.length === 0;
+    if (reportType === "reminders") return !reportData.reminders || reportData.reminders.length === 0;
+    return false;
+  };
+
   return (
     <div className="min-h-screen bg-background py-10 px-6 font-body text-foreground">
       <div className="max-w-6xl mx-auto space-y-8">
@@ -225,7 +235,38 @@ export default function ReportsExports() {
 
         {/* Live Preview Area */}
         {loading ? (
-          <div className="text-center py-20 text-xs">Compiling report data...</div>
+          <div className="bg-card border rounded-3xl p-6 sm:p-8 shadow-sm space-y-6 animate-pulse">
+            {/* Report Title Card Skeleton */}
+            <div className="border-b pb-4 flex justify-between items-center">
+              <div className="space-y-2 w-1/2">
+                <div className="h-6 w-3/4 bg-slate-200 rounded-md" />
+                <div className="h-3.5 w-1/2 bg-slate-100 rounded-md" />
+              </div>
+              <div className="w-8 h-8 rounded-full bg-slate-200" />
+            </div>
+
+            {/* Metrics cards inside reports skeleton */}
+            <div className="grid grid-cols-3 gap-4 bg-slate-50/50 p-4 rounded-2xl border border-slate-200/40">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="text-center space-y-2">
+                  <div className="h-3 w-1/2 bg-slate-200/60 mx-auto rounded" />
+                  <div className="h-5 w-1/3 bg-slate-200/80 mx-auto rounded" />
+                </div>
+              ))}
+            </div>
+
+            {/* Preview Table Skeletons */}
+            <div className="space-y-4 pt-2">
+              {[1, 2, 3, 4, 5].map(i => (
+                <div key={i} className="flex justify-between items-center py-3 border-b border-slate-100 last:border-b-0">
+                  <div className="h-4 w-1/4 bg-slate-200/60 rounded" />
+                  <div className="h-4 w-1/6 bg-slate-200/40 rounded" />
+                  <div className="h-4 w-1/6 bg-slate-200/40 rounded" />
+                  <div className="h-4 w-1/5 bg-slate-200/50 rounded" />
+                </div>
+              ))}
+            </div>
+          </div>
         ) : (
           <div id="report-preview-content" className="bg-card border rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
             
@@ -274,152 +315,166 @@ export default function ReportsExports() {
             )}
 
             {/* Preview Tables */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
-                
-                {/* 1. ORDERS */}
-                {reportType === "orders" && (
-                  <>
-                    <thead>
-                      <tr className="border-b text-muted-foreground font-bold">
-                        <th className="py-2.5 px-3">Order Code</th>
-                        <th className="py-2.5 px-3">Payment</th>
-                        <th className="py-2.5 px-3">Fulfillment Status</th>
-                        <th className="py-2.5 px-3">Cost Value</th>
-                        <th className="py-2.5 px-3">Box Size</th>
-                        <th className="py-2.5 px-3 text-right">Placed Date</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(reportData.orders || []).map(o => (
-                        <tr key={o.id} className="border-b hover:bg-secondary/20">
-                          <td className="py-3 px-3 font-bold text-primary">{o.trackingId}</td>
-                          <td className="py-3 px-3 font-medium">{o.paymentStatus}</td>
-                          <td className="py-3 px-3"><Badge className="bg-white border text-primary text-[8px] font-bold uppercase">{o.status}</Badge></td>
-                          <td className="py-3 px-3 font-bold text-slate-700">₹{o.totalPrice}</td>
-                          <td className="py-3 px-3 text-slate-500">{o.boxSize}</td>
-                          <td className="py-3 px-3 text-right text-slate-400">{new Date(o.createdAt || Date.now()).toLocaleDateString()}</td>
+            {isReportEmpty() ? (
+              <div className="flex flex-col items-center justify-center p-12 text-center border border-dashed border-slate-200/85 rounded-[24px] bg-slate-50/20 my-6 space-y-3">
+                <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center mx-auto text-primary">
+                  <FileText className="w-6 h-6 text-slate-400" />
+                </div>
+                <div className="space-y-0.5">
+                  <h4 className="text-sm font-bold text-primary font-heading">No audit logs available</h4>
+                  <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+                    There is no database history available for this report type. Once system actions are taken, records will generate automatically.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  
+                  {/* 1. ORDERS */}
+                  {reportType === "orders" && (
+                    <>
+                      <thead>
+                        <tr className="border-b text-muted-foreground font-bold">
+                          <th className="py-2.5 px-3">Order Code</th>
+                          <th className="py-2.5 px-3">Payment</th>
+                          <th className="py-2.5 px-3">Fulfillment Status</th>
+                          <th className="py-2.5 px-3">Cost Value</th>
+                          <th className="py-2.5 px-3">Box Size</th>
+                          <th className="py-2.5 px-3 text-right">Placed Date</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </>
-                )}
+                      </thead>
+                      <tbody>
+                        {(reportData.orders || []).map(o => (
+                          <tr key={o.id} className="border-b hover:bg-secondary/20">
+                            <td className="py-3 px-3 font-bold text-primary">{o.trackingId}</td>
+                            <td className="py-3 px-3 font-medium">{o.paymentStatus}</td>
+                            <td className="py-3 px-3"><Badge className="bg-white border text-primary text-[8px] font-bold uppercase">{o.status}</Badge></td>
+                            <td className="py-3 px-3 font-bold text-slate-700">₹{o.totalPrice}</td>
+                            <td className="py-3 px-3 text-slate-500">{o.boxSize}</td>
+                            <td className="py-3 px-3 text-right text-slate-400">{new Date(o.createdAt || Date.now()).toLocaleDateString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </>
+                  )}
 
-                {/* 2. INVENTORY */}
-                {reportType === "inventory" && (
-                  <>
-                    <thead>
-                      <tr className="border-b text-muted-foreground font-bold">
-                        <th className="py-2.5 px-3">Product/Material</th>
-                        <th className="py-2.5 px-3">SKU</th>
-                        <th className="py-2.5 px-3">Type/Category</th>
-                        <th className="py-2.5 px-3">Available Stock</th>
-                        <th className="py-2.5 px-3 text-right">Min Threshold</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(reportData.products || []).map(p => (
-                        <tr key={`p-${p.id}`} className="border-b hover:bg-secondary/20">
-                          <td className="py-3 px-3 font-bold text-primary">{p.name}</td>
-                          <td className="py-3 px-3 font-semibold text-accent">{p.sku || `PRD-GEN-${p.id}`}</td>
-                          <td className="py-3 px-3 text-slate-500">Product ({p.category})</td>
-                          <td className="py-3 px-3 font-bold text-slate-700">{p.stock}</td>
-                          <td className="py-3 px-3 text-right text-slate-400">{p.minThreshold || 5}</td>
+                  {/* 2. INVENTORY */}
+                  {reportType === "inventory" && (
+                    <>
+                      <thead>
+                        <tr className="border-b text-muted-foreground font-bold">
+                          <th className="py-2.5 px-3">Product/Material</th>
+                          <th className="py-2.5 px-3">SKU</th>
+                          <th className="py-2.5 px-3">Type/Category</th>
+                          <th className="py-2.5 px-3">Available Stock</th>
+                          <th className="py-2.5 px-3 text-right">Min Threshold</th>
                         </tr>
-                      ))}
-                      {(reportData.packaging || []).map(item => (
-                        <tr key={`pck-${item.id}`} className="border-b hover:bg-secondary/20">
-                          <td className="py-3 px-3 font-bold text-primary">{item.name}</td>
-                          <td className="py-3 px-3 font-semibold text-accent">{item.sku}</td>
-                          <td className="py-3 px-3 text-slate-500">Packaging ({item.type})</td>
-                          <td className="py-3 px-3 font-bold text-slate-700">{item.availableQty}</td>
-                          <td className="py-3 px-3 text-right text-slate-400">{item.minThreshold}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </>
-                )}
+                      </thead>
+                      <tbody>
+                        {(reportData.products || []).map(p => (
+                          <tr key={`p-${p.id}`} className="border-b hover:bg-secondary/20">
+                            <td className="py-3 px-3 font-bold text-primary">{p.name}</td>
+                            <td className="py-3 px-3 font-semibold text-accent">{p.sku || `PRD-GEN-${p.id}`}</td>
+                            <td className="py-3 px-3 text-slate-500">Product ({p.category})</td>
+                            <td className="py-3 px-3 font-bold text-slate-700">{p.stock}</td>
+                            <td className="py-3 px-3 text-right text-slate-400">{p.minThreshold || 5}</td>
+                          </tr>
+                        ))}
+                        {(reportData.packaging || []).map(item => (
+                          <tr key={`pck-${item.id}`} className="border-b hover:bg-secondary/20">
+                            <td className="py-3 px-3 font-bold text-primary">{item.name}</td>
+                            <td className="py-3 px-3 font-semibold text-accent">{item.sku}</td>
+                            <td className="py-3 px-3 text-slate-500">Packaging ({item.type})</td>
+                            <td className="py-3 px-3 font-bold text-slate-700">{item.availableQty}</td>
+                            <td className="py-3 px-3 text-right text-slate-400">{item.minThreshold}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </>
+                  )}
 
-                {/* 3. PRODUCTION */}
-                {reportType === "production" && (
-                  <>
-                    <thead>
-                      <tr className="border-b text-muted-foreground font-bold">
-                        <th className="py-2.5 px-3">Order Code</th>
-                        <th className="py-2.5 px-3">Workflow Stage</th>
-                        <th className="py-2.5 px-3">Team Assignment</th>
-                        <th className="py-2.5 px-3">Status</th>
-                        <th className="py-2.5 px-3">Start Date</th>
-                        <th className="py-2.5 px-3 text-right">End Date</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(reportData.stages || []).map(s => (
-                        <tr key={s.id} className="border-b hover:bg-secondary/20">
-                          <td className="py-3 px-3 font-bold text-primary">{s.order?.trackingId || `#${s.orderId}`}</td>
-                          <td className="py-3 px-3 font-semibold">{s.stage}</td>
-                          <td className="py-3 px-3 font-medium text-slate-600">{s.assignedEmployee || "Unassigned"}</td>
-                          <td className="py-3 px-3"><Badge className="bg-white border text-primary text-[8px] font-bold uppercase">{s.status}</Badge></td>
-                          <td className="py-3 px-3 text-slate-400">{s.startDate ? new Date(s.startDate).toLocaleDateString() : "—"}</td>
-                          <td className="py-3 px-3 text-right text-slate-400">{s.completionDate ? new Date(s.completionDate).toLocaleDateString() : "—"}</td>
+                  {/* 3. PRODUCTION */}
+                  {reportType === "production" && (
+                    <>
+                      <thead>
+                        <tr className="border-b text-muted-foreground font-bold">
+                          <th className="py-2.5 px-3">Order Code</th>
+                          <th className="py-2.5 px-3">Workflow Stage</th>
+                          <th className="py-2.5 px-3">Team Assignment</th>
+                          <th className="py-2.5 px-3">Status</th>
+                          <th className="py-2.5 px-3">Start Date</th>
+                          <th className="py-2.5 px-3 text-right">End Date</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </>
-                )}
+                      </thead>
+                      <tbody>
+                        {(reportData.stages || []).map(s => (
+                          <tr key={s.id} className="border-b hover:bg-secondary/20">
+                            <td className="py-3 px-3 font-bold text-primary">{s.order?.trackingId || `#${s.orderId}`}</td>
+                            <td className="py-3 px-3 font-semibold">{s.stage}</td>
+                            <td className="py-3 px-3 font-medium text-slate-600">{s.assignedEmployee || "Unassigned"}</td>
+                            <td className="py-3 px-3"><Badge className="bg-white border text-primary text-[8px] font-bold uppercase">{s.status}</Badge></td>
+                            <td className="py-3 px-3 text-slate-400">{s.startDate ? new Date(s.startDate).toLocaleDateString() : "—"}</td>
+                            <td className="py-3 px-3 text-right text-slate-400">{s.completionDate ? new Date(s.completionDate).toLocaleDateString() : "—"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </>
+                  )}
 
-                {/* 4. CRM */}
-                {reportType === "crm" && (
-                  <>
-                    <thead>
-                      <tr className="border-b text-muted-foreground font-bold">
-                        <th className="py-2.5 px-3">Username</th>
-                        <th className="py-2.5 px-3">Email Address</th>
-                        <th className="py-2.5 px-3">Total Orders Count</th>
-                        <th className="py-2.5 px-3 text-right">Total Revenue Value</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(reportData.customers || []).map((c, idx) => (
-                        <tr key={idx} className="border-b hover:bg-secondary/20">
-                          <td className="py-3 px-3 font-bold text-primary">{c.username}</td>
-                          <td className="py-3 px-3 font-medium text-slate-500">{c.email}</td>
-                          <td className="py-3 px-3 font-semibold text-slate-700">{c.totalOrders} Placed</td>
-                          <td className="py-3 px-3 text-right font-extrabold text-primary">₹{c.totalValue}</td>
+                  {/* 4. CRM */}
+                  {reportType === "crm" && (
+                    <>
+                      <thead>
+                        <tr className="border-b text-muted-foreground font-bold">
+                          <th className="py-2.5 px-3">Username</th>
+                          <th className="py-2.5 px-3">Email Address</th>
+                          <th className="py-2.5 px-3">Total Orders Count</th>
+                          <th className="py-2.5 px-3 text-right">Total Revenue Value</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </>
-                )}
+                      </thead>
+                      <tbody>
+                        {(reportData.customers || []).map((c, idx) => (
+                          <tr key={idx} className="border-b hover:bg-secondary/20">
+                            <td className="py-3 px-3 font-bold text-primary">{c.username}</td>
+                            <td className="py-3 px-3 font-medium text-slate-500">{c.email}</td>
+                            <td className="py-3 px-3 font-semibold text-slate-700">{c.totalOrders} Placed</td>
+                            <td className="py-3 px-3 text-right font-extrabold text-primary">₹{c.totalValue}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </>
+                  )}
 
-                {/* 5. REMINDERS */}
-                {reportType === "reminders" && (
-                  <>
-                    <thead>
-                      <tr className="border-b text-muted-foreground font-bold">
-                        <th className="py-2.5 px-3">Recipient Name</th>
-                        <th className="py-2.5 px-3">Relationship</th>
-                        <th className="py-2.5 px-3">Occasion Type</th>
-                        <th className="py-2.5 px-3">Milestone Date</th>
-                        <th className="py-2.5 px-3 text-right">Reminder Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(reportData.reminders || []).map(r => (
-                        <tr key={r.id} className="border-b hover:bg-secondary/20">
-                          <td className="py-3 px-3 font-bold text-primary">{r.name}</td>
-                          <td className="py-3 px-3 text-slate-500 font-medium">{r.relationship}</td>
-                          <td className="py-3 px-3 font-semibold capitalize">{r.occasionType}</td>
-                          <td className="py-3 px-3 font-medium text-slate-700">{r.occasionDate}</td>
-                          <td className="py-3 px-3 text-right"><Badge className="bg-white border text-primary text-[8px] font-bold uppercase">{r.status}</Badge></td>
+                  {/* 5. REMINDERS */}
+                  {reportType === "reminders" && (
+                    <>
+                      <thead>
+                        <tr className="border-b text-muted-foreground font-bold">
+                          <th className="py-2.5 px-3">Recipient Name</th>
+                          <th className="py-2.5 px-3">Relationship</th>
+                          <th className="py-2.5 px-3">Occasion Type</th>
+                          <th className="py-2.5 px-3">Milestone Date</th>
+                          <th className="py-2.5 px-3 text-right">Reminder Status</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </>
-                )}
+                      </thead>
+                      <tbody>
+                        {(reportData.reminders || []).map(r => (
+                          <tr key={r.id} className="border-b hover:bg-secondary/20">
+                            <td className="py-3 px-3 font-bold text-primary">{r.name}</td>
+                            <td className="py-3 px-3 text-slate-500 font-medium">{r.relationship}</td>
+                            <td className="py-3 px-3 font-semibold capitalize">{r.occasionType}</td>
+                            <td className="py-3 px-3 font-medium text-slate-700">{r.occasionDate}</td>
+                            <td className="py-3 px-3 text-right"><Badge className="bg-white border text-primary text-[8px] font-bold uppercase">{r.status}</Badge></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </>
+                  )}
 
-              </table>
-            </div>
+                </table>
+              </div>
+            )}
 
           </div>
         )}

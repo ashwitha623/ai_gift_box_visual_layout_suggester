@@ -40,6 +40,8 @@ export default function DesignApprovals() {
   const [selectedApproval, setSelectedApproval] = useState(null);
   const [revisionNotes, setRevisionNotes] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
+  const [boxTemplates, setBoxTemplates] = useState([]);
+  const [layoutTemplates, setLayoutTemplates] = useState([]);
   
   const { toast } = useToast();
 
@@ -59,6 +61,18 @@ export default function DesignApprovals() {
       if (res.data.length > 0) {
         setSelectedApproval(res.data[0]);
       }
+
+      // Load database box templates and layout templates for the visualizer
+      try {
+        const invRes = await axios.get("http://localhost:5000/api/inventory");
+        if (invRes.data) {
+          setBoxTemplates(invRes.data.boxes || []);
+          setLayoutTemplates(invRes.data.layoutTemplates || []);
+        }
+      } catch (invErr) {
+        console.error("Failed to load layout templates or box designs:", invErr);
+      }
+
       setLoading(false);
     } catch (err) {
       console.error(err);
@@ -217,8 +231,9 @@ export default function DesignApprovals() {
                     const parsed = parseMessageMetadata(rawMessage);
                     
                     const dbRibbonColor = selectedApproval.order?.ribbonColor;
-                    const ribbonTemplate = BOX_TEMPLATES.find(
-                      b => b.ribbonStyle === dbRibbonColor || b.ribbonHex === dbRibbonColor
+                    const allBoxes = boxTemplates.length > 0 ? boxTemplates : BOX_TEMPLATES;
+                    const ribbonTemplate = allBoxes.find(
+                      b => b.ribbonStyle === dbRibbonColor || b.ribbonHex === dbRibbonColor || b.name === dbRibbonColor
                     );
                     const resolvedRibbonHex = ribbonTemplate ? ribbonTemplate.ribbonHex : (dbRibbonColor || "#D4AF37");
                     
@@ -231,11 +246,12 @@ export default function DesignApprovals() {
                           const dbProd = i.product;
                           if (!dbProd) return null;
                           const catalogProd = PRODUCTS.find(p => p.name.toLowerCase() === dbProd.name.toLowerCase());
-                          return catalogProd ? { ...dbProd, ...catalogProd, id: dbProd.id } : dbProd;
+                          return catalogProd ? { ...catalogProd, ...dbProd } : dbProd;
                         }).filter(Boolean)}
                         ribbonHex={resolvedRibbonHex}
                         layoutId={inferredLayoutId}
-                        boxTemplates={BOX_TEMPLATES}
+                        boxTemplates={allBoxes}
+                        layoutTemplates={layoutTemplates}
                         customizations={{
                           name: selectedApproval.order?.recipient?.name,
                           message: parsed.message,

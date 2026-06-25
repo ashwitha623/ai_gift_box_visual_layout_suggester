@@ -1,17 +1,39 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import AdminCredentialGate from "@/components/admin/AdminCredentialGate";
 import { motion, AnimatePresence } from "framer-motion";
-import { Package, Trash2, Edit3, Plus, Minus, Search, ShieldAlert, Layers, RefreshCw } from "lucide-react";
+import { 
+  Package, Trash2, Edit3, Plus, Minus, Search, ShieldAlert, Layers, RefreshCw,
+  DollarSign, TrendingUp, Users, BarChart2, Calendar, ShoppingBag, Heart
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  ResponsiveContainer, LineChart, Line, AreaChart, Area, BarChart, Bar, 
+  PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend 
+} from "recharts";
+import { getProductImage, BOX_TEMPLATES } from "@/lib/giftdata";
+
+function EmptyChartPlaceholder({ title }) {
+  return (
+    <div className="bg-card border border-slate-200/60 rounded-3xl p-6 shadow-sm flex flex-col justify-between h-[340px]">
+      <h4 className="text-sm font-bold text-primary mb-3 font-heading">{title}</h4>
+      <div className="flex-1 flex flex-col items-center justify-center border border-dashed border-slate-200/80 rounded-2xl bg-slate-50/20 p-4">
+        <BarChart2 className="w-8 h-8 text-slate-300 mb-2" />
+        <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-1">No order data available yet</span>
+        <span className="text-xs text-muted-foreground text-center">Analytics will appear once orders are placed.</span>
+      </div>
+    </div>
+  );
+}
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("orders"); // Defaults to Orders Hub
+
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -599,25 +621,206 @@ export default function AdminDashboard() {
     };
   };
 
-  const analytics = getAnalyticsMetrics();
+  const analytics = useMemo(() => getAnalyticsMetrics(), [products, orders]);
 
-  const totalProductsCount = products.length;
-  const availableProductsStock = products.reduce((sum, p) => sum + p.stock, 0);
-  const availablePackagingStock = packaging.reduce((sum, p) => sum + p.availableQty, 0);
+  const getAnalyticsDashboardData = () => {
+    const totalOrders = orders.length;
+    const totalRevenue = orders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
+    
+    // Customers
+    const customerSet = new Set();
+    orders.forEach(o => {
+      if (o.user?.email) customerSet.add(o.user.email);
+      else if (o.recipient?.phone) customerSet.add(o.recipient.phone);
+      else if (o.recipient?.name) customerSet.add(o.recipient.name);
+    });
+    const totalCustomers = customerSet.size;
+    const totalProducts = products.length;
 
-  const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(inventorySearch.toLowerCase()) || p.sku?.toLowerCase().includes(inventorySearch.toLowerCase());
-    const matchesCat = categoryFilter === "All" || p.category === categoryFilter;
-    return matchesSearch && matchesCat;
-  });
+    // Packing stats
+    let totalSpaceUtil = 0;
+    let totalEfficiency = 0;
+    let ordersWithScores = 0;
 
-  const filteredPackaging = packaging.filter(p => {
-    return p.name.toLowerCase().includes(inventorySearch.toLowerCase()) || p.sku?.toLowerCase().includes(inventorySearch.toLowerCase());
-  });
+    orders.forEach(o => {
+      if (o.spaceUtil !== undefined && o.spaceUtil !== null && o.spaceUtil > 0) {
+        totalSpaceUtil += o.spaceUtil;
+        totalEfficiency += o.packingEfficiency || 0;
+        ordersWithScores++;
+      }
+    });
 
-  const filteredBoxes = boxes.filter(b => {
-    return b.name.toLowerCase().includes(inventorySearch.toLowerCase()) || (b.style && b.style.toLowerCase().includes(inventorySearch.toLowerCase()));
-  });
+    const avgSpaceUtil = ordersWithScores > 0 ? Math.round(totalSpaceUtil / ordersWithScores) : 0;
+    const avgPackingEfficiency = ordersWithScores > 0 ? Math.round(totalEfficiency / ordersWithScores) : 0;
+
+    return {
+      totalOrders,
+      totalRevenue,
+      totalCustomers,
+      totalProducts,
+      avgSpaceUtil,
+      avgPackingEfficiency
+    };
+  };
+
+  const dashboardKPIs = useMemo(() => getAnalyticsDashboardData(), [orders, products]);
+
+  const parseOrderDate = (o) => {
+    if (!o.createdAt) return new Date();
+    return new Date(o.createdAt);
+  };
+
+  const getAnalyticsChartsData = () => {
+    if (orders.length === 0) return {};
+
+    // 1. Monthly Orders & Revenue
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const monthlyMap = {};
+    orders.forEach(o => {
+      const d = parseOrderDate(o);
+      const key = `${months[d.getMonth()]} ${d.getFullYear()}`;
+      if (!monthlyMap[key]) {
+        monthlyMap[key] = { name: key, Orders: 0, Revenue: 0, monthNum: d.getMonth(), year: d.getFullYear() };
+      }
+      monthlyMap[key].Orders += 1;
+      monthlyMap[key].Revenue += (o.totalPrice || 0);
+    });
+    const monthlyData = Object.values(monthlyMap).sort((a, b) => {
+      if (a.year !== b.year) return a.year - b.year;
+      return a.monthNum - b.monthNum;
+    });
+
+    // 2. Daily Orders
+    const dailyMap = {};
+    orders.forEach(o => {
+      const d = parseOrderDate(o);
+      const key = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      const timeVal = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+      if (!dailyMap[timeVal]) {
+        dailyMap[timeVal] = { name: key, Orders: 0, timeVal };
+      }
+      dailyMap[timeVal].Orders += 1;
+    });
+    const dailyData = Object.values(dailyMap).sort((a, b) => a.timeVal - b.timeVal);
+
+    // 3. Weekly Orders (Day of Week)
+    const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const weeklyData = daysOfWeek.map(name => ({ name, Orders: 0 }));
+    orders.forEach(o => {
+      const d = parseOrderDate(o);
+      weeklyData[d.getDay()].Orders += 1;
+    });
+
+    // 4. Product Category Distribution
+    const catMap = {};
+    orders.forEach(o => {
+      if (o.items) {
+        o.items.forEach(item => {
+          const cat = item.product?.category || "Lifestyle Gifts";
+          catMap[cat] = (catMap[cat] || 0) + (item.quantity || 1);
+        });
+      }
+    });
+    const categoryData = Object.entries(catMap).map(([name, value]) => ({ name, value }));
+
+    // 5. Most Ordered Products
+    const prodMap = {};
+    orders.forEach(o => {
+      if (o.items) {
+        o.items.forEach(item => {
+          const name = item.product?.name || "Product";
+          prodMap[name] = (prodMap[name] || 0) + (item.quantity || 1);
+        });
+      }
+    });
+    const productData = Object.entries(prodMap)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    // 6. Most Used Box Size
+    const boxMap = {};
+    orders.forEach(o => {
+      const size = o.boxSize || "Medium Box";
+      boxMap[size] = (boxMap[size] || 0) + 1;
+    });
+    const boxSizeData = Object.entries(boxMap).map(([name, value]) => ({ name, value }));
+
+    // 7. Orders by Occasion
+    const occMap = {};
+    orders.forEach(o => {
+      const occasion = o.occasion || "Just Because";
+      occMap[occasion] = (occMap[occasion] || 0) + 1;
+    });
+    const occasionData = Object.entries(occMap).map(([name, value]) => ({ name, value }));
+
+    // 8. Returning vs New Customers
+    const custMap = {};
+    orders.forEach(o => {
+      const key = o.user?.email || o.recipient?.phone || o.recipient?.name || "Guest";
+      custMap[key] = (custMap[key] || 0) + 1;
+    });
+    let newCust = 0;
+    let retCust = 0;
+    Object.values(custMap).forEach(v => {
+      if (v > 1) retCust += 1;
+      else newCust += 1;
+    });
+    const customerData = [
+      { name: "New Customers", value: newCust },
+      { name: "Returning", value: retCust }
+    ];
+
+    // 9. Packaging Cost Distribution
+    const costMap = {};
+    orders.forEach(o => {
+      const size = o.boxSize || "Medium Box";
+      const matchedBox = BOX_TEMPLATES.find(b => b.name === size || b.id.includes(size.toLowerCase()));
+      const cost = matchedBox ? matchedBox.cost : 400;
+      costMap[size] = (costMap[size] || 0) + cost;
+    });
+    const packagingCostData = Object.entries(costMap).map(([name, value]) => ({ name, value }));
+
+    return {
+      monthlyData,
+      dailyData,
+      weeklyData,
+      categoryData,
+      productData,
+      boxSizeData,
+      occasionData,
+      customerData,
+      packagingCostData
+    };
+  };
+
+  const chartsData = useMemo(() => getAnalyticsChartsData(), [orders, products]);
+  const CHART_COLORS = ["#0B192F", "#C5A880", "#19355E", "#E2D3BE", "#3B82F6", "#10B981", "#F59E0B"];
+
+
+  const totalProductsCount = useMemo(() => products.length, [products]);
+  const availableProductsStock = useMemo(() => products.reduce((sum, p) => sum + p.stock, 0), [products]);
+  const availablePackagingStock = useMemo(() => packaging.reduce((sum, p) => sum + p.availableQty, 0), [packaging]);
+
+  const filteredProducts = useMemo(() => {
+    return products.filter(p => {
+      const matchesSearch = p.name.toLowerCase().includes(inventorySearch.toLowerCase()) || p.sku?.toLowerCase().includes(inventorySearch.toLowerCase());
+      const matchesCat = categoryFilter === "All" || p.category === categoryFilter;
+      return matchesSearch && matchesCat;
+    });
+  }, [products, inventorySearch, categoryFilter]);
+
+  const filteredPackaging = useMemo(() => {
+    return packaging.filter(p => {
+      return p.name.toLowerCase().includes(inventorySearch.toLowerCase()) || p.sku?.toLowerCase().includes(inventorySearch.toLowerCase());
+    });
+  }, [packaging, inventorySearch]);
+
+  const filteredBoxes = useMemo(() => {
+    return boxes.filter(b => {
+      return b.name.toLowerCase().includes(inventorySearch.toLowerCase()) || (b.style && b.style.toLowerCase().includes(inventorySearch.toLowerCase()));
+    });
+  }, [boxes, inventorySearch]);
 
   if (!currentUser || currentUser.role !== "admin") {
     return (
@@ -654,7 +857,8 @@ export default function AdminDashboard() {
           {[
             { id: "orders", label: "Orders Hub (Design & Production) 📦" },
             { id: "inventory", label: "Inventory & Stock Catalog 🛠️" },
-            { id: "layouts", label: "Layout Templates Configuration ⚙️" }
+            { id: "layouts", label: "Layout Templates Configuration ⚙️" },
+            { id: "analytics", label: "Professional Analytics Dashboard 📊" }
           ].map((t) => (
             <button
               key={t.id}
@@ -671,7 +875,41 @@ export default function AdminDashboard() {
         </div>
 
         {loading ? (
-          <div className="text-center py-20">Loading Administrative Metrics...</div>
+          <div className="space-y-8 animate-pulse">
+            {/* Top Stats Cards Skeleton */}
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+              {[1, 2, 3, 4, 5].map(i => (
+                <div key={i} className="bg-card border rounded-3xl p-5 h-24 space-y-2.5">
+                  <div className="w-8 h-8 rounded-full bg-slate-200/80" />
+                  <div className="h-4 w-2/3 bg-slate-200/60 rounded" />
+                </div>
+              ))}
+            </div>
+
+            {/* Content Row Skeleton */}
+            <div className="grid lg:grid-cols-3 gap-6">
+              <div className="bg-card border rounded-3xl p-6 h-96 space-y-4">
+                <div className="h-5 w-1/3 bg-slate-200/80 rounded" />
+                <div className="space-y-3 pt-4">
+                  {[1, 2, 3, 4].map(i => (
+                    <div key={i} className="h-10 bg-slate-100/50 rounded-xl" />
+                  ))}
+                </div>
+              </div>
+              <div className="lg:col-span-2 bg-card border rounded-3xl p-6 h-96 space-y-4">
+                <div className="h-5 w-1/4 bg-slate-200/80 rounded" />
+                <div className="space-y-3 pt-4">
+                  {[1, 2, 3, 4, 5].map(i => (
+                    <div key={i} className="flex justify-between items-center py-2 border-b border-slate-100 last:border-b-0">
+                      <div className="h-4 w-1/3 bg-slate-200/60 rounded" />
+                      <div className="h-4 w-1/5 bg-slate-200/50 rounded" />
+                      <div className="h-4 w-1/6 bg-slate-200/40 rounded" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
         ) : (
           <AnimatePresence mode="wait">
             <motion.div
@@ -698,8 +936,25 @@ export default function AdminDashboard() {
                         </tr>
                       </thead>
                       <tbody>
-                        {orders.slice().reverse().map((o) => (
-                          <tr key={o.id} className="border-b border-border hover:bg-secondary/40 transition-colors">
+                        {orders.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="py-12 text-center">
+                              <div className="flex flex-col items-center justify-center space-y-4 max-w-md mx-auto py-8">
+                                <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center mx-auto text-primary">
+                                  <ShoppingBag className="w-8 h-8 text-slate-400" />
+                                </div>
+                                <div className="space-y-1">
+                                  <h4 className="text-base font-bold text-primary font-heading">No orders placed yet</h4>
+                                  <p className="text-xs text-muted-foreground leading-relaxed">
+                                    Fulfillment stages and workflow logs will appear once customers place their orders.
+                                  </p>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        ) : (
+                          orders.slice().reverse().map((o) => (
+                            <tr key={o.id} className="border-b border-border hover:bg-secondary/40 transition-colors">
                             <td className="py-4 px-4 font-bold text-primary">{o.trackingId}</td>
                             <td className="py-4 px-4 text-xs">
                               {o.user ? o.user.username : "Guest"}
@@ -730,7 +985,7 @@ export default function AdminDashboard() {
                               </Select>
                             </td>
                           </tr>
-                        ))}
+                        )))}
                       </tbody>
                     </table>
                   </div>
@@ -1347,19 +1602,37 @@ export default function AdminDashboard() {
                                 </tr>
                               </thead>
                               <tbody>
-                                {filteredProducts.map((p) => {
-                                  const isLow = p.stock > 0 && p.stock <= (p.minThreshold || 5);
+                                {filteredProducts.length === 0 ? (
+                                  <tr>
+                                    <td colSpan={7} className="py-12 text-center">
+                                      <div className="py-6 flex flex-col items-center justify-center space-y-3">
+                                        <Package className="w-8 h-8 text-slate-300 animate-pulse" />
+                                        <div className="space-y-0.5">
+                                          <p className="font-bold text-primary text-xs">No matching products found</p>
+                                          <p className="text-[11px] text-muted-foreground">Adjust your search or filter keywords and try again.</p>
+                                        </div>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ) : (
+                                  filteredProducts.map((p) => {
+                                    const isLow = p.stock > 0 && p.stock <= (p.minThreshold || 5);
                                   const isOut = p.stock === 0;
                                   return (
                                     <tr key={p.id} className="border-b border-border hover:bg-secondary/40 transition-colors">
-                                      <td className="py-3 px-2">
-                                        <span className="font-bold text-primary block">
-                                          {p.name} {p.fragile && <Badge className="bg-rose-50 text-rose-700 border-rose-100 hover:bg-rose-50 text-[9px] scale-90 px-1 py-0 ml-1">Fragile</Badge>}
-                                        </span>
-                                        <span className="text-[10px] text-slate-400 block">{p.category} · {p.size} Size · ₹{p.price}</span>
-                                        <span className="text-[10px] text-slate-500 font-mono block">
-                                          {p.length || 0} × {p.width || 0} × {p.height || 0} cm · {p.weight || 0}g
-                                        </span>
+                                      <td className="py-3 px-2 flex items-center gap-3">
+                                        <div className="w-10 h-10 premium-product-img-container p-1 rounded-xl flex-shrink-0 bg-white">
+                                          <img src={getProductImage(p)} alt={p.name} className="premium-product-img" />
+                                        </div>
+                                        <div>
+                                          <span className="font-bold text-primary block">
+                                            {p.name} {p.fragile && <Badge className="bg-rose-50 text-rose-700 border-rose-100 hover:bg-rose-50 text-[9px] scale-90 px-1 py-0 ml-1">Fragile</Badge>}
+                                          </span>
+                                          <span className="text-[10px] text-slate-400 block">{p.category} · {p.size} Size · ₹{p.price}</span>
+                                          <span className="text-[10px] text-slate-500 font-mono block">
+                                            {p.length || 0} × {p.width || 0} × {p.height || 0} cm · {p.weight || 0}g
+                                          </span>
+                                        </div>
                                       </td>
                                       <td className="py-3 px-2 font-mono font-semibold text-accent">{p.sku || `PRD-${p.category.substring(0,3).toUpperCase()}-${p.id}`}</td>
                                       <td className="py-3 px-2 font-bold text-slate-700">{p.stock} units</td>
@@ -1387,7 +1660,7 @@ export default function AdminDashboard() {
                                       </td>
                                     </tr>
                                   );
-                                })}
+                                }))}
                               </tbody>
                             </table>
                           </div>
@@ -1410,8 +1683,21 @@ export default function AdminDashboard() {
                                 </tr>
                               </thead>
                               <tbody>
-                                {filteredPackaging.map((item) => {
-                                  const isLow = item.availableQty > 0 && item.availableQty <= item.minThreshold;
+                                {filteredPackaging.length === 0 ? (
+                                  <tr>
+                                    <td colSpan={7} className="py-12 text-center">
+                                      <div className="py-6 flex flex-col items-center justify-center space-y-3">
+                                        <Package className="w-8 h-8 text-slate-300 animate-pulse" />
+                                        <div className="space-y-0.5">
+                                          <p className="font-bold text-primary text-xs">No matching packaging found</p>
+                                          <p className="text-[11px] text-muted-foreground">Adjust your search terms and try again.</p>
+                                        </div>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ) : (
+                                  filteredPackaging.map((item) => {
+                                    const isLow = item.availableQty > 0 && item.availableQty <= item.minThreshold;
                                   const isOut = item.availableQty === 0;
                                   return (
                                     <tr key={item.id} className="border-b border-border hover:bg-secondary/40 transition-colors">
@@ -1442,7 +1728,7 @@ export default function AdminDashboard() {
                                       </td>
                                     </tr>
                                   );
-                                })}
+                                }))}
                               </tbody>
                             </table>
                           </div>
@@ -1465,8 +1751,21 @@ export default function AdminDashboard() {
                                 </tr>
                               </thead>
                               <tbody>
-                                {filteredBoxes.map((b) => (
-                                  <tr key={b.id} className="border-b border-border hover:bg-secondary/40 transition-colors">
+                                {filteredBoxes.length === 0 ? (
+                                  <tr>
+                                    <td colSpan={7} className="py-12 text-center">
+                                      <div className="py-6 flex flex-col items-center justify-center space-y-3">
+                                        <Package className="w-8 h-8 text-slate-300 animate-pulse" />
+                                        <div className="space-y-0.5">
+                                          <p className="font-bold text-primary text-xs">No matching box templates found</p>
+                                          <p className="text-[11px] text-muted-foreground">Adjust your search or add a new box configuration.</p>
+                                        </div>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ) : (
+                                  filteredBoxes.map((b) => (
+                                    <tr key={b.id} className="border-b border-border hover:bg-secondary/40 transition-colors">
                                     <td className="py-3 px-2">
                                       <span className="font-bold text-primary block">{b.name}</span>
                                       <span className="text-[10px] text-slate-400 block">Occasions: {b.occasions}</span>
@@ -1489,7 +1788,7 @@ export default function AdminDashboard() {
                                       </div>
                                     </td>
                                   </tr>
-                                ))}
+                                )))}
                               </tbody>
                             </table>
                           </div>
@@ -1677,6 +1976,285 @@ export default function AdminDashboard() {
                         </tbody>
                       </table>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "analytics" && (
+                <div className="space-y-8">
+                  {/* KPI Summary Block */}
+                  <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+                    <div className="bg-card border rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow text-center sm:text-left">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Orders</span>
+                        <ShoppingBag className="w-4 h-4 text-accent" />
+                      </div>
+                      <p className="text-2xl font-black text-primary">{dashboardKPIs.totalOrders}</p>
+                    </div>
+                    <div className="bg-card border rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow text-center sm:text-left">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Revenue</span>
+                        <DollarSign className="w-4 h-4 text-accent" />
+                      </div>
+                      <p className="text-2xl font-black text-primary">₹{dashboardKPIs.totalRevenue.toLocaleString("en-IN")}</p>
+                    </div>
+                    <div className="bg-card border rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow text-center sm:text-left">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Customers</span>
+                        <Users className="w-4 h-4 text-accent" />
+                      </div>
+                      <p className="text-2xl font-black text-primary">{dashboardKPIs.totalCustomers}</p>
+                    </div>
+                    <div className="bg-card border rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow text-center sm:text-left">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Products</span>
+                        <Package className="w-4 h-4 text-accent" />
+                      </div>
+                      <p className="text-2xl font-black text-primary">{dashboardKPIs.totalProducts}</p>
+                    </div>
+                    <div className="bg-card border rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow text-center sm:text-left">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Avg Packing Eff</span>
+                        <TrendingUp className="w-4 h-4 text-accent" />
+                      </div>
+                      <p className="text-2xl font-black text-primary">{dashboardKPIs.avgPackingEfficiency}%</p>
+                    </div>
+                    <div className="bg-card border rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow text-center sm:text-left">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Avg Space Util</span>
+                        <Layers className="w-4 h-4 text-accent" />
+                      </div>
+                      <p className="text-2xl font-black text-primary">{dashboardKPIs.avgSpaceUtil}%</p>
+                    </div>
+                  </div>
+
+                  {/* Detailed Charts */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Monthly Orders Trend */}
+                    {orders.length === 0 ? (
+                      <EmptyChartPlaceholder title="Monthly Orders Trend (Line Chart)" />
+                    ) : (
+                      <div className="bg-card border rounded-3xl p-6 shadow-sm flex flex-col justify-between h-[340px]">
+                        <h4 className="text-sm font-bold text-primary mb-3 font-heading">Monthly Orders Trend</h4>
+                        <div className="flex-1 w-full min-h-0">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={chartsData.monthlyData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                              <XAxis dataKey="name" stroke="#64748b" fontSize={10} tickLine={false} />
+                              <YAxis stroke="#64748b" fontSize={10} tickLine={false} />
+                              <Tooltip contentStyle={{ background: "#0B192F", border: "none", borderRadius: "12px", color: "#fff", fontSize: "11px" }} />
+                              <Line type="monotone" dataKey="Orders" stroke="#C5A880" strokeWidth={3} dot={{ fill: "#0B192F", stroke: "#C5A880", strokeWidth: 2 }} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Daily Orders Area */}
+                    {orders.length === 0 ? (
+                      <EmptyChartPlaceholder title="Daily Orders Volume (Area Chart)" />
+                    ) : (
+                      <div className="bg-card border rounded-3xl p-6 shadow-sm flex flex-col justify-between h-[340px]">
+                        <h4 className="text-sm font-bold text-primary mb-3 font-heading">Daily Orders Volume</h4>
+                        <div className="flex-1 w-full min-h-0">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={chartsData.dailyData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                              <defs>
+                                <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor="#C5A880" stopOpacity={0.4}/>
+                                  <stop offset="95%" stopColor="#C5A880" stopOpacity={0}/>
+                                </linearGradient>
+                              </defs>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                              <XAxis dataKey="name" stroke="#64748b" fontSize={10} tickLine={false} />
+                              <YAxis stroke="#64748b" fontSize={10} tickLine={false} />
+                              <Tooltip contentStyle={{ background: "#0B192F", border: "none", borderRadius: "12px", color: "#fff", fontSize: "11px" }} />
+                              <Area type="monotone" dataKey="Orders" stroke="#C5A880" fillOpacity={1} fill="url(#colorOrders)" strokeWidth={2} />
+                            </AreaChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Monthly Revenue Bar Chart */}
+                    {orders.length === 0 ? (
+                      <EmptyChartPlaceholder title="Monthly Revenue Analytics (Bar Chart)" />
+                    ) : (
+                      <div className="bg-card border rounded-3xl p-6 shadow-sm flex flex-col justify-between h-[340px]">
+                        <h4 className="text-sm font-bold text-primary mb-3 font-heading">Monthly Revenue (₹)</h4>
+                        <div className="flex-1 w-full min-h-0">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={chartsData.monthlyData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                              <XAxis dataKey="name" stroke="#64748b" fontSize={10} tickLine={false} />
+                              <YAxis stroke="#64748b" fontSize={10} tickLine={false} />
+                              <Tooltip formatter={(value) => [`₹${value.toLocaleString()}`, "Revenue"]} contentStyle={{ background: "#0B192F", border: "none", borderRadius: "12px", color: "#fff", fontSize: "11px" }} />
+                              <Bar dataKey="Revenue" fill="#0B192F" radius={[6, 6, 0, 0]}>
+                                {chartsData.monthlyData.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={index % 2 === 0 ? "#0B192F" : "#C5A880"} />
+                                ))}
+                              </Bar>
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Most Ordered Products */}
+                    {orders.length === 0 ? (
+                      <EmptyChartPlaceholder title="Top Performing Gift Products (Horizontal Bar)" />
+                    ) : (
+                      <div className="bg-card border rounded-3xl p-6 shadow-sm flex flex-col justify-between h-[340px]">
+                        <h4 className="text-sm font-bold text-primary mb-3 font-heading">Top Performing Products</h4>
+                        <div className="flex-1 w-full min-h-0">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart layout="vertical" data={chartsData.productData} margin={{ top: 5, right: 10, left: 15, bottom: 5 }}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                              <XAxis type="number" stroke="#64748b" fontSize={10} tickLine={false} />
+                              <YAxis type="category" dataKey="name" stroke="#64748b" fontSize={10} tickLine={false} width={80} />
+                              <Tooltip contentStyle={{ background: "#0B192F", border: "none", borderRadius: "12px", color: "#fff", fontSize: "11px" }} />
+                              <Bar dataKey="count" fill="#C5A880" radius={[0, 6, 6, 0]} barSize={16} />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Product Category Donut Chart */}
+                    {orders.length === 0 ? (
+                      <EmptyChartPlaceholder title="Gift Category Distribution (Donut Chart)" />
+                    ) : (
+                      <div className="bg-card border rounded-3xl p-6 shadow-sm flex flex-col justify-between h-[340px]">
+                        <h4 className="text-sm font-bold text-primary mb-3 font-heading">Category Distribution</h4>
+                        <div className="flex-1 w-full min-h-0 flex items-center justify-between">
+                          <div className="w-[60%] h-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <PieChart>
+                                <Pie
+                                  data={chartsData.categoryData}
+                                  innerRadius={55}
+                                  outerRadius={75}
+                                  paddingAngle={3}
+                                  dataKey="value"
+                                >
+                                  {chartsData.categoryData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                                  ))}
+                                </Pie>
+                                <Tooltip contentStyle={{ background: "#0B192F", border: "none", borderRadius: "12px", color: "#fff", fontSize: "11px" }} />
+                              </PieChart>
+                            </ResponsiveContainer>
+                          </div>
+                          <div className="w-[40%] flex flex-col justify-center space-y-1.5 overflow-y-auto max-h-[220px] pr-2 scrollbar-thin">
+                            {chartsData.categoryData.map((entry, idx) => (
+                              <div key={idx} className="flex items-center gap-1.5 text-[10px]">
+                                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: CHART_COLORS[idx % CHART_COLORS.length] }} />
+                                <span className="font-semibold text-slate-700 truncate" title={entry.name}>{entry.name} ({entry.value})</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Box Size Distribution */}
+                    {orders.length === 0 ? (
+                      <EmptyChartPlaceholder title="Box Size Allocation Breakdown (Pie Chart)" />
+                    ) : (
+                      <div className="bg-card border rounded-3xl p-6 shadow-sm flex flex-col justify-between h-[340px]">
+                        <h4 className="text-sm font-bold text-primary mb-3 font-heading">Box Size Allocation</h4>
+                        <div className="flex-1 w-full min-h-0 flex items-center justify-between">
+                          <div className="w-[60%] h-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <PieChart>
+                                <Pie
+                                  data={chartsData.boxSizeData}
+                                  outerRadius={75}
+                                  dataKey="value"
+                                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                  labelLine={false}
+                                >
+                                  {chartsData.boxSizeData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                                  ))}
+                                </Pie>
+                                <Tooltip contentStyle={{ background: "#0B192F", border: "none", borderRadius: "12px", color: "#fff", fontSize: "11px" }} />
+                              </PieChart>
+                            </ResponsiveContainer>
+                          </div>
+                          <div className="w-[40%] flex flex-col justify-center space-y-1.5">
+                            {chartsData.boxSizeData.map((entry, idx) => (
+                              <div key={idx} className="flex items-center gap-1.5 text-[10px]">
+                                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: CHART_COLORS[idx % CHART_COLORS.length] }} />
+                                <span className="font-semibold text-slate-700 truncate">{entry.name} ({entry.value})</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Orders by Occasion */}
+                    {orders.length === 0 ? (
+                      <EmptyChartPlaceholder title="Orders by Gift Occasion (Bar Chart)" />
+                    ) : (
+                      <div className="bg-card border rounded-3xl p-6 shadow-sm flex flex-col justify-between h-[340px]">
+                        <h4 className="text-sm font-bold text-primary mb-3 font-heading">Orders by Occasion</h4>
+                        <div className="flex-1 w-full min-h-0">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={chartsData.occasionData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                              <XAxis dataKey="name" stroke="#64748b" fontSize={10} tickLine={false} />
+                              <YAxis stroke="#64748b" fontSize={10} tickLine={false} />
+                              <Tooltip contentStyle={{ background: "#0B192F", border: "none", borderRadius: "12px", color: "#fff", fontSize: "11px" }} />
+                              <Bar dataKey="value" fill="#0B192F" radius={[6, 6, 0, 0]}>
+                                {chartsData.occasionData.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={CHART_COLORS[(index + 1) % CHART_COLORS.length]} />
+                                ))}
+                              </Bar>
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Customer Retention */}
+                    {orders.length === 0 ? (
+                      <EmptyChartPlaceholder title="Customer Loyalty Distribution (Donut Chart)" />
+                    ) : (
+                      <div className="bg-card border rounded-3xl p-6 shadow-sm flex flex-col justify-between h-[340px]">
+                        <h4 className="text-sm font-bold text-primary mb-3 font-heading">Customer Loyalty</h4>
+                        <div className="flex-1 w-full min-h-0 flex items-center justify-between">
+                          <div className="w-[60%] h-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <PieChart>
+                                <Pie
+                                  data={chartsData.customerData}
+                                  innerRadius={55}
+                                  outerRadius={75}
+                                  paddingAngle={3}
+                                  dataKey="value"
+                                >
+                                  <Cell fill="#0B192F" />
+                                  <Cell fill="#C5A880" />
+                                </Pie>
+                                <Tooltip contentStyle={{ background: "#0B192F", border: "none", borderRadius: "12px", color: "#fff", fontSize: "11px" }} />
+                              </PieChart>
+                            </ResponsiveContainer>
+                          </div>
+                          <div className="w-[40%] flex flex-col justify-center space-y-1.5">
+                            <div className="flex items-center gap-1.5 text-[10px]">
+                              <span className="w-2 h-2 rounded-full flex-shrink-0 bg-[#0B192F]" />
+                              <span className="font-semibold text-slate-700">New Customers ({chartsData.customerData[0].value})</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-[10px]">
+                              <span className="w-2 h-2 rounded-full flex-shrink-0 bg-[#C5A880]" />
+                              <span className="font-semibold text-slate-700">Returning Customers ({chartsData.customerData[1].value})</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

@@ -226,11 +226,31 @@ export default function CRMCalendar() {
               </div>
 
               {loading ? (
-                <div className="text-center py-10">Loading contacts...</div>
+                <div className="space-y-4 animate-pulse">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="bg-secondary/40 rounded-2xl p-5 border border-border/70 flex flex-wrap items-center justify-between gap-4 h-24">
+                      <div className="flex items-start gap-4 w-3/4">
+                        <div className="w-12 h-12 rounded-xl bg-slate-200 flex-shrink-0" />
+                        <div className="space-y-2 w-1/2 mt-1">
+                          <div className="h-4 w-full bg-slate-200 rounded" />
+                          <div className="h-3.5 w-3/4 bg-slate-100 rounded" />
+                        </div>
+                      </div>
+                      <div className="h-9 w-24 bg-slate-200 rounded-full" />
+                    </div>
+                  ))}
+                </div>
               ) : contacts.length === 0 ? (
-                <div className="text-center py-12">
-                  <Calendar className="w-12 h-12 text-muted-foreground/40 mx-auto mb-3" />
-                  <p className="text-muted-foreground text-sm">No milestone dates tracked yet. Add one to see calendar reminders!</p>
+                <div className="flex flex-col items-center justify-center p-12 text-center border border-dashed border-slate-200/80 rounded-[28px] bg-slate-50/20 my-4 space-y-4">
+                  <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center mx-auto text-primary">
+                    <Calendar className="w-7 h-7 text-slate-400" />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="text-base font-bold text-primary font-heading">No milestone dates tracked</h4>
+                    <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+                      Add contacts and set dates on the left to schedule automated gifting reminders.
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-4">

@@ -108,11 +108,70 @@ export default function CRMDetail() {
   };
 
   if (loading) {
-    return <div className="text-center py-20 text-xs">Retrieving Customer CRM Record...</div>;
+    return (
+      <div className="min-h-screen bg-background py-10 px-6 font-body text-foreground animate-pulse">
+        <div className="max-w-5xl mx-auto space-y-8">
+          {/* Header banner skeleton */}
+          <div className="relative overflow-hidden rounded-[30px] bg-slate-200/80 p-8 h-40 flex items-center border">
+            <div className="space-y-3 w-1/3">
+              <div className="h-6 w-3/4 bg-slate-300/60 rounded" />
+              <div className="h-4 w-1/2 bg-slate-300/40 rounded" />
+            </div>
+          </div>
+          
+          {/* Stats grid skeleton */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="bg-card border rounded-3xl p-6 h-28 space-y-3">
+                <div className="h-3 w-1/2 bg-slate-200/60 rounded" />
+                <div className="h-6 w-1/3 bg-slate-200/80 rounded" />
+              </div>
+            ))}
+          </div>
+
+          {/* Columns skeleton */}
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="bg-card border rounded-3xl p-6 h-64 space-y-4">
+              <div className="h-4 w-1/3 bg-slate-200/60 rounded" />
+              <div className="space-y-2 pt-2">
+                <div className="h-4 w-full bg-slate-100/50 rounded" />
+                <div className="h-4 w-3/4 bg-slate-100/50 rounded" />
+                <div className="h-4 w-1/2 bg-slate-100/50 rounded" />
+              </div>
+            </div>
+            <div className="bg-card border rounded-3xl p-6 h-64 space-y-4">
+              <div className="h-4 w-1/3 bg-slate-200/60 rounded" />
+              <div className="space-y-2 pt-2">
+                <div className="h-4 w-full bg-slate-100/50 rounded" />
+                <div className="h-4 w-3/4 bg-slate-100/50 rounded" />
+                <div className="h-4 w-1/2 bg-slate-100/50 rounded" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!customer) {
-    return <div className="text-center py-20 text-xs text-muted-foreground">Customer profile record not found.</div>;
+    return (
+      <div className="min-h-screen bg-background py-20 px-6 flex items-center justify-center">
+        <div className="flex flex-col items-center justify-center p-12 text-center border border-dashed border-slate-200/80 rounded-[28px] bg-slate-50/20 max-w-md w-full space-y-4">
+          <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center mx-auto text-primary">
+            <User className="w-7 h-7 text-slate-400" />
+          </div>
+          <div className="space-y-1">
+            <h4 className="text-base font-bold text-primary font-heading">Profile Not Found</h4>
+            <p className="text-xs text-muted-foreground">
+              The requested customer record does not exist or has been removed.
+            </p>
+          </div>
+          <Button onClick={() => navigate("/crm")} className="rounded-full bg-primary hover:bg-primary/95 text-white text-xs font-semibold px-6 h-10">
+            Back to CRM Calendar
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   // Aggregate stats

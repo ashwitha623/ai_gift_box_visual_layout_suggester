@@ -269,7 +269,29 @@ export default function Layouts() {
 
         {/* Layout list */}
         {loading ? (
-          <div className="text-center py-20 text-xs text-muted-foreground">Loading layouts...</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="bg-card border border-slate-200/80 rounded-[28px] overflow-hidden shadow-sm h-80 p-6 space-y-5">
+                <div className="flex justify-between items-center border-b pb-4">
+                  <div className="space-y-2 w-1/3">
+                    <div className="h-4 bg-slate-200 rounded" />
+                    <div className="h-3 bg-slate-100 rounded w-2/3" />
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-slate-200" />
+                </div>
+                <div className="h-12 bg-slate-100 rounded-xl" />
+                <div className="space-y-2">
+                  <div className="h-3 bg-slate-200 rounded w-1/4" />
+                  <div className="flex gap-2">
+                    {[1, 2, 3].map(j => (
+                      <div key={j} className="w-10 h-10 bg-slate-200 rounded-xl" />
+                    ))}
+                  </div>
+                </div>
+                <div className="h-10 bg-slate-200 rounded-full w-full mt-4" />
+              </div>
+            ))}
+          </div>
         ) : filteredLayouts.length === 0 ? (
           <div className="bg-card border rounded-[32px] p-12 text-center max-w-xl mx-auto space-y-6 shadow-sm">
             <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center mx-auto text-primary">
@@ -357,10 +379,10 @@ export default function Layouts() {
                             {matchedProducts.map((p, pIdx) => (
                               <div 
                                 key={`${p.id}-${pIdx}`} 
-                                className="relative flex-shrink-0 w-11 h-11 rounded-xl border border-slate-100 overflow-hidden bg-slate-50 flex items-center justify-center"
+                                className="relative flex-shrink-0 w-11 h-11 rounded-xl border border-slate-200 overflow-hidden bg-slate-50/70 flex items-center justify-center p-1"
                                 title={p.name}
                               >
-                                <img src={getProductImage(p)} alt={p.name} className="w-full h-full object-cover" />
+                                <img src={getProductImage(p)} alt={p.name} className="premium-product-img" />
                               </div>
                             ))}
                           </div>

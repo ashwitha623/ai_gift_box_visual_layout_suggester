@@ -117,9 +117,36 @@ export default function NotificationsDashboard() {
           </div>
 
           {loading ? (
-            <div className="text-center py-10 text-xs">Loading alerts history...</div>
+            <div className="space-y-3 animate-pulse">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="p-4 rounded-2xl border border-slate-200/60 bg-slate-50/30 flex flex-col sm:flex-row justify-between sm:items-center gap-3 h-20 sm:h-16">
+                  <div className="space-y-2 w-3/4">
+                    <div className="h-4 w-1/4 bg-slate-200 rounded" />
+                    <div className="h-3.5 w-full bg-slate-100 rounded" />
+                  </div>
+                  <div className="h-5 w-16 bg-slate-200 rounded-full self-start sm:self-center" />
+                </div>
+              ))}
+            </div>
           ) : filtered.length === 0 ? (
-            <div className="text-center py-12 text-xs text-muted-foreground">No alerts match the selected status filter.</div>
+            <div className="flex flex-col items-center justify-center p-12 text-center border border-dashed border-slate-200/80 rounded-[28px] bg-slate-50/20 my-6 space-y-4">
+              <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center mx-auto text-primary">
+                <Bell className="w-7 h-7 text-slate-400" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-base font-bold text-primary font-heading">All clear! No alerts</h4>
+                <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+                  No notifications match the selected status filter at the moment.
+                </p>
+              </div>
+              <Button 
+                onClick={loadNotifications}
+                variant="outline" 
+                className="rounded-full border hover:bg-slate-50 text-xs font-semibold px-5 h-9"
+              >
+                Sync Notification Stream
+              </Button>
+            </div>
           ) : (
             <div className="space-y-3">
               {filtered.map(n => {
