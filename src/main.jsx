@@ -7,8 +7,11 @@ import axios from 'axios'
 // Global Axios Request Interceptor for Role/ID headers and API Base URL replacement
 axios.interceptors.request.use(
   (config) => {
-    // If a remote VITE_API_URL is configured, rewrite localhost:5000 requests to it
-    const apiBase = import.meta.env.VITE_API_URL;
+    // If a remote VITE_API_URL is configured or if we are not running locally, rewrite requests
+    let apiBase = import.meta.env.VITE_API_URL;
+    if (!apiBase && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+      apiBase = "https://paperplane-backend-hl87.onrender.com";
+    }
     if (apiBase && config.url && config.url.startsWith("http://localhost:5000")) {
       config.url = config.url.replace("http://localhost:5000", apiBase);
     }
